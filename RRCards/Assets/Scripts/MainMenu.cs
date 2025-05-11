@@ -1,17 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
 
 public class MainMenu : MonoBehaviour
 {
     // Gán các panel qua Inspector
     public GameObject mainPanel;
-    public GameObject startPanel;
     public GameObject optionPanel;
     public GameObject rulePanel;
     public GameObject statsPanel;
-    public GameObject idPanel;
-    public GameObject roomPanel;
 
     void Start()
     {
@@ -21,64 +20,36 @@ public class MainMenu : MonoBehaviour
 
     public void ShowMain()
     {
-        startPanel.SetActive(false);
         mainPanel.SetActive(true);
         optionPanel.SetActive(false);
         rulePanel.SetActive(false);
         statsPanel.SetActive(false);
-        roomPanel.SetActive(false);
-        idPanel.SetActive(false);
-    }
-
-
-    public void ShowId()
-    {
-        idPanel.SetActive(true);    
-        startPanel.SetActive(false);
-        mainPanel.SetActive(false);
-        optionPanel.SetActive(false);
-        rulePanel.SetActive(false);
-        statsPanel.SetActive(false);
-        roomPanel.SetActive(false);
     }
 
     public void ShowRoom()
     {
-        idPanel.SetActive(false);
-        startPanel.SetActive(false);
         mainPanel.SetActive(false);
         optionPanel.SetActive(false);
         rulePanel.SetActive(false);
         statsPanel.SetActive(false);
-        roomPanel.SetActive(true);
     }
 
     public void ShowStart()
     {
-        startPanel.SetActive(true);
-        mainPanel.SetActive(false);
-        optionPanel.SetActive(false);
-        rulePanel.SetActive(false);
-        statsPanel.SetActive(false);
-        roomPanel.SetActive(false);
-        idPanel.SetActive(false);
+        SceneManager.LoadScene("Lobby");
 
     }
 
     public void ShowOption()
     {
-        startPanel.SetActive(false);
         mainPanel.SetActive(false);
         optionPanel.SetActive(true);
         rulePanel.SetActive(false);
         statsPanel.SetActive(false);
-        roomPanel.SetActive(false);
-        idPanel.SetActive(false);
     }
 
     public void ShowRule()
     {
-        startPanel.SetActive(false);
         mainPanel.SetActive(false);
         optionPanel.SetActive(false);
         rulePanel.SetActive(true);
@@ -87,13 +58,10 @@ public class MainMenu : MonoBehaviour
 
     public void ShowStats()
     {
-        startPanel.SetActive(false);
         mainPanel.SetActive(false);
         optionPanel.SetActive(false);
         rulePanel.SetActive(false);
         statsPanel.SetActive(true);
-        roomPanel.SetActive(false);
-        idPanel.SetActive(false);
     }
 
     public void ExitGame()
