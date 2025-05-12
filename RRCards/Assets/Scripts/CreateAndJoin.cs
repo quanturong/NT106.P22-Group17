@@ -1,9 +1,10 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
+using Photon.Realtime;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class CreateAndJoin : MonoBehaviourPunCallbacks
 {
@@ -15,12 +16,15 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     void Start()
     {
         Debug.Log("Connecting to Photon...");
+
+        PhotonNetwork.AutomaticallySyncScene = true; // Đồng bộ scene giữa các client
+        PhotonNetwork.GameVersion = "1.0"; // Quan trọng: 2 máy phải giống GameVersion
         PhotonNetwork.ConnectUsingSettings();
     }
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("Connected to Master. Joining Lobby...");
+        Debug.Log("Connected to Master Region: " + PhotonNetwork.CloudRegion);
         PhotonNetwork.JoinLobby();
     }
 
@@ -44,7 +48,14 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
             return;
         }
 
-        PhotonNetwork.CreateRoom(input_Create.text);
+        RoomOptions options = new RoomOptions
+        {
+            MaxPlayers = 2,
+            IsVisible = true,
+            IsOpen = true
+        };
+
+        PhotonNetwork.CreateRoom(input_Create.text, options);
     }
 
     public void JoinRoom()
@@ -72,17 +83,22 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
 
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        Debug.LogError("CreateRoom failed: " + message);
+        Debug.LogError($"CreateRoom failed (code {returnCode}): {message}");
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        Debug.LogError("JoinRoom failed: " + message);
+        Debug.LogError($"JoinRoom failed (code {returnCode}): {message}");
     }
 
-    public override void OnDisconnected(Photon.Realtime.DisconnectCause cause)
+    public override void OnDisconnected(DisconnectCause cause)
     {
-        Debug.LogError("Disconnected from Photon: " + cause.ToString());
+        Debug.LogError("Disconnected from Photon: " + cause);
         isReady = false;
+    }
+
+    public void LoadLobbyScene()
+    {
+        SceneManager.LoadScene("UI");
     }
 }
