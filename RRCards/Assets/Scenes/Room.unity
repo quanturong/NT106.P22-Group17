@@ -961,8 +961,8 @@ MonoBehaviour:
   leftAvatarSlot: {fileID: 1269376568}
   rightAvatarSlot: {fileID: 1573230299}
   availableAvatars:
-  - {fileID: 21300000, guid: a8b8d6c583c21b24fa0b400d77dd6769, type: 3}
-  - {fileID: 21300000, guid: 94d2c55f28bd1b747bee752b56aa423c, type: 3}
+  - {fileID: 21300000, guid: eb02101c3dbcd40448e4fc6d18d3543f, type: 3}
+  - {fileID: 21300000, guid: eb02101c3dbcd40448e4fc6d18d3543f, type: 3}
   vsImage: {fileID: 349517660}
   readyButton: {fileID: 979786769}
   fadeInTime: 0.5

@@ -3,20 +3,24 @@
   "WorkspaceRootPath": "E:\\New folder\\NT106.P22-Group17\\RRCards\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\AvatarDisplay.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\AvatarDisplay.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\Defeat.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\Defeat.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\AudioManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\AudioManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\Victory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\Victory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CreateAndJoin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\CreateAndJoin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\MainMenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\MainMenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\SpinWheel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\SpinWheel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\Editor\\SpinWheelEditor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\Editor\\SpinWheelEditor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,42 +34,27 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "MainMenu.cs",
-              "DocumentMoniker": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\MainMenu.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\MainMenu.cs",
-              "ToolTip": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\MainMenu.cs",
-              "RelativeToolTip": "Assets\\Scripts\\MainMenu.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAAAAAAA",
+              "DocumentIndex": 1,
+              "Title": "Victory.cs",
+              "DocumentMoniker": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\Victory.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Victory.cs",
+              "ToolTip": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\Victory.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Victory.cs",
+              "ViewState": "AQIAABsAAAAAAAAAAAAAwDYAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-10T18:02:25.157Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-12T13:13:45.683Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "AvatarDisplay.cs",
-              "DocumentMoniker": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\AvatarDisplay.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\AvatarDisplay.cs",
-              "ToolTip": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\AvatarDisplay.cs",
-              "RelativeToolTip": "Assets\\Scripts\\AvatarDisplay.cs",
-              "ViewState": "AQIAAMQAAAAAAAAAAAAUwJsBAAAoAAAA",
+              "Title": "Defeat.cs",
+              "DocumentMoniker": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\Defeat.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Defeat.cs",
+              "ToolTip": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\Defeat.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Defeat.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAoAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-11T17:50:17.137Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "AudioManager.cs",
-              "DocumentMoniker": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\AudioManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\AudioManager.cs",
-              "ToolTip": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\AudioManager.cs",
-              "RelativeToolTip": "Assets\\Scripts\\AudioManager.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABYAAAAnAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-11T17:37:07.147Z",
+              "WhenOpened": "2025-05-12T13:41:40.441Z",
               "EditorCaption": ""
             },
             {
@@ -76,10 +65,33 @@
               "RelativeDocumentMoniker": "Assets\\Scripts\\CreateAndJoin.cs",
               "ToolTip": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CreateAndJoin.cs",
               "RelativeToolTip": "Assets\\Scripts\\CreateAndJoin.cs",
-              "ViewState": "AQIAAEIAAAAAAAAAAAAUwFcAAAABAAAA",
+              "ViewState": "AQIAAEYAAAAAAAAAAAAjwFQAAABIAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-11T17:02:52.882Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-12T13:36:35.131Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "SpinWheelEditor.cs",
+              "DocumentMoniker": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\Editor\\SpinWheelEditor.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Editor\\SpinWheelEditor.cs",
+              "ToolTip": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\Editor\\SpinWheelEditor.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Editor\\SpinWheelEditor.cs",
+              "ViewState": "AQIAAFkAAAAAAAAAAAAUwG8AAAABAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-12T09:51:20.82Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "SpinWheel.cs",
+              "DocumentMoniker": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\SpinWheel.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SpinWheel.cs",
+              "ToolTip": "E:\\New folder\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\SpinWheel.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SpinWheel.cs",
+              "ViewState": "AQIAAOgAAAAAAAAAAAAgwAIBAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-12T06:45:33.068Z"
             }
           ]
         }
