@@ -405,7 +405,7 @@ public class PhotonVersusRoomManager : MonoBehaviourPunCallbacks
         yield return new WaitForSeconds(battleStartDelay);
 
         // Load the battle scene
-        PhotonNetwork.LoadLevel("BattleScene");
+        PhotonNetwork.LoadLevel("GameUI");
     }
 
     // For testing - cycle through available avatars
