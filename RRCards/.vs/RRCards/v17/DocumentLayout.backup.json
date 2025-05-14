@@ -1,0 +1,159 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|d:\\github\\nt106.p22-group17\\rrcards\\assets\\scripts\\audiomanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\audiomanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|d:\\github\\nt106.p22-group17\\rrcards\\assets\\scripts\\mainmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\mainmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|D:\\GitHub\\NT106.P22-Group17\\RRCards\\assets\\scripts\\optiontoggle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\optiontoggle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|D:\\GitHub\\NT106.P22-Group17\\RRCards\\assets\\scripts\\opponentcardcounter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\opponentcardcounter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|D:\\GitHub\\NT106.P22-Group17\\RRCards\\assets\\scripts\\carddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\carddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|D:\\GitHub\\NT106.P22-Group17\\RRCards\\assets\\scripts\\cardclick.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\cardclick.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|D:\\GitHub\\NT106.P22-Group17\\RRCards\\assets\\scripts\\handmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\handmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|D:\\GitHub\\NT106.P22-Group17\\RRCards\\assets\\scripts\\cardhover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\cardhover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AudioManager.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\AudioManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\AudioManager.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\AudioManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\AudioManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-13T23:47:04.63Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainMenu.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\MainMenu.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MainMenu.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\MainMenu.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MainMenu.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADAAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-13T21:34:26.272Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "OptionToggle.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\OptionToggle.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\OptionToggle.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\OptionToggle.cs",
+              "RelativeToolTip": "Assets\\Scripts\\OptionToggle.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-13T21:25:10.748Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "OpponentCardCounter.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\OpponentCardCounter.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\OpponentCardCounter.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\OpponentCardCounter.cs",
+              "RelativeToolTip": "Assets\\Scripts\\OpponentCardCounter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-13T20:59:11.994Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "CardClick.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CardClick.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\CardClick.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CardClick.cs",
+              "RelativeToolTip": "Assets\\Scripts\\CardClick.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-13T19:15:37.141Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "CardData.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CardData.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\CardData.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CardData.cs",
+              "RelativeToolTip": "Assets\\Scripts\\CardData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-13T18:07:25.871Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "CardHover.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CardHover.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\CardHover.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CardHover.cs",
+              "RelativeToolTip": "Assets\\Scripts\\CardHover.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-13T16:20:24.606Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "HandManager.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\HandManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\HandManager.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\HandManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\HandManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-13T15:45:12.454Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

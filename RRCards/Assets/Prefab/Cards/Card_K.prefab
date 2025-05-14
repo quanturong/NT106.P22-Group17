@@ -12,6 +12,9 @@ GameObject:
   - component: {fileID: 1441328088538970928}
   - component: {fileID: 349344429314190190}
   - component: {fileID: 4943566102475772277}
+  - component: {fileID: 799216971773707482}
+  - component: {fileID: 5828251104629663108}
+  - component: {fileID: 4215174098379331478}
   m_Layer: 5
   m_Name: Card_K
   m_TagString: Untagged
@@ -98,3 +101,45 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &799216971773707482
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7425773716666212229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f910ef0e3381cab4eb9d552f95e869d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverHeight: 30
+  hoverSpeed: 5
+--- !u!114 &5828251104629663108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7425773716666212229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e1b7fae78ab0d45b8ffe5697e9adfb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardName: King
+  cardSprite: {fileID: 9029990582622950105, guid: 4210575e29d606c4bb5a60bca08f00c1, type: 3}
+--- !u!114 &4215174098379331478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7425773716666212229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42c3c3c062e7c6c44bc9ad49b27e1f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  middleCardBack: {fileID: 0}
+  handManager: {fileID: 0}

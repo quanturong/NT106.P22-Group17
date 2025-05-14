@@ -12,6 +12,9 @@ GameObject:
   - component: {fileID: 8289098154346384882}
   - component: {fileID: 3021931253521894307}
   - component: {fileID: 6933737863685456433}
+  - component: {fileID: 8976874360931838043}
+  - component: {fileID: -8273501487800616754}
+  - component: {fileID: 9101233300425854215}
   m_Layer: 5
   m_Name: Card_Q
   m_TagString: Untagged
@@ -98,3 +101,45 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8976874360931838043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 768164225543486804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f910ef0e3381cab4eb9d552f95e869d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverHeight: 30
+  hoverSpeed: 5
+--- !u!114 &-8273501487800616754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 768164225543486804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e1b7fae78ab0d45b8ffe5697e9adfb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardName: Queen
+  cardSprite: {fileID: -6522486982360758837, guid: 8af49fa1d9fb4634dbee488c2785b847, type: 3}
+--- !u!114 &9101233300425854215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 768164225543486804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42c3c3c062e7c6c44bc9ad49b27e1f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  middleCardBack: {fileID: 0}
+  handManager: {fileID: 0}

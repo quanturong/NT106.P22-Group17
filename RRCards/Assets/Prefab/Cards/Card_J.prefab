@@ -12,6 +12,9 @@ GameObject:
   - component: {fileID: 2914598279068070880}
   - component: {fileID: 2503355282442742319}
   - component: {fileID: 687467715987971292}
+  - component: {fileID: -6971471448207000732}
+  - component: {fileID: -7551659790796585326}
+  - component: {fileID: 1326666300187247307}
   m_Layer: 5
   m_Name: Card_J
   m_TagString: Untagged
@@ -98,3 +101,45 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &-6971471448207000732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 359954759266201623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f910ef0e3381cab4eb9d552f95e869d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverHeight: 30
+  hoverSpeed: 5
+--- !u!114 &-7551659790796585326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 359954759266201623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e1b7fae78ab0d45b8ffe5697e9adfb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardName: Jack
+  cardSprite: {fileID: -4747764563213218090, guid: 5fce6a1be8059104391c6c804b4c36f6, type: 3}
+--- !u!114 &1326666300187247307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 359954759266201623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42c3c3c062e7c6c44bc9ad49b27e1f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  middleCardBack: {fileID: 0}
+  handManager: {fileID: 0}
