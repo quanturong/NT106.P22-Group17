@@ -69,7 +69,7 @@ public class MainMenu : MonoBehaviour
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
-        Application.Quit();
+        SceneManager.LoadScene(0); 
 #endif
     }
 }
