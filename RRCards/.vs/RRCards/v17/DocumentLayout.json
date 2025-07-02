@@ -3,6 +3,26 @@
   "WorkspaceRootPath": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|d:\\github\\nt106.p22-group17\\rrcards\\assets\\scripts\\playfabauthmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\playfabauthmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|d:\\github\\nt106.p22-group17\\rrcards\\assets\\scripts\\loginpageplayfab.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\loginpageplayfab.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|d:\\github\\nt106.p22-group17\\rrcards\\assets\\scripts\\createandjoin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\createandjoin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CBA05A93-EFBB-1B25-9B00-98BD1900C1B1}|PlayFab.csproj|d:\\github\\nt106.p22-group17\\rrcards\\assets\\playfabsdk\\localization\\playfabevents.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CBA05A93-EFBB-1B25-9B00-98BD1900C1B1}|PlayFab.csproj|solutionrelative:assets\\playfabsdk\\localization\\playfabevents.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CBA05A93-EFBB-1B25-9B00-98BD1900C1B1}|PlayFab.csproj|D:\\GitHub\\NT106.P22-Group17\\RRCards\\assets\\playfabsdk\\multiplayer\\playfabevents.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CBA05A93-EFBB-1B25-9B00-98BD1900C1B1}|PlayFab.csproj|solutionrelative:assets\\playfabsdk\\multiplayer\\playfabevents.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|D:\\GitHub\\NT106.P22-Group17\\RRCards\\assets\\scripts\\optiontoggle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\optiontoggle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -11,11 +31,11 @@
       "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\mainmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|d:\\github\\nt106.p22-group17\\rrcards\\assets\\scripts\\volumesetting.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|D:\\GitHub\\NT106.P22-Group17\\RRCards\\assets\\scripts\\volumesetting.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\volumesetting.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|d:\\github\\nt106.p22-group17\\rrcards\\assets\\scripts\\audiomanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|D:\\GitHub\\NT106.P22-Group17\\RRCards\\assets\\scripts\\audiomanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{88328ED4-DBEF-2868-73D7-4A6E85D09356}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\audiomanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -46,7 +66,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -58,7 +78,71 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "PlayfabAuthManager.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\PlayfabAuthManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\PlayfabAuthManager.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\PlayfabAuthManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\PlayfabAuthManager.cs",
+              "ViewState": "AgIAAJgAAAAAAAAAAAAAAOoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T18:01:05.869Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "CreateAndJoin.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CreateAndJoin.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\CreateAndJoin.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CreateAndJoin.cs",
+              "RelativeToolTip": "Assets\\Scripts\\CreateAndJoin.cs",
+              "ViewState": "AgIAABABAAAAAAAAAAAswCcBAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T17:56:38.486Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "LoginPagePlayfab.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\LoginPagePlayfab.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\LoginPagePlayfab.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\LoginPagePlayfab.cs",
+              "RelativeToolTip": "Assets\\Scripts\\LoginPagePlayfab.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T17:49:50.169Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PlayFabEvents.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\PlayFabSDK\\Localization\\PlayFabEvents.cs",
+              "RelativeDocumentMoniker": "Assets\\PlayFabSDK\\Localization\\PlayFabEvents.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\PlayFabSDK\\Localization\\PlayFabEvents.cs",
+              "RelativeToolTip": "Assets\\PlayFabSDK\\Localization\\PlayFabEvents.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T17:07:33.902Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "PlayFabEvents.cs",
+              "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\PlayFabSDK\\Multiplayer\\PlayFabEvents.cs",
+              "RelativeDocumentMoniker": "Assets\\PlayFabSDK\\Multiplayer\\PlayFabEvents.cs",
+              "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\PlayFabSDK\\Multiplayer\\PlayFabEvents.cs",
+              "RelativeToolTip": "Assets\\PlayFabSDK\\Multiplayer\\PlayFabEvents.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T17:06:23.377Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "VolumeSetting.cs",
               "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\VolumeSetting.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\VolumeSetting.cs",
@@ -66,12 +150,11 @@
               "RelativeToolTip": "Assets\\Scripts\\VolumeSetting.cs",
               "ViewState": "AgIAAAgAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-13T23:47:26.967Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-13T23:47:26.967Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 8,
               "Title": "AudioManager.cs",
               "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\AudioManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\AudioManager.cs",
@@ -79,12 +162,11 @@
               "RelativeToolTip": "Assets\\Scripts\\AudioManager.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-13T23:47:04.63Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-13T23:47:04.63Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 6,
               "Title": "MainMenu.cs",
               "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\MainMenu.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\MainMenu.cs",
@@ -92,12 +174,11 @@
               "RelativeToolTip": "Assets\\Scripts\\MainMenu.cs",
               "ViewState": "AgIAAAYAAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-13T21:34:26.272Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-13T21:34:26.272Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 5,
               "Title": "OptionToggle.cs",
               "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\OptionToggle.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\OptionToggle.cs",
@@ -105,12 +186,11 @@
               "RelativeToolTip": "Assets\\Scripts\\OptionToggle.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-13T21:25:10.748Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-13T21:25:10.748Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 9,
               "Title": "OpponentCardCounter.cs",
               "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\OpponentCardCounter.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\OpponentCardCounter.cs",
@@ -122,7 +202,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 11,
               "Title": "CardClick.cs",
               "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CardClick.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CardClick.cs",
@@ -134,7 +214,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 10,
               "Title": "CardData.cs",
               "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CardData.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CardData.cs",
@@ -146,7 +226,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 13,
               "Title": "CardHover.cs",
               "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\CardHover.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CardHover.cs",
@@ -158,7 +238,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 12,
               "Title": "HandManager.cs",
               "DocumentMoniker": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\HandManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\HandManager.cs",

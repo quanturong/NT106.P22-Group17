@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using PlayFab;
 using PlayFab.ClientModels;
@@ -11,7 +9,6 @@ using UnityEngine.SceneManagement;
 public class LoginPagePlayfab : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI Message;
-    
 
     [Header("Login")]
     [SerializeField] TMP_InputField EmailLoginInput;
@@ -29,22 +26,21 @@ public class LoginPagePlayfab : MonoBehaviour
     [SerializeField] TMP_InputField PasswordRecoveryInput;
     [SerializeField] TMP_InputField OtpRecoveryInput;
     [SerializeField] GameObject RecoveryPage;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+    private Coroutine messageCoroutine;
+
     void Start()
     {
-        
+        if (PlayfabAuthManager.Instance == null)
+        {
+            GameObject authManager = new GameObject("PlayfabAuthManager");
+            authManager.AddComponent<PlayfabAuthManager>();
+        }
     }
-    
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-    private Coroutine messageCoroutine;
-    #region MesageBox
+
+    #region MessageBox
     private void ShowMessage(string msg, float duration = 5f)
     {
-        // Nếu đã có coroutine đang chạy thì dừng lại
         if (messageCoroutine != null)
             StopCoroutine(messageCoroutine);
 
@@ -59,6 +55,7 @@ public class LoginPagePlayfab : MonoBehaviour
         messageCoroutine = null;
     }
     #endregion
+
     public void ExitGame()
     {
 #if UNITY_EDITOR
@@ -67,75 +64,136 @@ public class LoginPagePlayfab : MonoBehaviour
         Application.Quit();
 #endif
     }
+
     #region Button Functions
     public void OpenLoginPage()
     {
         LoginPage.SetActive(true);
         RegisterPage.SetActive(false);
         RecoveryPage.SetActive(false);
-        
     }
+
     public void OpenRegisterPage()
     {
         LoginPage.SetActive(false);
         RegisterPage.SetActive(true);
         RecoveryPage.SetActive(false);
-        
     }
+
     public void OpenRecoveryPage()
     {
         LoginPage.SetActive(false);
         RegisterPage.SetActive(false);
         RecoveryPage.SetActive(true);
-       
     }
     #endregion
 
     #region PlayFab Auth
     public void RegisterUser()
     {
-        var request = new RegisterPlayFabUserRequest
+        if (string.IsNullOrEmpty(NameRegisterInput.text) ||
+            string.IsNullOrEmpty(EmailRegisterInput.text) ||
+            string.IsNullOrEmpty(PasswordRegisterInput.text))
         {
-            DisplayName = NameRegisterInput.text,
-            Email = EmailRegisterInput.text,
-            Password = PasswordRegisterInput.text,
+            ShowMessage("Please fill all fields", 3f);
+            return;
+        }
 
-            RequireBothUsernameAndEmail = false
-        };
+        PlayfabAuthManager.Instance.Register(
+            EmailRegisterInput.text,
+            PasswordRegisterInput.text,
+            NameRegisterInput.text
+        );
 
-        PlayFabClientAPI.RegisterPlayFabUser(request, OneregisterSuccess, onError);
+        PlayfabAuthManager.Instance.OnRegisterSuccess += OnRegisterSuccess;
+        PlayfabAuthManager.Instance.OnRegisterFailed += OnRegisterFailed;
     }
 
-    private void onError(PlayFabError Error)
+    private void OnRegisterSuccess(string message)
     {
-        ShowMessage($"Error: {Error.ErrorMessage}", 5f);
-        Debug.Log(Error.GenerateErrorReport());
-    }
-
-    private void OneregisterSuccess(RegisterPlayFabUserResult Result)
-    {
-        ShowMessage("Register successful. You can now log in.", 5f);
+        ShowMessage(message, 5f);
         OpenLoginPage();
+
+        PlayfabAuthManager.Instance.OnRegisterSuccess -= OnRegisterSuccess;
+        PlayfabAuthManager.Instance.OnRegisterFailed -= OnRegisterFailed;
     }
+
+    private void OnRegisterFailed(string error)
+    {
+        ShowMessage($"Register failed: {error}", 5f);
+
+        PlayfabAuthManager.Instance.OnRegisterSuccess -= OnRegisterSuccess;
+        PlayfabAuthManager.Instance.OnRegisterFailed -= OnRegisterFailed;
+    }
+
     public void LoginUser()
     {
-        var request1 = new LoginWithEmailAddressRequest
+        if (string.IsNullOrEmpty(EmailLoginInput.text) ||
+            string.IsNullOrEmpty(PasswordLoginInput.text))
         {
-            Email = EmailLoginInput.text,
-            Password = PasswordLoginInput.text,
-            InfoRequestParameters = new GetPlayerCombinedInfoRequestParams
-            {
-                GetUserAccountInfo = true
-            }
-        };
-        PlayFabClientAPI.LoginWithEmailAddress(request1, OneLoginSuccess, onError);
+            ShowMessage("Please enter email and password", 3f);
+            return;
+        }
 
+        ShowMessage("Logging in...", 3f);
+
+        PlayfabAuthManager.Instance.Login(EmailLoginInput.text, PasswordLoginInput.text);
+
+        PlayfabAuthManager.Instance.OnLoginSuccess += OnLoginSuccess;
+        PlayfabAuthManager.Instance.OnLoginFailed += OnLoginFailed;
     }
 
-    private void OneLoginSuccess(LoginResult Result)
+    private void OnLoginSuccess(string message)
     {
-        ShowMessage("Loggin in");
+        ShowMessage("Login successful! Loading game...", 3f);
+
+        PlayfabAuthManager.Instance.OnLoginSuccess -= OnLoginSuccess;
+        PlayfabAuthManager.Instance.OnLoginFailed -= OnLoginFailed;
+
+        StartCoroutine(WaitForPhotonThenLoadScene());
+    }
+
+    private void OnLoginFailed(string error)
+    {
+        ShowMessage($"Login failed: {error}", 5f);
+
+        PlayfabAuthManager.Instance.OnLoginSuccess -= OnLoginSuccess;
+        PlayfabAuthManager.Instance.OnLoginFailed -= OnLoginFailed;
+    }
+
+    private IEnumerator WaitForPhotonThenLoadScene()
+    {
+        float timeout = 10f;
+        float timer = 0f;
+
+        while (!PlayfabAuthManager.Instance.IsPhotonReady() && timer < timeout)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        if (timer >= timeout)
+        {
+            ShowMessage("Connection timeout. Please try again.", 5f);
+            yield break;
+        }
+
+        ShowMessage("Ready! Loading game...", 2f);
+        yield return new WaitForSeconds(1f);
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    }
+
+    public void RecoverPassword()
+    {
+        if (string.IsNullOrEmpty(EmailRecoveryInput.text))
+        {
+            ShowMessage("Please enter your email address", 3f);
+            return;
+        }
+
+        PlayfabAuthManager.Instance.RecoverPassword(EmailRecoveryInput.text);
+        ShowMessage("Recovery email sent successfully!", 5f);
     }
     #endregion
 }
