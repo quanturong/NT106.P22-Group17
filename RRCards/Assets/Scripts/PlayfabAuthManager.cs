@@ -20,6 +20,7 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
 
     void Awake()
     {
+        // Singleton pattern
         if (Instance == null)
         {
             Instance = this;
@@ -56,6 +57,7 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
         }
     }
 
+    #region Photon Callbacks
     public override void OnConnectedToMaster()
     {
         Debug.Log("=== PHOTON CONNECTED TO MASTER ===");
@@ -76,7 +78,20 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
         Debug.LogError($"=== PHOTON DISCONNECTED: {cause} ===");
         isPhotonConnected = false;
         isInLobby = false;
+
+        // Auto reconnect after 3 seconds
+        Invoke("ReconnectPhoton", 3f);
     }
+
+    private void ReconnectPhoton()
+    {
+        if (!PhotonNetwork.IsConnected)
+        {
+            Debug.Log("=== ATTEMPTING PHOTON RECONNECTION ===");
+            PhotonNetwork.ConnectUsingSettings();
+        }
+    }
+    #endregion
 
     #region PlayFab Authentication
     public void Login(string email, string password)
@@ -100,12 +115,18 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("=== PLAYFAB LOGIN SUCCESSFUL ===");
 
+        // Set display name for Photon
         string displayName = result.InfoResultPayload.PlayerProfile?.DisplayName ??
                            result.InfoResultPayload.AccountInfo?.Username ??
                            "Player_" + result.PlayFabId.Substring(0, 6);
 
         PhotonNetwork.NickName = displayName;
         Debug.Log($"Photon Nickname set to: {displayName}");
+
+        // Store player data
+        PlayerPrefs.SetString("PlayFabID", result.PlayFabId);
+        PlayerPrefs.SetString("DisplayName", displayName);
+        PlayerPrefs.Save();
 
         OnLoginSuccess?.Invoke("Login successful!");
     }
@@ -182,6 +203,7 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
     {
         Debug.Log($"Display name updated to: {result.DisplayName}");
         PhotonNetwork.NickName = result.DisplayName;
+        PlayerPrefs.SetString("DisplayName", result.DisplayName);
     }
 
     private void OnDisplayNameUpdateError(PlayFabError error)
@@ -198,6 +220,10 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
             PhotonNetwork.Disconnect();
         }
 
+        // Clear stored data
+        PlayerPrefs.DeleteKey("PlayFabID");
+        PlayerPrefs.DeleteKey("DisplayName");
+
         Debug.Log("=== LOGGED OUT FROM BOTH PLAYFAB AND PHOTON ===");
     }
 
@@ -213,23 +239,24 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
 
     public string GetPlayFabId()
     {
-        return PlayFabSettings.staticPlayer?.PlayFabId ?? "";
+        return PlayFabSettings.staticPlayer?.PlayFabId ?? PlayerPrefs.GetString("PlayFabID", "");
     }
 
     public string GetPhotonNickname()
     {
-        return PhotonNetwork.NickName ?? "Unknown";
+        return PhotonNetwork.NickName ?? PlayerPrefs.GetString("DisplayName", "Unknown");
     }
 
     public void DebugStatus()
     {
-        Debug.Log($"=== DEBUG STATUS ===");
+        Debug.Log($"=== AUTH MANAGER STATUS ===");
         Debug.Log($"PlayFab Authenticated: {IsAuthenticated()}");
         Debug.Log($"Photon Connected: {isPhotonConnected}");
         Debug.Log($"Photon In Lobby: {isInLobby}");
         Debug.Log($"Photon Ready: {IsPhotonReady()}");
         Debug.Log($"Photon State: {PhotonNetwork.NetworkClientState}");
         Debug.Log($"Nickname: {GetPhotonNickname()}");
+        Debug.Log($"PlayFab ID: {GetPlayFabId()}");
     }
     #endregion
 }
