@@ -92,7 +92,7 @@
               "RelativeDocumentMoniker": "Assets\\Scripts\\RoomManager.cs",
               "ToolTip": "D:\\GitHub\\NT106.P22-Group17\\RRCards\\Assets\\Scripts\\RoomManager.cs",
               "RelativeToolTip": "Assets\\Scripts\\RoomManager.cs",
-              "ViewState": "AgIAABYAAAAAAAAAAAAQwGYAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-03T00:50:17.399Z",
               "EditorCaption": ""
@@ -119,8 +119,7 @@
               "RelativeToolTip": "Assets\\Scripts\\PlayfabAuthManager.cs",
               "ViewState": "AgIAANUAAAAAAAAAAAA5wAUBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-02T18:01:05.869Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-02T18:01:05.869Z"
             },
             {
               "$type": "Document",
@@ -144,8 +143,7 @@
               "RelativeToolTip": "Assets\\Scripts\\LoginPagePlayfab.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-02T17:49:50.169Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-02T17:49:50.169Z"
             },
             {
               "$type": "Document",
