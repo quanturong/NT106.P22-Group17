@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0eb3de43d3bc44041b6d412aa2d71e15
+guid: 96b257145ed3dd44abab7ddd06387dba
 DefaultImporter:
   externalObjects: {}
   userData: 
@@ -10,5 +10,5 @@ AssetOrigin:
   productId: 288308
   packageName: Fortune Spin Wheel (Lucky Wheel)
   packageVersion: 1.0
-  assetPath: Assets/Fortune Spin Wheel (Lucky Wheel)/SampleScene.unity
+  assetPath: Assets/Fortune Spin Wheel (Lucky Wheel)/Documentation.pdf
   uploadId: 673252
