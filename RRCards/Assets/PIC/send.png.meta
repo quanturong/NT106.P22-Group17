@@ -135,7 +135,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
+<<<<<<<< HEAD:RRCards/Assets/PIC/send.png.meta
       send_0: -7731164769326890175
+========
+      arrow_0: -765150924802650856
+>>>>>>>> c0fbcac8ad94375f3f5f489571073b4dbf236a89:RRCards/Assets/arrow.png.meta
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

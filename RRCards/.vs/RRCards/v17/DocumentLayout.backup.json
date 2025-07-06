@@ -3,6 +3,18 @@
   "WorkspaceRootPath": "E:\\NT106.P22-Group17\\RRCards\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\NT106.P22-Group17\\RRCards\\Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\RewardData.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\RewardData.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\NT106.P22-Group17\\RRCards\\Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\FortuneSpinWheel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\FortuneSpinWheel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\NT106.P22-Group17\\RRCards\\Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\Spin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\Spin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\NT106.P22-Group17\\RRCards\\Assets\\SimpleSpinningWheel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\SimpleSpinningWheel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -14,7 +26,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -26,7 +38,46 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FortuneSpinWheel.cs",
+              "DocumentMoniker": "E:\\NT106.P22-Group17\\RRCards\\Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\FortuneSpinWheel.cs",
+              "RelativeDocumentMoniker": "Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\FortuneSpinWheel.cs",
+              "ToolTip": "E:\\NT106.P22-Group17\\RRCards\\Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\FortuneSpinWheel.cs",
+              "RelativeToolTip": "Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\FortuneSpinWheel.cs",
+              "ViewState": "AgIAAHsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-04T10:33:06.334Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Spin.cs",
+              "DocumentMoniker": "E:\\NT106.P22-Group17\\RRCards\\Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\Spin.cs",
+              "RelativeDocumentMoniker": "Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\Spin.cs",
+              "ToolTip": "E:\\NT106.P22-Group17\\RRCards\\Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\Spin.cs",
+              "RelativeToolTip": "Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\Spin.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-04T10:33:02.485Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "RewardData.cs",
+              "DocumentMoniker": "E:\\NT106.P22-Group17\\RRCards\\Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\RewardData.cs",
+              "RelativeDocumentMoniker": "Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\RewardData.cs",
+              "ToolTip": "E:\\NT106.P22-Group17\\RRCards\\Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\RewardData.cs",
+              "RelativeToolTip": "Assets\\Fortune Spin Wheel (Lucky Wheel)\\Scripts\\RewardData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-04T10:32:48.41Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "SimpleSpinningWheel.cs",
               "DocumentMoniker": "E:\\NT106.P22-Group17\\RRCards\\Assets\\SimpleSpinningWheel.cs",
               "RelativeDocumentMoniker": "Assets\\SimpleSpinningWheel.cs",
