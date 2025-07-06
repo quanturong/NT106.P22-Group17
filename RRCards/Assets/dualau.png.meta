@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 34626dfa857f6334fa072733c932c07e
+guid: c1256a17ec9c11d42a52325c08351464
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7731164769326890175
-    second: send_0
+      213: 3732634909847249153
+    second: dualau_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: send_0
+      name: dualau_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 40
-        height: 31
+        x: 38
+        y: 18
+        width: 154
+        height: 206
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 14381409a9265b490800000000000000
-      internalID: -7731164769326890175
+      spriteID: 101eaa59cabfcc330800000000000000
+      internalID: 3732634909847249153
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      send_0: -7731164769326890175
+      dualau_0: 3732634909847249153
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
