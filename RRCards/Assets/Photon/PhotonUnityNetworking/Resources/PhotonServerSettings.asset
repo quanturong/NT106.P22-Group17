@@ -46,6 +46,19 @@ MonoBehaviour:
   - ReceiveChatMessage
   - OnOpponentQuit
   - NotifyOpponentQuit
+  - ClaimAccepted
+  - ClaimChallenged
+  - GameOver
+  - PlayerWon
+  - ReceiveClaim
+  - ResetGame
+  - RouletteResult
+  - StartRussianRoulette
+  - UpdateGameState
+  - NewRoundStarted
+  - PlayAccepted
+  - PlayChallenged
+  - ReceiveCardPlay
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

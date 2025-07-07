@@ -74,7 +74,6 @@ public class HandManager : MonoBehaviour
         float delay = 0f;
         float smallSpacing = 30f;  // Khoảng cách nhỏ giữa 5 lá đầu
 
-
         // Tính tổng chiều rộng của 5 lá đầu
         float firstFiveWidth = smallSpacing * 4; // 4 khoảng cách giữa 5 lá
 
@@ -100,10 +99,7 @@ public class HandManager : MonoBehaviour
             rt.localRotation = Quaternion.identity;
 
             // Gán vị trí ban đầu từ giữa bàn (middleCardBack)
-
-
             rt.anchoredPosition = Vector2.zero;
-
             rt.localScale = Vector3.zero;
 
             cardObj.transform.SetAsLastSibling();
@@ -111,8 +107,6 @@ public class HandManager : MonoBehaviour
 
             // Tính vị trí đích
             float targetX = startX + i * smallSpacing;
-
-
             Vector2 targetPos = new Vector2(targetX, 0f);
 
             // Tween hiệu ứng chia bài - đồng bộ hóa animation
@@ -123,11 +117,7 @@ public class HandManager : MonoBehaviour
             if (cardObj.TryGetComponent(out CardData cardData))
                 currentHand.Add(cardData);
 
-            if (cardObj.TryGetComponent(out CardClick click))
-            {
-                click.middleCardBack = middleCardBack;
-                click.handManager = this;
-            }
+           
         }
     }
 
@@ -137,5 +127,28 @@ public class HandManager : MonoBehaviour
     {
         if (currentHand.Contains(card))
             currentHand.Remove(card);
+    }
+
+    // Methods để support Liar's Bar
+    public List<CardData> GetCardsByType(string cardType)
+    {
+        List<CardData> result = new List<CardData>();
+        foreach (var card in currentHand)
+        {
+            if (card.cardName == cardType)
+                result.Add(card);
+        }
+        return result;
+    }
+
+    public int GetCardCountByType(string cardType)
+    {
+        int count = 0;
+        foreach (var card in currentHand)
+        {
+            if (card.cardName == cardType)
+                count++;
+        }
+        return count;
     }
 }
