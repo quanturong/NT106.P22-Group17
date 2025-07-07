@@ -293,7 +293,7 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
             PlayfabAuthManager.Instance.Logout();
         }
 
-        SceneManager.LoadScene(0); 
+        SceneManager.LoadScene(0);
     }
     #endregion
 }
