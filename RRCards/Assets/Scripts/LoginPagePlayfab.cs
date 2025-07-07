@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 using System.Collections;
 using TMPro;
 using PlayFab;
 using PlayFab.ClientModels;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using Photon.Pun;
 
 public class LoginPagePlayfab : MonoBehaviour
 {
@@ -29,11 +31,18 @@ public class LoginPagePlayfab : MonoBehaviour
 
     private Coroutine messageCoroutine;
 
+    void Awake()
+    {
+
+        if (string.IsNullOrEmpty(PlayFabSettings.staticSettings.TitleId))
+            PlayFabSettings.staticSettings.TitleId = "183B51";
+    }
+
     void Start()
     {
         if (PlayfabAuthManager.Instance == null)
         {
-            GameObject authManager = new GameObject("PlayfabAuthManager");
+            var authManager = new GameObject("PlayfabAuthManager");
             authManager.AddComponent<PlayfabAuthManager>();
         }
     }
@@ -188,12 +197,45 @@ public class LoginPagePlayfab : MonoBehaviour
     {
         if (string.IsNullOrEmpty(EmailRecoveryInput.text))
         {
-            ShowMessage("Please enter your email address", 3f);
+            ShowMessage("Please enter your account email", 3f);
             return;
         }
 
-        PlayfabAuthManager.Instance.RecoverPassword(EmailRecoveryInput.text);
-        ShowMessage("Recovery email sent successfully!", 5f);
+        var request = new SendAccountRecoveryEmailRequest
+        {
+            Email = EmailRecoveryInput.text,
+            TitleId = PlayFabSettings.staticSettings.TitleId
+        };
+
+        PlayFabClientAPI.SendAccountRecoveryEmail(
+            request,
+            OnRecoverySuccess,
+            OnRecoveryError
+        );
     }
+
+    private void OnRecoverySuccess(SendAccountRecoveryEmailResult result)
+    {
+        ShowMessage("Recovery email sent! Check your inbox.", 5f);
+        OpenLoginPage();
+    }
+
+    private void OnRecoveryError(PlayFabError error)
+    {
+        ShowMessage($"Password recovery failed: {error.ErrorMessage}", 5f);
+    }
+    public void LogoutUser()
+    {
+
+        if (PhotonNetwork.IsConnected)
+            PhotonNetwork.Disconnect();
+
+        PlayFabClientAPI.ForgetAllCredentials();
+
+
+        ShowMessage("You have been logged out.", 2.5f);
+        OpenLoginPage();
+    }
+
     #endregion
 }

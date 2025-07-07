@@ -155,7 +155,7 @@ Mono: successfully reloaded assembly
 Domain Reload Profiling: 1818ms
 	BeginReloadAssembly (220ms)
 		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (6ms)
+		DisableScriptedObjects (24ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
 		CreateAndSetChildDomain (30ms)
@@ -216,3 +216,7 @@ Received Import Request.
 Start importing Assets/Settings/Lit2DSceneTemplate.scenetemplate using Guid(d03ed43fc9d8a4f2e9fa70c1c7916eb9) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'ffc36f8b7c5cce5543ac4145cbe5fed8') in 0.0926865 seconds
 Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
 
+Editor requested this worker to shutdown with reason: Scaling down because of idle timeout
+AssetImportWorker is now disconnected from the server
+Process exiting
+Exiting without the bug reporter. Application will terminate with return code 0

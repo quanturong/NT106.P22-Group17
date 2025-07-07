@@ -155,7 +155,7 @@ Mono: successfully reloaded assembly
 Domain Reload Profiling: 1822ms
 	BeginReloadAssembly (231ms)
 		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (6ms)
+		DisableScriptedObjects (25ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
 		CreateAndSetChildDomain (30ms)
@@ -200,3 +200,7 @@ Received Import Request.
 Start importing Assets/Settings/Renderer2D.asset using Guid(424799608f7334c24bf367e4bbfa7f9a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '37c7fff894047c3073c7683b9aee6f1c') in 0.0528824 seconds
 Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 48
 
+Editor requested this worker to shutdown with reason: Scaling down because of idle timeout
+AssetImportWorker is now disconnected from the server
+Process exiting
+Exiting without the bug reporter. Application will terminate with return code 0
