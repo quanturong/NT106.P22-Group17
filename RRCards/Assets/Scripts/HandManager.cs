@@ -109,9 +109,9 @@ public class HandManager : MonoBehaviour
             float targetX = startX + i * smallSpacing;
             Vector2 targetPos = new Vector2(targetX, 0f);
 
-            // Tween hiệu ứng chia bài - đồng bộ hóa animation
-            rt.DOAnchorPos(targetPos, 1f).SetDelay(delay).SetEase(Ease.OutBack);
-            rt.DOScale(Vector3.one, 1f).SetDelay(delay); // Cùng duration với position
+            rt.DOScale(Vector3.one, 0.8f)
+              .SetDelay(delay)
+              .SetEase(Ease.OutBack);
             delay += 0.2f; // Tăng delay để rõ ràng hơn
 
             if (cardObj.TryGetComponent(out CardData cardData))

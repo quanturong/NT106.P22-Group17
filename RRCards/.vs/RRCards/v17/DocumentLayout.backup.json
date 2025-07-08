@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "E:\\NT106.P22-Group17\\.git\\RRCards\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\LairBarHandManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\LairBarHandManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\LiarBarGameManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\LiarBarGameManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\Scripts\\LiarBarCardClick.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\LiarBarCardClick.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\LiarBarGameManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\LiarBarGameManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\LiarBarHandManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\LiarBarHandManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\Scripts\\CardData.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -82,7 +82,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Document",
@@ -95,8 +95,7 @@
               "ViewState": "AgIAAG4AAAAAAAAAAAAEwHcAAAALAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-13T15:45:12.454Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -106,7 +105,7 @@
               "RelativeDocumentMoniker": "Assets\\Scripts\\LiarBarCardClick.cs",
               "ToolTip": "E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\Scripts\\LiarBarCardClick.cs",
               "RelativeToolTip": "Assets\\Scripts\\LiarBarCardClick.cs",
-              "ViewState": "AgIAAIcAAAAAAAAAAAAIwJkAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAHYAAAAAAAAAAAAIwIIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-07T15:54:53.389Z",
               "IsPinned": true,
@@ -114,15 +113,15 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "LairBarHandManager.cs",
-              "DocumentMoniker": "E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\LairBarHandManager.cs",
-              "RelativeDocumentMoniker": "Assets\\LairBarHandManager.cs",
-              "ToolTip": "E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\LairBarHandManager.cs",
-              "RelativeToolTip": "Assets\\LairBarHandManager.cs",
-              "ViewState": "AgIAABsBAAAAAAAAAAAIwCMBAAAFAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "LiarBarHandManager.cs",
+              "DocumentMoniker": "E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\LiarBarHandManager.cs",
+              "RelativeDocumentMoniker": "Assets\\LiarBarHandManager.cs",
+              "ToolTip": "E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\LiarBarHandManager.cs",
+              "RelativeToolTip": "Assets\\LiarBarHandManager.cs",
+              "ViewState": "AgIAAO4AAAAAAAAAAAAIwAABAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-07T15:53:59.6Z",
+              "WhenOpened": "2025-07-07T17:52:16.063Z",
               "EditorCaption": ""
             },
             {
@@ -143,18 +142,17 @@
               "RelativeToolTip": "Assets\\RouletteResultConnector.cs",
               "ViewState": "AgIAAJQAAAAAAAAAAAAAAAoAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-07T15:40:10.374Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-07T15:40:10.374Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "LiarBarGameManager.cs",
               "DocumentMoniker": "E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\LiarBarGameManager.cs",
               "RelativeDocumentMoniker": "Assets\\LiarBarGameManager.cs",
               "ToolTip": "E:\\NT106.P22-Group17\\.git\\RRCards\\Assets\\LiarBarGameManager.cs",
               "RelativeToolTip": "Assets\\LiarBarGameManager.cs",
-              "ViewState": "AgIAAAECAAAAAAAAAAAIwBMCAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABABAAAAAAAAAAAQwCIBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-07T15:38:11.664Z",
               "EditorCaption": ""
@@ -169,8 +167,7 @@
               "RelativeToolTip": "Assets\\Scripts\\ChatPanelSlide.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-07T12:33:25.088Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-07T12:33:25.088Z"
             },
             {
               "$type": "Document",
@@ -266,8 +263,7 @@
               "RelativeToolTip": "Assets\\Scripts\\OptionToggle.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACYAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-13T21:25:10.748Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-13T21:25:10.748Z"
             },
             {
               "$type": "Document",
@@ -291,8 +287,7 @@
               "RelativeToolTip": "Assets\\Scripts\\CardClick.cs",
               "ViewState": "AgIAAG4AAAAAAAAAAAAkwHoAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-13T19:15:37.141Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-13T19:15:37.141Z"
             },
             {
               "$type": "Document",
@@ -304,8 +299,7 @@
               "RelativeToolTip": "Assets\\Scripts\\CardHover.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-13T16:20:24.606Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-13T16:20:24.606Z"
             },
             {
               "$type": "Document",
@@ -317,8 +311,7 @@
               "RelativeToolTip": "Assets\\Scripts\\CardData.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-04T16:09:16.333Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-04T16:09:16.333Z"
             }
           ]
         }
