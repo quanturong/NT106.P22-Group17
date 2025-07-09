@@ -26,5 +26,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Defeat.unity
     guid: 8bda1a53b59a3b049a8a6a6a3ccefce7
+  - enabled: 1
+    path: Assets/Scenes/SpinWheel.unity
+    guid: 0eb3de43d3bc44041b6d412aa2d71e15
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

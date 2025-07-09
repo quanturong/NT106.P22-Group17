@@ -6,7 +6,7 @@ using DG.Tweening;
 public class LiarBarCardClick : MonoBehaviour, IPointerClickHandler
 {
     [Header("Visual Settings")]
-    public Color selectedColor = new Color(1f, 1f, 0.5f, 1f); // Màu vàng nhạt khi được chọn
+    public Color selectedColor = new Color(1f, 1f, 0.5f, 1f);
     public Color normalColor = Color.white;
     public float selectedScale = 1.1f;
     public float animationDuration = 0.2f;
@@ -28,38 +28,37 @@ public class LiarBarCardClick : MonoBehaviour, IPointerClickHandler
         originalScale = transform.localScale;
         originalPosition = transform.localPosition;
 
+        // Tự động tìm HandManager và GameManager nếu chưa assign
         if (handManager == null)
-            handManager = FindObjectOfType<LiarBarHandManager>();
+            handManager = FindFirstObjectByType<LiarBarHandManager>();
 
         if (gameManager == null)
-            gameManager = FindObjectOfType<LiarBarGameManager>();
+            gameManager = FindFirstObjectByType<LiarBarGameManager>();
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        // Chỉ cho phép chọn khi tới lượt và đúng trạng thái PlayerPlaying
-        if (gameManager == null ||
-            gameManager.currentState != LiarBarGameManager.GameState.PlayerPlaying ||
-            !IsMyTurn())
+        // Chỉ cho phép click khi đến lượt mình và đang ở trạng thái PlayerPlaying
+        if (gameManager != null &&
+            (gameManager.currentState != LiarBarGameManager.GameState.PlayerPlaying ||
+             !IsMyTurn()))
         {
             return;
         }
-        // Giới hạn tối đa 3 lá được chọn
-        if (!isSelected && handManager != null && handManager.GetSelectedCardCount() >= 3)
-        {
-            return;
-        }
+
         ToggleSelection();
     }
 
     bool IsMyTurn()
     {
         if (gameManager == null) return false;
+
         var players = gameManager.players;
         if (gameManager.currentPlayerIndex >= 0 && gameManager.currentPlayerIndex < players.Count)
         {
             return players[gameManager.currentPlayerIndex].photonPlayer == Photon.Pun.PhotonNetwork.LocalPlayer;
         }
+
         return false;
     }
 
@@ -68,6 +67,7 @@ public class LiarBarCardClick : MonoBehaviour, IPointerClickHandler
         isSelected = !isSelected;
         UpdateVisual();
 
+        // Thông báo cho hand manager về việc select/deselect
         if (handManager != null)
         {
             if (isSelected)
@@ -86,10 +86,17 @@ public class LiarBarCardClick : MonoBehaviour, IPointerClickHandler
     void UpdateVisual()
     {
         if (cardImage == null) return;
+
+        // Animate color change
         cardImage.DOColor(isSelected ? selectedColor : normalColor, animationDuration);
+
+        // Animate scale change
         Vector3 targetScale = isSelected ? originalScale * selectedScale : originalScale;
         transform.DOScale(targetScale, animationDuration).SetEase(Ease.OutBack);
-        Vector3 targetPosition = isSelected ? originalPosition + Vector3.up * 20f : originalPosition;
+
+        // Animate position change (slight upward movement when selected)
+        Vector3 targetPosition = isSelected ?
+            originalPosition + Vector3.up * 20f : originalPosition;
         transform.DOLocalMove(targetPosition, animationDuration).SetEase(Ease.OutBack);
     }
 
@@ -103,17 +110,21 @@ public class LiarBarCardClick : MonoBehaviour, IPointerClickHandler
         return isSelected;
     }
 
+    // Method để play card (sử dụng khi submit claim)
     public void PlayCard()
     {
         if (handManager != null && cardData != null)
         {
             handManager.RemoveCard(cardData);
         }
+
+        // Animation khi play card
         PlayCardAnimation();
     }
 
     void PlayCardAnimation()
     {
+        // Animate card flying to middle
         transform.DOMove(Vector3.zero, 0.5f).SetEase(Ease.InBack);
         transform.DOScale(Vector3.zero, 0.5f).SetEase(Ease.InBack)
             .OnComplete(() => {
@@ -123,6 +134,7 @@ public class LiarBarCardClick : MonoBehaviour, IPointerClickHandler
 
     void OnDestroy()
     {
+        // Cleanup DOTween animations
         transform.DOKill();
         if (cardImage != null)
             cardImage.DOKill();
