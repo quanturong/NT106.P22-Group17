@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using PlayFab;
+using Photon.Pun;
+using System;
 
 public class MainMenu : MonoBehaviour
 {
@@ -11,7 +13,7 @@ public class MainMenu : MonoBehaviour
     public GameObject optionPanel;
     public GameObject rulePanel;
     public GameObject statsPanel;
-
+    private bool isLoggingOut = false;
     void Start()
     {
         Debug.Log("MainMenu script started");
@@ -63,13 +65,61 @@ public class MainMenu : MonoBehaviour
         rulePanel.SetActive(false);
         statsPanel.SetActive(true);
     }
-
-    public void ExitGame()
+    public void OnLogout()
     {
+        if (isLoggingOut) return; // tránh double click
+        isLoggingOut = true;
+
+        Debug.Log("=== LOGGING OUT FROM MAIN MENU ===");
+
+        // Xoá thông tin PlayFab
+        PlayFabClientAPI.ForgetAllCredentials();
+        PlayerPrefs.DeleteKey("PlayFabID");
+        PlayerPrefs.DeleteKey("DisplayName");
+
+        // Ngắt kết nối Photon nếu đang kết nối
+        if (PhotonNetwork.IsConnected)
+        {
+            PhotonNetwork.Disconnect();
+            StartCoroutine(WaitForPhotonDisconnectThen(() =>
+            {
+                isLoggingOut = false;
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
-        SceneManager.LoadScene(0); 
+                SceneManager.LoadScene(0);
+#endif
+            }));
+        }
+        else
+        {
+            isLoggingOut = false;
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            SceneManager.LoadScene(0);
+#endif
+        }
+    }
+    private IEnumerator WaitForPhotonDisconnectThen(Action callback)
+    {
+        float timeout = 5f;
+        float timer = 0f;
+
+        while (PhotonNetwork.IsConnected && timer < timeout)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        callback?.Invoke();
+    }
+    public void ExitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
 #endif
     }
 }

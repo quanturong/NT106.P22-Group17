@@ -226,16 +226,49 @@ public class LoginPagePlayfab : MonoBehaviour
     }
     public void LogoutUser()
     {
-
-        if (PhotonNetwork.IsConnected)
-            PhotonNetwork.Disconnect();
-
-        PlayFabClientAPI.ForgetAllCredentials();
-
-
-        ShowMessage("You have been logged out.", 2.5f);
-        OpenLoginPage();
+        StartCoroutine(HandleLogout());
     }
 
+    private IEnumerator HandleLogout()
+    {
+        // Nếu đang kết nối Photon thì ngắt kết nối
+        if (PhotonNetwork.IsConnected)
+        {
+            PhotonNetwork.Disconnect();
+
+            float timeout = 5f;
+            float timer = 0f;
+
+            while (PhotonNetwork.IsConnected && timer < timeout)
+            {
+                timer += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        // Xóa thông tin đăng nhập PlayFab
+        PlayFabClientAPI.ForgetAllCredentials();
+
+        // Hiển thị thông báo
+        ShowMessage("Bạn đã đăng xuất", 2.5f);
+
+        // Nếu bạn có scene riêng cho login
+        // SceneManager.LoadScene("LoginScene"); 
+
+        // Nếu đang dùng chung scene, thì bật lại giao diện login
+        OpenLoginPage();
+
+        // Reset các input field nếu cần
+        EmailLoginInput.text = "";
+        PasswordLoginInput.text = "";
+    }
+    public void OnLogoutClicked()
+    {
+        PlayfabAuthManager.Instance.Logout(() =>
+        {
+            // Load lại màn login
+            OpenLoginPage();
+        });
+    }
     #endregion
 }
