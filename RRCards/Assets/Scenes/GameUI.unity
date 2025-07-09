@@ -4550,6 +4550,7 @@ MonoBehaviour:
   rouletteSceneName: SpinWheel
   players: []
   localHandManager: {fileID: 548369295}
+  lifeManager: {fileID: 1517495818}
   playTimeLimit: 15
   challengeTimeLimit: 15
   audioSource: {fileID: 0}
@@ -4559,6 +4560,7 @@ MonoBehaviour:
   timerTickSound: {fileID: 0}
   victorySound: {fileID: 0}
   defeatSound: {fileID: 0}
+  loseLifeSound: {fileID: 0}
   confettiEffect: {fileID: 0}
 --- !u!1 &1182486669
 GameObject:
@@ -5751,6 +5753,8 @@ MonoBehaviour:
   - {fileID: 1458046476}
   - {fileID: 1561760170}
   - {fileID: 280865306}
+  normalHeartColor: {r: 1, g: 0, b: 0, a: 1}
+  darkHeartColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
 --- !u!1 &1526525860
 GameObject:
   m_ObjectHideFlags: 0

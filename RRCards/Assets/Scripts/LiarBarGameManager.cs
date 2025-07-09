@@ -40,6 +40,9 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     public List<PlayerData> players = new List<PlayerData>();
     public LiarBarHandManager localHandManager;
 
+    [Header("Life Management")]
+    public LifeManager lifeManager;
+
     [Header("Timer Settings")]
     public float playTimeLimit = 15f;
     public float challengeTimeLimit = 10f;
@@ -54,9 +57,13 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     public AudioClip timerTickSound;
     public AudioClip victorySound;
     public AudioClip defeatSound;
+    public AudioClip loseLifeSound;
 
     [Header("Visual Effects")]
     public ParticleSystem confettiEffect;
+
+    [Header("Debug")]
+    public bool enableDebugLogs = true;
 
     private bool isMyTurn = false;
     private int cardsPlayedThisTurn = 0;
@@ -104,8 +111,21 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
                 photonPlayer = photonPlayers[i],
                 isAlive = true,
                 handCount = 6,
-                totalWins = 0
+                totalWins = 0,
+                lives = 3
             });
+        }
+
+        // Khởi tạo LifeManager
+        if (lifeManager != null)
+        {
+            lifeManager.ResetHearts();
+            if (enableDebugLogs)
+                Debug.Log("LifeManager initialized and hearts reset");
+        }
+        else
+        {
+            Debug.LogError("LifeManager is NULL! Please assign it in Inspector!");
         }
 
         if (PhotonNetwork.IsMasterClient)
@@ -153,26 +173,25 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     void NewRoundStarted(string targetCard, int roundNumber)
     {
-        Debug.Log($"NewRoundStarted called - Round: {roundNumber}, Target: {targetCard}");
+        if (enableDebugLogs)
+            Debug.Log($"NewRoundStarted called - Round: {roundNumber}, Target: {targetCard}");
 
         currentTargetCard = targetCard;
         currentRound = roundNumber;
         currentState = GameState.RoundStart;
         playedCardsThisTurn.Clear();
 
-        // Force show popup for ALL players
         Invoke(nameof(ShowRoundPopup), 0.1f);
         PlaySound(roundStartSound);
     }
 
     void ShowRoundPopup()
     {
-        Debug.Log("ShowRoundPopup called");
+        if (enableDebugLogs)
+            Debug.Log("ShowRoundPopup called");
 
         if (popupInfoPanel != null)
         {
-            Debug.Log("Popup panel found, showing popup");
-
             if (popupRoundInfo != null)
                 popupRoundInfo.text = $"ROUND {currentRound}";
 
@@ -189,26 +208,17 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     public void OnPopupOk()
     {
-        Debug.Log("OnPopupOk called!");
+        if (enableDebugLogs)
+            Debug.Log("OnPopupOk called!");
 
         if (popupInfoPanel != null)
         {
-            Debug.Log("Hiding popup panel");
             popupInfoPanel.SetActive(false);
-        }
-        else
-        {
-            Debug.LogError("popupInfoPanel is NULL!");
         }
 
         if (PhotonNetwork.IsMasterClient)
         {
-            Debug.Log("Master Client starting player turn directly");
             StartPlayerTurn();
-        }
-        else
-        {
-            Debug.Log("Not Master Client, waiting for turn start");
         }
     }
 
@@ -216,23 +226,16 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     void PlayerReadyForRound(int playerActorNumber)
     {
         playersReady++;
-        Debug.Log($"Player {playerActorNumber} ready. Total ready: {playersReady}");
+        if (enableDebugLogs)
+            Debug.Log($"Player {playerActorNumber} ready. Total ready: {playersReady}");
 
         if (roundDisplayText) roundDisplayText.text = "";
 
         if (playersReady >= PhotonNetwork.PlayerList.Length && PhotonNetwork.IsMasterClient)
         {
             playersReady = 0;
-            Debug.Log("All players ready, starting player turn");
             StartPlayerTurn();
         }
-    }
-
-    public void TestClosePopup()
-    {
-        Debug.Log("TestClosePopup called!");
-        if (popupInfoPanel != null)
-            popupInfoPanel.SetActive(false);
     }
 
     void StartPlayerTurn()
@@ -252,7 +255,7 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (PlayerPrefs.HasKey(PUNISHMENT_RESULT_KEY))
         {
-            bool died = PlayerPrefs.GetInt(PUNISHMENT_RESULT_KEY) == 1;
+            bool hitSpecialSlot = PlayerPrefs.GetInt(PUNISHMENT_RESULT_KEY) == 1;
             int punishedPlayer = PlayerPrefs.GetInt(PUNISHED_PLAYER_KEY, -1);
 
             PlayerPrefs.DeleteKey(PUNISHMENT_RESULT_KEY);
@@ -260,7 +263,7 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
             if (punishedPlayer == PhotonNetwork.LocalPlayer.ActorNumber)
             {
-                photonView.RPC("RouletteResult", RpcTarget.All, punishedPlayer, died);
+                photonView.RPC("RouletteResult", RpcTarget.All, punishedPlayer, hitSpecialSlot);
             }
         }
     }
@@ -378,7 +381,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
         else if (!timerActive && gameStatusText)
         {
-            // When timer is not active, show appropriate status
             switch (currentState)
             {
                 case GameState.PlayerPlaying:
@@ -502,7 +504,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         cardsPlayedThisTurn = cardCount;
         currentState = GameState.WaitingForChallenge;
-
         UpdateUI();
     }
 
@@ -582,34 +583,72 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     System.Collections.IEnumerator LoadRouletteScene()
     {
         yield return new WaitForSeconds(2f);
-
         PlayerPrefs.SetInt(PUNISHED_PLAYER_KEY, PhotonNetwork.LocalPlayer.ActorNumber);
         SceneManager.LoadScene(rouletteSceneName);
     }
 
+    // ============= FIXED ROULETTE RESULT - ĐÂY LÀ PHẦN QUAN TRỌNG NHẤT =============
     [PunRPC]
-    void RouletteResult(int playerActorNumber, bool died)
+    void RouletteResult(int playerActorNumber, bool hitSpecialSlot)
     {
+        if (enableDebugLogs)
+            Debug.Log($"RouletteResult: Player {playerActorNumber}, hitSpecialSlot: {hitSpecialSlot}");
+
         var player = GetPlayerByActorNumber(playerActorNumber);
-
-        if (died)
+        if (player == null)
         {
-            player.isAlive = false;
-            if (gameStatusText)
-                gameStatusText.text = $"{player.photonPlayer.NickName} was eliminated!";
-            PlaySound(defeatSound);
+            Debug.LogError($"Cannot find player with ActorNumber {playerActorNumber}");
+            return;
+        }
 
-            var winner = players.FirstOrDefault(p => p.isAlive);
-            if (winner != null)
+        if (hitSpecialSlot)
+        {
+            // Trừ mạng
+            player.lives--;
+
+            if (enableDebugLogs)
+                Debug.Log($"Player {playerActorNumber} lives reduced to {player.lives}");
+
+            // ĐỒNG BỘ UI QUA RPC RIÊNG
+            photonView.RPC("SyncLifeUI", RpcTarget.All, playerActorNumber, player.lives);
+
+            // Play sound effect
+            PlaySound(loseLifeSound);
+
+            if (gameStatusText)
+                gameStatusText.text = $"{player.photonPlayer.NickName} lost a life! ({player.lives} left)";
+
+            // Kiểm tra xem player có hết mạng không
+            if (player.lives <= 0)
             {
-                photonView.RPC("GameOver", RpcTarget.All, winner.photonPlayer.ActorNumber);
-                return;
+                player.isAlive = false;
+                if (gameStatusText)
+                    gameStatusText.text = $"{player.photonPlayer.NickName} is eliminated!";
+
+                PlaySound(defeatSound);
+
+                // Tìm người thắng
+                var winner = players.FirstOrDefault(p => p.isAlive);
+                if (winner != null)
+                {
+                    photonView.RPC("GameOver", RpcTarget.All, winner.photonPlayer.ActorNumber);
+                    return;
+                }
+            }
+            else
+            {
+                // Còn mạng, bắt đầu round mới
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    Invoke(nameof(StartNewRound), 3f);
+                }
             }
         }
         else
         {
+            // Quay trúng ô thường - không trừ mạng
             if (gameStatusText)
-                gameStatusText.text = $"{player.photonPlayer.NickName} survived!";
+                gameStatusText.text = $"{player.photonPlayer.NickName} got lucky! Starting new round...";
 
             if (PhotonNetwork.IsMasterClient)
             {
@@ -618,12 +657,60 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
+    // ============= RPC MỚI ĐỂ ĐỒNG BỘ UI HOÀN TOÀN =============
+    [PunRPC]
+    void SyncLifeUI(int playerActorNumber, int newLives)
+    {
+        if (enableDebugLogs)
+            Debug.Log($"SyncLifeUI called: Player {playerActorNumber} has {newLives} lives");
+
+        // Cập nhật data cho player
+        var player = GetPlayerByActorNumber(playerActorNumber);
+        if (player != null)
+        {
+            player.lives = newLives;
+            if (enableDebugLogs)
+                Debug.Log($"Updated player data: {player.photonPlayer.NickName} now has {newLives} lives");
+        }
+
+        // Kiểm tra LifeManager
+        if (lifeManager == null)
+        {
+            Debug.LogError("LifeManager is NULL in SyncLifeUI!");
+            return;
+        }
+
+        // XÁC ĐỊNH AI LÀ PLAYER VÀ AI LÀ ENEMY DỰA TRÊN ACTOR NUMBER
+        bool isLocalPlayer = (playerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber);
+
+        if (enableDebugLogs)
+        {
+            Debug.Log($"Local Player ActorNumber: {PhotonNetwork.LocalPlayer.ActorNumber}");
+            Debug.Log($"Target Player ActorNumber: {playerActorNumber}");
+            Debug.Log($"Is Local Player: {isLocalPlayer}");
+        }
+
+        if (isLocalPlayer)
+        {
+            // Người bị trừ mạng là local player → cập nhật playerHearts
+            lifeManager.SetPlayerLives(newLives);
+            if (enableDebugLogs)
+                Debug.Log($"Updated LOCAL PLAYER hearts to {newLives}");
+        }
+        else
+        {
+            // Người bị trừ mạng là đối thủ → cập nhật enemyHearts
+            lifeManager.SetEnemyLives(newLives);
+            if (enableDebugLogs)
+                Debug.Log($"Updated ENEMY hearts to {newLives}");
+        }
+    }
+
     [PunRPC]
     void PlayerWon(int winnerActorNumber)
     {
         var winner = GetPlayerByActorNumber(winnerActorNumber);
         winner.totalWins++;
-
         photonView.RPC("GameOver", RpcTarget.All, winnerActorNumber);
     }
 
@@ -666,7 +753,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         if (!PhotonNetwork.IsMasterClient) return;
 
         playedCardsThisTurn.Clear();
-
         currentPlayerIndex = (currentPlayerIndex + 1) % 2;
 
         if (!players[currentPlayerIndex].isAlive)
@@ -698,6 +784,7 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
+    // ============= SIMPLIFIED PHOTON SERIALIZE =============
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
@@ -715,6 +802,42 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             currentState = (GameState)stream.ReceiveNext();
         }
     }
+
+    // ============= TEST METHODS ĐỂ DEBUG =============
+    [ContextMenu("Test Lose My Life")]
+    public void TestLoseMyLife()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC("SyncLifeUI", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber, 2);
+        }
+    }
+
+    [ContextMenu("Test Lose Enemy Life")]
+    public void TestLoseEnemyLife()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            var enemy = PhotonNetwork.PlayerList.FirstOrDefault(p => p != PhotonNetwork.LocalPlayer);
+            if (enemy != null)
+            {
+                photonView.RPC("SyncLifeUI", RpcTarget.All, enemy.ActorNumber, 1);
+            }
+        }
+    }
+
+    [ContextMenu("Debug Life Manager")]
+    public void DebugLifeManager()
+    {
+        if (lifeManager != null)
+        {
+            lifeManager.DebugHeartStatus();
+        }
+        else
+        {
+            Debug.LogError("LifeManager is NULL!");
+        }
+    }
 }
 
 [System.Serializable]
@@ -724,4 +847,5 @@ public class PlayerData
     public bool isAlive = true;
     public int handCount = 6;
     public int totalWins = 0;
+    public int lives = 3;
 }
