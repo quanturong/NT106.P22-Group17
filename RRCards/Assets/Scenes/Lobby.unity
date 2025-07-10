@@ -201,8 +201,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   input_Create: {fileID: 466096688}
   input_Join: {fileID: 227161661}
-  createButton: {fileID: 0}
-  joinButton: {fileID: 0}
+  createButton: {fileID: 840792661}
+  joinButton: {fileID: 1251545647}
   statusText: {fileID: 0}
   maxPlayers: 2
 --- !u!4 &38896598

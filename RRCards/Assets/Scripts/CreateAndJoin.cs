@@ -19,46 +19,128 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     [Header("Room Settings")]
     public int maxPlayers = 2;
 
+    [Header("Debug")]
+    public bool showDebugLogs = true;
+
     private bool isReady = false;
     private Dictionary<string, RoomInfo> cachedRoomList = new Dictionary<string, RoomInfo>();
+    private bool isSettingUpRoom = false;
+
+    // Critical game properties that need to be cleaned
+    private readonly string[] CRITICAL_PROPERTIES = {
+        "IsReady", "AvatarIndex", "PlayerRole", "IsHost",
+        "TeamId", "Score", "GameState", "PlayerIndex",
+        "CharacterSelected", "LoadingComplete", "GameReady",
+        "InGame", "HasJoinedGame", "GamePosition"
+    };
 
     void Start()
     {
-        Debug.Log("=== CREATE AND JOIN STARTED ===");
+        if (showDebugLogs)
+            Debug.Log("=== CREATE AND JOIN STARTED ===");
 
-        // Disable buttons initially
         SetButtonsInteractable(false);
         UpdateStatusText("Checking connection...");
 
-        // Check current Photon status
-        CheckPhotonStatus();
-
-        // Debug current state
-        if (PlayfabAuthManager.Instance != null)
-        {
-            PlayfabAuthManager.Instance.DebugStatus();
-        }
+        // Clean state immediately when entering lobby
+        StartCoroutine(InitializeLobbyState());
     }
 
     void Update()
     {
-        // Debug key for status check
+        // Debug keys
         if (Input.GetKeyDown(KeyCode.Space))
         {
             DebugCurrentStatus();
         }
+
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            DebugPlayerProperties();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            ForceCleanAllProperties();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            DebugAllPlayersReadyState();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F4))
+        {
+            ForceFixReadyState();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F5))
+        {
+            TestReadyState();
+        }
+    }
+
+    #region Initialization
+    private IEnumerator InitializeLobbyState()
+    {
+        if (showDebugLogs)
+            Debug.Log("=== INITIALIZING LOBBY STATE ===");
+
+        // Step 1: Force clean any remaining properties
+        yield return StartCoroutine(CompletePropertyCleanup());
+
+        // Step 2: Wait for properties to clear
+        yield return new WaitForSeconds(0.5f);
+
+        // Step 3: Check Photon status
+        CheckPhotonStatus();
+    }
+
+    private IEnumerator CompletePropertyCleanup()
+    {
+        if (showDebugLogs)
+            Debug.Log("=== COMPLETE PROPERTY CLEANUP ===");
+
+        // If we're in a room, leave it first
+        if (PhotonNetwork.InRoom)
+        {
+            if (showDebugLogs)
+                Debug.Log("Still in room, leaving...");
+
+            PhotonNetwork.LeaveRoom();
+
+            float timeout = 3f;
+            float timer = 0f;
+            while (PhotonNetwork.InRoom && timer < timeout)
+            {
+                timer += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        yield return new WaitForSeconds(0.2f);
+
+        // Clean all properties
+        ForceCleanAllProperties();
+
+        yield return new WaitForSeconds(0.3f);
+
+        if (showDebugLogs)
+            Debug.Log("=== PROPERTY CLEANUP COMPLETE ===");
     }
 
     private void CheckPhotonStatus()
     {
         if (PlayfabAuthManager.Instance != null && PlayfabAuthManager.Instance.IsPhotonReady())
         {
-            Debug.Log("Photon is ready!");
+            if (showDebugLogs)
+                Debug.Log("Photon is ready!");
             OnPhotonReady();
         }
         else
         {
-            Debug.Log("Waiting for Photon connection...");
+            if (showDebugLogs)
+                Debug.Log("Waiting for Photon connection...");
             UpdateStatusText("Connecting to network...");
             StartCoroutine(WaitForPhotonConnection());
         }
@@ -81,92 +163,224 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
             yield return null;
         }
 
-        // Timeout
         UpdateStatusText("Connection failed. Please restart.");
-        Debug.LogError("Photon connection timeout!");
+        if (showDebugLogs)
+            Debug.LogError("Photon connection timeout!");
     }
 
     private void OnPhotonReady()
     {
-        Debug.Log("=== PHOTON IS READY FOR ROOM OPERATIONS ===");
+        if (showDebugLogs)
+            Debug.Log("=== PHOTON IS READY FOR ROOM OPERATIONS ===");
+
+        // Clean properties one more time when Photon is ready
+        ForceCleanAllProperties();
+
         isReady = true;
         SetButtonsInteractable(true);
         UpdateStatusText("Ready to play!");
+
+        if (showDebugLogs)
+        {
+            Debug.Log("=== LOBBY STATE INITIALIZED ===");
+            DebugPlayerProperties();
+        }
     }
+    #endregion
+
+    #region Property Management
+    private void ForceCleanAllProperties()
+    {
+        if (PhotonNetwork.LocalPlayer == null) return;
+
+        if (showDebugLogs)
+            Debug.Log("=== FORCE CLEANING ALL PROPERTIES ===");
+
+        // Get all existing properties
+        var currentProps = PhotonNetwork.LocalPlayer.CustomProperties;
+        var keysToRemove = new List<string>();
+
+        foreach (var key in currentProps.Keys)
+        {
+            keysToRemove.Add(key.ToString());
+        }
+
+        // Create hashtable to clear all properties
+        ExitGames.Client.Photon.Hashtable clearProps = new ExitGames.Client.Photon.Hashtable();
+
+        // Set all existing properties to null
+        foreach (string key in keysToRemove)
+        {
+            clearProps[key] = null;
+        }
+
+        // Ensure critical properties are definitely null
+        foreach (string criticalProp in CRITICAL_PROPERTIES)
+        {
+            clearProps[criticalProp] = null;
+        }
+
+        PhotonNetwork.LocalPlayer.SetCustomProperties(clearProps);
+
+        if (showDebugLogs)
+            Debug.Log($"Cleaned {keysToRemove.Count} existing + {CRITICAL_PROPERTIES.Length} critical properties");
+    }
+
+    private IEnumerator VerifyCleanState()
+    {
+        yield return new WaitForSeconds(0.2f);
+
+        if (PhotonNetwork.LocalPlayer != null && showDebugLogs)
+        {
+            var remainingProps = PhotonNetwork.LocalPlayer.CustomProperties;
+            Debug.Log($"Verification: {remainingProps.Count} properties remaining");
+
+            foreach (var prop in remainingProps)
+            {
+                if (prop.Value != null)
+                    Debug.LogWarning($"Property still exists: {prop.Key} = {prop.Value}");
+            }
+        }
+    }
+    #endregion
 
     #region Photon Callbacks
     public override void OnConnectedToMaster()
     {
-        Debug.Log("=== CONNECTED TO MASTER ===");
-        Debug.Log("Connected to Master Region: " + PhotonNetwork.CloudRegion);
+        if (showDebugLogs)
+            Debug.Log("=== CONNECTED TO MASTER ===");
         PhotonNetwork.JoinLobby();
     }
 
     public override void OnJoinedLobby()
     {
-        Debug.Log("=== JOINED LOBBY ===");
+        if (showDebugLogs)
+            Debug.Log("=== JOINED LOBBY ===");
+
+        // Clean properties every time we join lobby
+        StartCoroutine(OnJoinedLobbyCleanup());
+    }
+
+    private IEnumerator OnJoinedLobbyCleanup()
+    {
+        ForceCleanAllProperties();
+        yield return new WaitForSeconds(0.3f);
         OnPhotonReady();
     }
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
-        Debug.Log($"=== ROOM LIST UPDATED: {roomList.Count} rooms ===");
+        if (showDebugLogs)
+            Debug.Log($"=== ROOM LIST UPDATED: {roomList.Count} rooms ===");
 
         foreach (RoomInfo info in roomList)
         {
             if (info.RemovedFromList)
             {
                 cachedRoomList.Remove(info.Name);
-                Debug.Log($"Room removed: {info.Name}");
+                if (showDebugLogs)
+                    Debug.Log($"Room removed: {info.Name}");
             }
             else
             {
                 cachedRoomList[info.Name] = info;
-                Debug.Log($"Room updated: {info.Name} ({info.PlayerCount}/{info.MaxPlayers})");
+                if (showDebugLogs)
+                    Debug.Log($"Room updated: {info.Name} ({info.PlayerCount}/{info.MaxPlayers})");
             }
         }
     }
 
     public override void OnCreatedRoom()
     {
-        Debug.Log($"=== ROOM CREATED SUCCESSFULLY ===");
-        Debug.Log($"Room name: {PhotonNetwork.CurrentRoom.Name}");
-        Debug.Log($"Max players: {PhotonNetwork.CurrentRoom.MaxPlayers}");
+        if (showDebugLogs)
+        {
+            Debug.Log($"=== ROOM CREATED SUCCESSFULLY ===");
+            Debug.Log($"Room name: {PhotonNetwork.CurrentRoom.Name}");
+            Debug.Log($"Max players: {PhotonNetwork.CurrentRoom.MaxPlayers}");
+            Debug.Log("Creator will have IsReady = false initially");
+        }
         UpdateStatusText($"Room '{PhotonNetwork.CurrentRoom.Name}' created!");
     }
 
     public override void OnJoinedRoom()
     {
-        Debug.Log("=== JOINED ROOM SUCCESSFULLY ===");
-        Debug.Log($"Room: {PhotonNetwork.CurrentRoom.Name}");
-        Debug.Log($"Players: {PhotonNetwork.CurrentRoom.PlayerCount}/{PhotonNetwork.CurrentRoom.MaxPlayers}");
-        Debug.Log("Loading gameplay scene...");
+        if (showDebugLogs)
+        {
+            Debug.Log("=== JOINED ROOM SUCCESSFULLY ===");
+            Debug.Log($"Room: {PhotonNetwork.CurrentRoom.Name}");
+            Debug.Log($"Players: {PhotonNetwork.CurrentRoom.PlayerCount}/{PhotonNetwork.CurrentRoom.MaxPlayers}");
+            Debug.Log("Starting SAFE room setup...");
+        }
 
+        if (!isSettingUpRoom)
+        {
+            isSettingUpRoom = true;
+            StartCoroutine(SafeRoomSetup());
+        }
+    }
+
+    private IEnumerator SafeRoomSetup()
+    {
+        if (showDebugLogs)
+            Debug.Log("=== SAFE ROOM SETUP STARTED ===");
+
+        // Step 1: Wait for room to be fully ready
+        yield return new WaitForSeconds(0.5f);
+
+        // Step 2: Force clean properties first
+        ForceCleanAllProperties();
+
+        // Step 3: Wait for clean to complete
+        yield return new WaitForSeconds(0.5f);
+
+        // Step 4: Set player ready state
+        yield return StartCoroutine(SetPlayerReadyStateCoroutine());
+
+        // Step 5: Wait for ready state to be set
+        yield return new WaitForSeconds(0.5f);
+
+        // Step 6: Verify setup
+        if (showDebugLogs)
+        {
+            DebugAllPlayersReadyState();
+            Debug.Log($"CanLoadGame: {CanLoadGame()}");
+        }
+
+        // Step 7: Load game scene
         UpdateStatusText("Joined room! Loading game...");
         PhotonNetwork.LoadLevel("Room");
+
+        isSettingUpRoom = false;
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        Debug.LogError($"=== CREATE ROOM FAILED ===");
-        Debug.LogError($"Code: {returnCode}, Message: {message}");
+        if (showDebugLogs)
+        {
+            Debug.LogError($"=== CREATE ROOM FAILED ===");
+            Debug.LogError($"Code: {returnCode}, Message: {message}");
+        }
         UpdateStatusText($"Failed to create room: {message}");
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        Debug.LogError($"=== JOIN ROOM FAILED ===");
-        Debug.LogError($"Code: {returnCode}, Message: {message}");
+        if (showDebugLogs)
+        {
+            Debug.LogError($"=== JOIN ROOM FAILED ===");
+            Debug.LogError($"Code: {returnCode}, Message: {message}");
+        }
         UpdateStatusText($"Failed to join room: {message}");
-
-        // List available rooms for debugging
         ListAvailableRooms();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        Debug.LogError($"=== PHOTON DISCONNECTED: {cause} ===");
+        if (showDebugLogs)
+            Debug.LogError($"=== PHOTON DISCONNECTED: {cause} ===");
+
         isReady = false;
+        isSettingUpRoom = false;
         SetButtonsInteractable(false);
         UpdateStatusText($"Disconnected: {cause}");
     }
@@ -185,7 +399,13 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
         }
 
         string roomName = input_Create.text.Trim();
-        Debug.Log($"=== CREATING ROOM: {roomName} ===");
+
+        if (showDebugLogs)
+        {
+            Debug.Log($"=== CREATING ROOM: {roomName} ===");
+            Debug.Log("Properties before creating room:");
+            DebugPlayerProperties();
+        }
 
         RoomOptions options = new RoomOptions
         {
@@ -210,7 +430,13 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
         }
 
         string roomName = input_Join.text.Trim();
-        Debug.Log($"=== JOINING ROOM: {roomName} ===");
+
+        if (showDebugLogs)
+        {
+            Debug.Log($"=== JOINING ROOM: {roomName} ===");
+            Debug.Log("Properties before joining room:");
+            DebugPlayerProperties();
+        }
 
         UpdateStatusText($"Joining room '{roomName}'...");
         PhotonNetwork.JoinRoom(roomName);
@@ -221,18 +447,242 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
         if (!isReady)
         {
             UpdateStatusText("Not ready. Please wait...");
-            Debug.LogWarning("Room operation attempted while not ready");
+            if (showDebugLogs)
+                Debug.LogWarning("Room operation attempted while not ready");
             return false;
         }
 
         if (PlayfabAuthManager.Instance == null || !PlayfabAuthManager.Instance.IsPhotonReady())
         {
             UpdateStatusText("Network not ready");
-            Debug.LogWarning("PlayfabAuthManager not ready for room operations");
+            if (showDebugLogs)
+                Debug.LogWarning("PlayfabAuthManager not ready for room operations");
             return false;
         }
 
         return true;
+    }
+    #endregion
+
+    #region Ready State Management
+    private IEnumerator SetPlayerReadyStateCoroutine()
+    {
+        if (showDebugLogs)
+            Debug.Log("=== SETTING PLAYER READY STATE COROUTINE ===");
+
+        // Wait for room to be stable
+        yield return new WaitForSeconds(0.2f);
+
+        ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable();
+
+        // Check if this player is the room creator (Master Client)
+        bool isCreator = PhotonNetwork.LocalPlayer.IsMasterClient;
+
+        if (isCreator)
+        {
+            // Creator starts as NOT ready (needs to click Ready button)
+            props["IsReady"] = false;
+            props["PlayerRole"] = "Creator";
+            props["PlayerIndex"] = 0;
+
+            if (showDebugLogs)
+                Debug.Log("=== SETTING CREATOR STATE: IsReady = FALSE ===");
+        }
+        else
+        {
+            // Joiner is ALWAYS ready (no Ready button needed)
+            props["IsReady"] = true;
+            props["PlayerRole"] = "Joiner";
+            props["PlayerIndex"] = 1;
+
+            if (showDebugLogs)
+                Debug.Log("=== SETTING JOINER STATE: IsReady = TRUE ===");
+        }
+
+        // Force set properties
+        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
+
+        // Wait for properties to sync
+        yield return new WaitForSeconds(0.3f);
+
+        if (showDebugLogs)
+        {
+            Debug.Log($"Player ready state SET - IsMasterClient: {isCreator}, IsReady: {props["IsReady"]}");
+            DebugPlayerProperties();
+        }
+    }
+
+    // Method to manually set creator as ready (call this when Ready button is clicked)
+    public void SetCreatorReady()
+    {
+        if (!PhotonNetwork.LocalPlayer.IsMasterClient) return;
+
+        if (showDebugLogs)
+            Debug.Log("=== SETTING CREATOR AS READY ===");
+
+        ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable();
+        props["IsReady"] = true;
+        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
+
+        if (showDebugLogs)
+            Debug.Log("=== CREATOR IS NOW READY ===");
+    }
+
+    // Method to check if all players are ready
+    public bool AreAllPlayersReady()
+    {
+        if (PhotonNetwork.PlayerList.Length < 2)
+        {
+            if (showDebugLogs)
+                Debug.Log("AreAllPlayersReady: Not enough players");
+            return false;
+        }
+
+        foreach (var player in PhotonNetwork.PlayerList)
+        {
+            // Check if player has IsReady property
+            if (!player.CustomProperties.ContainsKey("IsReady"))
+            {
+                if (showDebugLogs)
+                    Debug.Log($"AreAllPlayersReady: Player {player.NickName} missing IsReady property");
+                return false;
+            }
+
+            bool isReady = (bool)player.CustomProperties["IsReady"];
+            if (!isReady)
+            {
+                if (showDebugLogs)
+                    Debug.Log($"AreAllPlayersReady: Player {player.NickName} not ready");
+                return false;
+            }
+        }
+
+        if (showDebugLogs)
+            Debug.Log("AreAllPlayersReady: ALL PLAYERS READY!");
+        return true;
+    }
+
+    public bool CanLoadGame()
+    {
+        // Check enough players
+        if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
+        {
+            if (showDebugLogs)
+                Debug.LogWarning("CanLoadGame: Not enough players");
+            return false;
+        }
+
+        // Check all players have required properties
+        foreach (var player in PhotonNetwork.PlayerList)
+        {
+            if (!player.CustomProperties.ContainsKey("IsReady") ||
+                !player.CustomProperties.ContainsKey("PlayerRole"))
+            {
+                if (showDebugLogs)
+                    Debug.LogWarning($"CanLoadGame: Player {player.NickName} missing required properties");
+                return false;
+            }
+        }
+
+        if (showDebugLogs)
+            Debug.Log("CanLoadGame: All checks passed!");
+        return true;
+    }
+    #endregion
+
+    #region Debug and Utility Methods
+    public void ForceFixReadyState()
+    {
+        if (!PhotonNetwork.InRoom) return;
+
+        if (showDebugLogs)
+            Debug.Log("=== FORCE FIXING READY STATE ===");
+
+        StartCoroutine(ForceFixReadyStateCoroutine());
+    }
+
+    private IEnumerator ForceFixReadyStateCoroutine()
+    {
+        // Step 1: Clean everything
+        ForceCleanAllProperties();
+        yield return new WaitForSeconds(0.5f);
+
+        // Step 2: Set ready state again
+        yield return StartCoroutine(SetPlayerReadyStateCoroutine());
+
+        // Step 3: Debug result
+        DebugAllPlayersReadyState();
+    }
+
+    public void DebugAllPlayersReadyState()
+    {
+        if (!showDebugLogs) return;
+
+        Debug.Log("=== ALL PLAYERS READY STATE ===");
+        Debug.Log($"Total players: {PhotonNetwork.PlayerList.Length}");
+
+        foreach (var player in PhotonNetwork.PlayerList)
+        {
+            bool hasReady = player.CustomProperties.ContainsKey("IsReady");
+            bool isReady = hasReady ? (bool)player.CustomProperties["IsReady"] : false;
+            string role = player.CustomProperties.ContainsKey("PlayerRole") ?
+                         player.CustomProperties["PlayerRole"].ToString() : "Unknown";
+
+            Debug.Log($"Player: {player.NickName}, Role: {role}, HasReady: {hasReady}, IsReady: {isReady}, IsMaster: {player.IsMasterClient}");
+        }
+
+        Debug.Log($"AreAllPlayersReady: {AreAllPlayersReady()}");
+    }
+
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    public void TestReadyState()
+    {
+        if (Application.isPlaying && PhotonNetwork.InRoom)
+        {
+            Debug.Log("=== TESTING READY STATE ===");
+            DebugAllPlayersReadyState();
+            Debug.Log($"CanLoadGame: {CanLoadGame()}");
+        }
+    }
+
+    private void DebugCurrentStatus()
+    {
+        if (showDebugLogs)
+        {
+            Debug.Log($"=== CURRENT STATUS ===");
+            Debug.Log($"isReady: {isReady}");
+            Debug.Log($"isSettingUpRoom: {isSettingUpRoom}");
+            Debug.Log($"PhotonNetwork.IsConnected: {PhotonNetwork.IsConnected}");
+            Debug.Log($"PhotonNetwork.InLobby: {PhotonNetwork.InLobby}");
+            Debug.Log($"PhotonNetwork.InRoom: {PhotonNetwork.InRoom}");
+            Debug.Log($"PhotonNetwork.NetworkClientState: {PhotonNetwork.NetworkClientState}");
+            Debug.Log($"Available rooms: {cachedRoomList.Count}");
+
+            if (PlayfabAuthManager.Instance != null)
+            {
+                PlayfabAuthManager.Instance.DebugStatus();
+            }
+        }
+    }
+
+    private void DebugPlayerProperties()
+    {
+        if (PhotonNetwork.LocalPlayer != null && showDebugLogs)
+        {
+            Debug.Log("=== CURRENT PLAYER PROPERTIES ===");
+            var props = PhotonNetwork.LocalPlayer.CustomProperties;
+            if (props.Count == 0)
+            {
+                Debug.Log("No properties found (CLEAN STATE)");
+            }
+            else
+            {
+                foreach (var prop in props)
+                {
+                    Debug.Log($"Key: {prop.Key}, Value: {prop.Value}");
+                }
+            }
+        }
     }
     #endregion
 
@@ -246,36 +696,25 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     private void UpdateStatusText(string message)
     {
         if (statusText) statusText.text = message;
-        Debug.Log($"Status: {message}");
+        if (showDebugLogs)
+            Debug.Log($"Status: {message}");
     }
 
     public void ListAvailableRooms()
     {
-        Debug.Log("=== AVAILABLE ROOMS ===");
-        if (cachedRoomList.Count == 0)
+        if (showDebugLogs)
         {
-            Debug.Log("No rooms available");
-            return;
-        }
+            Debug.Log("=== AVAILABLE ROOMS ===");
+            if (cachedRoomList.Count == 0)
+            {
+                Debug.Log("No rooms available");
+                return;
+            }
 
-        foreach (var room in cachedRoomList.Values)
-        {
-            Debug.Log($"- {room.Name} ({room.PlayerCount}/{room.MaxPlayers})");
-        }
-    }
-
-    private void DebugCurrentStatus()
-    {
-        Debug.Log($"=== CURRENT STATUS ===");
-        Debug.Log($"isReady: {isReady}");
-        Debug.Log($"PhotonNetwork.IsConnected: {PhotonNetwork.IsConnected}");
-        Debug.Log($"PhotonNetwork.InLobby: {PhotonNetwork.InLobby}");
-        Debug.Log($"PhotonNetwork.NetworkClientState: {PhotonNetwork.NetworkClientState}");
-        Debug.Log($"Available rooms: {cachedRoomList.Count}");
-
-        if (PlayfabAuthManager.Instance != null)
-        {
-            PlayfabAuthManager.Instance.DebugStatus();
+            foreach (var room in cachedRoomList.Values)
+            {
+                Debug.Log($"- {room.Name} ({room.PlayerCount}/{room.MaxPlayers})");
+            }
         }
     }
     #endregion

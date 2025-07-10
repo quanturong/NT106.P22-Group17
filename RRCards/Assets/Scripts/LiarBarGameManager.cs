@@ -918,14 +918,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         return randomStartPlayer;
     }
 
-    private void ContinueCurrentRound()
-    {
-        if (!PhotonNetwork.IsMasterClient) return;
-
-        LogDebug("Continuing SAME ROUND after roulette survival - next player turn");
-        photonView.RPC("ContinueRound", RpcTarget.All);
-    }
-
     private void ResumeGameFlow()
     {
         if (!PhotonNetwork.IsMasterClient) return;
@@ -972,21 +964,9 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         LogDebug($"AFTER setting: currentRound is now {currentRound}");
 
-        // QUAN TRỌNG: KHÔNG TẠO HAND MỚI NẾU ĐÂY LÀ CONTINUATION SAU ROULETTE
-        bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
-        if (isAfterRoulette)
-        {
-            LogDebug("This is AFTER ROULETTE - NOT creating new hand, preserving everything");
-            PlayerPrefs.DeleteKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
-
-            // KHÔNG GỌI CreateNewHandForNewRound()
-            // KHÔNG RESET GÌ CẢ
-        }
-        else
-        {
-            LogDebug("This is NORMAL new round - creating new hand");
-            CreateNewHandForNewRound();
-        }
+        // QUAN TRỌNG: LUÔN TẠO HAND MỚI CHO ROUND MỚI
+        LogDebug("Creating NEW HAND for NEW ROUND");
+        CreateNewHandForNewRound();
 
         // DEBUG: Log lives AFTER any changes
         LogDebug("=== LIVES AFTER NewRoundStarted ===");
@@ -1010,20 +990,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
                 LogDebug("Creating NEW HAND for NEW ROUND");
             }
         }
-    }
-
-    [PunRPC]
-    void ContinueRound()
-    {
-        LogDebug("ContinueRound RPC received - KEEP EXISTING HAND, same round, next player");
-
-        currentState = GameState.PlayerPlaying;
-        playedCardsThisTurn.Clear();
-
-        if (gameStatusText)
-            gameStatusText.text = "Round continues...";
-
-        NextPlayerTurn();
     }
 
     [PunRPC]
@@ -1310,46 +1276,16 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     private void HandlePlayerSurvival(PlayerData player, int playerActorNumber)
     {
-        LogDebug($"Player {playerActorNumber} survived roulette (got lucky) - keeping {player.lives} lives");
+        LogDebug($"Player {playerActorNumber} survived roulette - keeping {player.lives} lives");
 
         if (gameStatusText)
-            gameStatusText.text = $"{player.photonPlayer.NickName} got lucky!";
+            gameStatusText.text = $"{player.photonPlayer.NickName} survived! Starting new round...";
 
+        // ✅ THAY ĐỔI CHÍNH: LUÔN CHUYỂN SANG ROUND MỚI SAU KHI QUAY ROULETTE
         if (PhotonNetwork.IsMasterClient)
         {
-            // CHECK: Có ai đã hết bài chưa?
-            bool someoneFinished = CheckForPlayerWithNoCards();
-
-            LogDebug($"CheckForPlayerWithNoCards result: {someoneFinished}");
-
-            if (someoneFinished)
-            {
-                LogDebug("Someone has no cards after survival - check for sequential roulette");
-
-                // Kiểm tra xem có phải là sequence roulette không
-                var finishedPlayer = players.FirstOrDefault(p => p.isAlive && HasPlayerFinishedCards(p));
-                var survivedPlayer = player;
-
-                if (finishedPlayer != null && finishedPlayer != survivedPlayer)
-                {
-                    LogDebug($"Sequential roulette: {finishedPlayer.photonPlayer.NickName} (finished cards) must play next");
-
-                    if (gameStatusText)
-                        gameStatusText.text = $"{survivedPlayer.photonPlayer.NickName} survived! Now {finishedPlayer.photonPlayer.NickName} must play roulette!";
-
-                    photonView.RPC("StartRussianRoulette", RpcTarget.All, finishedPlayer.photonPlayer.ActorNumber);
-                    return;
-                }
-
-                // Nếu không có sequential, bắt đầu round mới
-                LogDebug("No sequential roulette needed - starting new round");
-                Invoke(nameof(StartNewRound), 3f);
-            }
-            else
-            {
-                LogDebug("No one finished cards - continue same round");
-                Invoke(nameof(ContinueCurrentRound), 3f);
-            }
+            LogDebug("🎯 MAJOR CHANGE: Always start new round after roulette (regardless of result)");
+            Invoke(nameof(StartNewRound), 3f);
         }
     }
 
@@ -1492,104 +1428,28 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     private void RestoreHandDataAfterRoulette()
     {
+        // ✅ THAY ĐỔI: KHÔNG CẦN RESTORE HAND NỮA VÌ SẼ TẠO HAND MỚI
+        LogDebug("🎯 MAJOR CHANGE: Skipping hand restoration - will create new hand for new round");
+
+        // Clear any saved hand data since we won't need it
         string handCountKey = HAND_COUNT_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber;
-
-        LogDebug($"RestoreHandDataAfterRoulette - Looking for key: {handCountKey}");
-
         if (PlayerPrefs.HasKey(handCountKey))
         {
             int savedHandCount = PlayerPrefs.GetInt(handCountKey);
+            LogDebug($"Clearing saved hand data for {savedHandCount} cards");
 
-            LogDebug($"Found saved hand count: {savedHandCount} for player {PhotonNetwork.LocalPlayer.ActorNumber}");
-
-            if (localHandManager != null)
-            {
-                List<CardData> restoredHand = RestoreCardsFromPlayerPrefs(savedHandCount);
-
-                if (restoredHand.Count > 0)
-                {
-                    SetHandAndUpdateCount(restoredHand);
-                }
-                else
-                {
-                    Debug.LogError("No cards were restored! restoredHand is empty.");
-                }
-            }
-            else
-            {
-                Debug.LogError("localHandManager is NULL!");
-            }
-
+            // Clear hand count
             PlayerPrefs.DeleteKey(handCountKey);
-        }
-        else
-        {
-            LogDebug($"No saved hand data found for player {PhotonNetwork.LocalPlayer.ActorNumber}");
-            DebugOrphanedCardKeys();
-        }
-    }
 
-    private List<CardData> RestoreCardsFromPlayerPrefs(int savedHandCount)
-    {
-        List<CardData> restoredHand = new List<CardData>();
-
-        for (int i = 0; i < savedHandCount; i++)
-        {
-            string cardKey = HAND_DATA_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber + "_" + i;
-            LogDebug($"Looking for card key: {cardKey}");
-
-            if (PlayerPrefs.HasKey(cardKey))
+            // Clear individual card data
+            for (int i = 0; i < savedHandCount; i++)
             {
-                string cardName = PlayerPrefs.GetString(cardKey);
-
-                CardData restoredCard = new CardData();
-                restoredCard.cardName = cardName;
-                restoredHand.Add(restoredCard);
-
-                LogDebug($"Restored card {i}: {cardName}");
+                string cardKey = HAND_DATA_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber + "_" + i;
                 PlayerPrefs.DeleteKey(cardKey);
             }
-            else
-            {
-                Debug.LogError($"Card key not found: {cardKey}");
-            }
-        }
 
-        return restoredHand;
-    }
-
-    private void SetHandAndUpdateCount(List<CardData> restoredHand)
-    {
-        var baseHandManager = localHandManager.GetComponent<HandManager>();
-        if (baseHandManager != null)
-        {
-            LogDebug($"Calling SetHand with {restoredHand.Count} cards");
-
-            baseHandManager.SetHand(restoredHand);
-
-            var localPlayer = GetPlayerByActorNumber(PhotonNetwork.LocalPlayer.ActorNumber);
-            if (localPlayer != null)
-            {
-                localPlayer.handCount = restoredHand.Count;
-            }
-
-            LogDebug($"Hand successfully restored with {restoredHand.Count} cards");
-        }
-        else
-        {
-            Debug.LogError("baseHandManager is NULL!");
-        }
-    }
-
-    private void DebugOrphanedCardKeys()
-    {
-        for (int i = 0; i < 10; i++)
-        {
-            string testKey = HAND_DATA_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber + "_" + i;
-            if (PlayerPrefs.HasKey(testKey))
-            {
-                LogDebug($"Found orphaned card key: {testKey} = {PlayerPrefs.GetString(testKey)}");
-            }
+            PlayerPrefs.Save();
+            LogDebug("Hand data cleared - new hand will be created in new round");
         }
     }
     #endregion
@@ -1813,56 +1673,13 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             LogDebug($"Player was honest: {allCardsAreTarget}");
         }
 
-        // CHECK XEM CÓ AI HẾT BÀI KHÔNG
-        bool currentPlayerHasNoCards = HasPlayerFinishedCards(currentPlayer);
-        bool challengerHasNoCards = HasPlayerFinishedCards(challenger);
-
-        LogDebug($"Cards status - Current player has no cards: {currentPlayerHasNoCards}, Challenger has no cards: {challengerHasNoCards}");
-
-        if (currentPlayerHasNoCards && !challengerHasNoCards)
-        {
-            // NGƯỜI CHƠI HẾT BÀI BỊ TỐ
-            HandleChallengeWithFinishedCards(allCardsAreTarget, currentPlayer, challenger);
-        }
-        else
-        {
-            // TRƯỜNG HỢP BÌNH THƯỜNG - KHÔNG AI HẾT BÀI
-            HandleNormalChallenge(allCardsAreTarget, currentPlayer, challenger);
-        }
+        // ✅ THAY ĐỔI: ĐƠN GIẢN HÓA LOGIC - CHỈ CẦN XÁC ĐỊNH AI BỊ PHẠT
+        ProcessSimplifiedChallenge(allCardsAreTarget, currentPlayer, challenger);
     }
 
-    private void HandleChallengeWithFinishedCards(bool allCardsAreTarget, PlayerData finishedPlayer, PlayerData challengerPlayer)
+    private void ProcessSimplifiedChallenge(bool allCardsAreTarget, PlayerData currentPlayer, PlayerData challenger)
     {
-        LogDebug($"=== CHALLENGE WITH FINISHED CARDS ===");
-        LogDebug($"Finished player: {finishedPlayer.photonPlayer.NickName}, Honest: {allCardsAreTarget}");
-
-        if (allCardsAreTarget)
-        {
-            // TỐ ĐÚNG: Người hết bài nói thật
-            LogDebug($"🎯 CHALLENGE CORRECT: {finishedPlayer.photonPlayer.NickName} was honest!");
-
-            if (gameStatusText)
-                gameStatusText.text = $"{finishedPlayer.photonPlayer.NickName} was honest! {challengerPlayer.photonPlayer.NickName} plays roulette first!";
-
-            // Người tố phải quay roulette trước
-            photonView.RPC("StartRussianRoulette", RpcTarget.All, challengerPlayer.photonPlayer.ActorNumber);
-        }
-        else
-        {
-            // TỐ SAI: Người hết bài nói dối
-            LogDebug($"🎯 CHALLENGE WRONG: {finishedPlayer.photonPlayer.NickName} was lying!");
-
-            if (gameStatusText)
-                gameStatusText.text = $"{finishedPlayer.photonPlayer.NickName} was lying! {challengerPlayer.photonPlayer.NickName} plays single roulette!";
-
-            // Người tố quay duy nhất 1 lần roulette
-            photonView.RPC("StartRussianRoulette", RpcTarget.All, challengerPlayer.photonPlayer.ActorNumber);
-        }
-    }
-
-    private void HandleNormalChallenge(bool allCardsAreTarget, PlayerData currentPlayer, PlayerData challenger)
-    {
-        LogDebug($"=== NORMAL CHALLENGE ===");
+        LogDebug($"=== SIMPLIFIED CHALLENGE PROCESSING ===");
 
         if (allCardsAreTarget)
         {
@@ -2202,16 +2019,9 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         PlayerPrefs.DeleteKey(PUNISHED_PLAYER_KEY);
         PlayerPrefs.DeleteKey("RouletteCompleted");
 
-        if (!hitSpecialSlot)
-        {
-            LogDebug("😅 Player SURVIVED roulette - attempting to restore hand");
-            RestoreHandDataAfterRoulette();
-            LogDebug("⚠️ IMPORTANT: Not touching lives - keeping current lives intact");
-        }
-        else
-        {
-            LogDebug("💀 Player DIED in roulette - will get new hand in new round");
-        }
+        // ✅ THAY ĐỔI: KHÔNG CẦN RESTORE HAND VÌ SẼ TẠO MỚI
+        LogDebug("🎯 MAJOR CHANGE: Skipping hand restoration - new hand will be created for new round");
+        RestoreHandDataAfterRoulette(); // This now just clears old data
 
         if (punishedPlayer == PhotonNetwork.LocalPlayer.ActorNumber)
         {
