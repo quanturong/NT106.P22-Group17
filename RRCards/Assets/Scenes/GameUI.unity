@@ -2918,6 +2918,7 @@ MonoBehaviour:
   selectAllJButton: {fileID: 0}
   selectAllAButton: {fileID: 0}
   selectAllJokerButton: {fileID: 0}
+  enableDebugLogs: 1
 --- !u!114 &551927107 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6091162059013764854, guid: 2beb2a9d2076f6e4886e22edb413c450, type: 3}
@@ -3571,6 +3572,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   countText: {fileID: 940668577}
+  cardIcon: {fileID: 1139358816}
+  cardCountPanel: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  lowCardsColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  criticalColor: {r: 1, g: 0, b: 0, a: 1}
+  enableAnimation: 1
+  animationDuration: 0.3
 --- !u!1 &808939150 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7425773716666212229, guid: 15453eae34aae0848b25903b4b1d1543, type: 3}
@@ -4529,11 +4537,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c745d56b2aa37d14a9036e9421f590f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentState: 1
+  currentState: 0
   currentPlayerIndex: 0
   currentTargetCard: 
   currentRound: 1
-  middlePile: []
   gameStatusText: {fileID: 453967928}
   roundDisplayText: {fileID: 453967928}
   playPanel: {fileID: 969160716}
@@ -4551,6 +4558,7 @@ MonoBehaviour:
   players: []
   localHandManager: {fileID: 548369295}
   lifeManager: {fileID: 1517495818}
+  opponentCardCounter: {fileID: 802981227}
   playTimeLimit: 15
   challengeTimeLimit: 15
   audioSource: {fileID: 0}
@@ -4562,6 +4570,7 @@ MonoBehaviour:
   defeatSound: {fileID: 0}
   loseLifeSound: {fileID: 0}
   confettiEffect: {fileID: 0}
+  enableDebugLogs: 1
 --- !u!1 &1182486669
 GameObject:
   m_ObjectHideFlags: 0
@@ -5755,6 +5764,8 @@ MonoBehaviour:
   - {fileID: 280865306}
   normalHeartColor: {r: 1, g: 0, b: 0, a: 1}
   darkHeartColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
+  enableDebugLogs: 1
+  blockAllUpdates: 0
 --- !u!1 &1526525860
 GameObject:
   m_ObjectHideFlags: 0

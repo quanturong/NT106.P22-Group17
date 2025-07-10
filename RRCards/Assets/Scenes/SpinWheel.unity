@@ -351,7 +351,7 @@ PrefabInstance:
     - target: {fileID: 2436142962592522740, guid: 2c5e360d581f0a649ad85f727faa7f86, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -205270267638800340, guid: 5f056faa8e2ff0b4293bd1eb48fbaa89, type: 3}
+      objectReference: {fileID: 3732634909847249153, guid: c1256a17ec9c11d42a52325c08351464, type: 3}
     - target: {fileID: 2649154011623247546, guid: 2c5e360d581f0a649ad85f727faa7f86, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -359,7 +359,7 @@ PrefabInstance:
     - target: {fileID: 2759493281094231578, guid: 2c5e360d581f0a649ad85f727faa7f86, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -205270267638800340, guid: 5f056faa8e2ff0b4293bd1eb48fbaa89, type: 3}
+      objectReference: {fileID: 3732634909847249153, guid: c1256a17ec9c11d42a52325c08351464, type: 3}
     - target: {fileID: 2759493281094231578, guid: 2c5e360d581f0a649ad85f727faa7f86, type: 3}
       propertyPath: m_Color.a
       value: 1
@@ -577,6 +577,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01bf9f77b85e0254da9316c2191eab4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameSceneName: GameUI
+  delayBeforeReturn: 2
+  rouletteInstructions: {fileID: 0}
+  instructionText: {fileID: 0}
 --- !u!1 &986268072
 GameObject:
   m_ObjectHideFlags: 0

@@ -27,7 +27,7 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     private const string HAND_DATA_PREFIX = "HandData_";
     private const string LAST_ROOM_KEY = "LastGameRoom";
 
-    private readonly string[] CARD_NAMES = { "K", "Q", "J", "A", "Joker" };
+    private readonly string[] CARD_NAMES = { "K", "Q", "J", "A" }; // Bỏ "Joker" khỏi target selection
     #endregion
 
     #region Game State Variables
@@ -71,6 +71,7 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     public List<PlayerData> players = new List<PlayerData>();
     public LiarBarHandManager localHandManager;
     public LifeManager lifeManager;
+    public OpponentCardCounter opponentCardCounter; // NEW: Đếm bài đối thủ
     #endregion
 
     #region Timer Settings
@@ -840,6 +841,13 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         LogDebug($"Comparing: '{cardName}' -> '{normalizedCard}' vs '{targetCard}' -> '{normalizedTarget}'");
 
+        // JOKER LOGIC: Joker đúng với mọi target
+        if (normalizedCard.Equals("JOKER", System.StringComparison.OrdinalIgnoreCase))
+        {
+            LogDebug($"🃏 JOKER detected! '{cardName}' matches ANY target (including '{targetCard}')");
+            return true;
+        }
+
         return normalizedCard.Equals(normalizedTarget, System.StringComparison.OrdinalIgnoreCase);
     }
 
@@ -1028,8 +1036,26 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         var player = GetPlayerByActorNumber(playerActorNumber);
         if (player != null)
         {
+            int oldHandCount = player.handCount;
             player.handCount -= cardCount;
-            LogDebug($"Updated hand count for player {playerActorNumber}: {player.handCount} cards remaining");
+            LogDebug($"Updated hand count for player {playerActorNumber}: {oldHandCount} → {player.handCount} cards remaining");
+
+            // UPDATE OPPONENT CARD COUNTER nếu không phải local player
+            if (playerActorNumber != PhotonNetwork.LocalPlayer.ActorNumber && opponentCardCounter != null)
+            {
+                opponentCardCounter.SetCardCount(player.handCount);
+                LogDebug($"Updated OpponentCardCounter after card play: {player.handCount} cards");
+
+                // CHECK if opponent is running low on cards
+                if (opponentCardCounter.IsCriticallyLowOnCards())
+                {
+                    LogDebug("⚠️ Opponent is critically low on cards!");
+                }
+                else if (opponentCardCounter.IsLowOnCards())
+                {
+                    LogDebug("⚠️ Opponent is low on cards!");
+                }
+            }
         }
 
         if (PhotonNetwork.IsMasterClient)
@@ -1152,6 +1178,13 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         {
             player.handCount = handCount;
             LogDebug($"Synced hand count: Player {playerActorNumber} has {handCount} cards");
+
+            // UPDATE OPPONENT CARD COUNTER
+            if (playerActorNumber != PhotonNetwork.LocalPlayer.ActorNumber && opponentCardCounter != null)
+            {
+                opponentCardCounter.SetCardCount(handCount);
+                LogDebug($"Updated OpponentCardCounter: {handCount} cards");
+            }
         }
     }
 
@@ -1717,7 +1750,9 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     private bool ValidatePlayedCards()
     {
+        LogDebug($"=== VALIDATING PLAYED CARDS ===");
         LogDebug($"playedCardsThisTurn.Count: {playedCardsThisTurn.Count}");
+        LogDebug($"currentTargetCard: '{currentTargetCard}'");
 
         if (playedCardsThisTurn.Count == 0)
         {
@@ -1731,7 +1766,8 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             {
                 string cardName = playedCardsThisTurn[i].cardName;
                 bool isMatch = IsCardMatchingTarget(cardName, currentTargetCard);
-                LogDebug($"Card {i}: '{cardName}' -> Matches target: {isMatch}");
+                string cardType = cardName.Equals("Joker", System.StringComparison.OrdinalIgnoreCase) ? "🃏 JOKER (WILDCARD)" : "Regular card";
+                LogDebug($"Card {i}: '{cardName}' ({cardType}) -> Matches target '{currentTargetCard}': {isMatch}");
             }
         }
 
@@ -1740,8 +1776,42 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     private void ProcessChallengeResult(bool allCardsAreTarget, PlayerData currentPlayer, PlayerData challenger)
     {
+        LogDebug($"=== CHALLENGE RESULT ANALYSIS ===");
         LogDebug($"Current Player (played cards): {currentPlayer.photonPlayer.NickName}");
         LogDebug($"Challenger: {challenger.photonPlayer.NickName}");
+        LogDebug($"All cards match target: {allCardsAreTarget}");
+
+        // DEBUG: Show card breakdown
+        if (enableDebugLogs && playedCardsThisTurn.Count > 0)
+        {
+            LogDebug($"=== PLAYED CARDS BREAKDOWN ===");
+            int jokerCount = 0;
+            int targetCount = 0;
+            int otherCount = 0;
+
+            foreach (var card in playedCardsThisTurn)
+            {
+                string normalizedCard = NormalizeCardName(card.cardName);
+                if (normalizedCard.Equals("JOKER", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    jokerCount++;
+                    LogDebug($"  🃏 Joker: '{card.cardName}' (WILDCARD - always valid)");
+                }
+                else if (normalizedCard.Equals(NormalizeCardName(currentTargetCard), System.StringComparison.OrdinalIgnoreCase))
+                {
+                    targetCount++;
+                    LogDebug($"  ✅ Target card: '{card.cardName}' matches '{currentTargetCard}'");
+                }
+                else
+                {
+                    otherCount++;
+                    LogDebug($"  ❌ Other card: '{card.cardName}' does NOT match '{currentTargetCard}'");
+                }
+            }
+
+            LogDebug($"Summary: {jokerCount} Jokers, {targetCount} Target cards, {otherCount} Other cards");
+            LogDebug($"Player was honest: {allCardsAreTarget}");
+        }
 
         // CHECK XEM CÓ AI HẾT BÀI KHÔNG
         bool currentPlayerHasNoCards = HasPlayerFinishedCards(currentPlayer);
@@ -2318,19 +2388,34 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    [ContextMenu("Test Temporary Block")]
-    public void TestTemporaryBlock()
+    [ContextMenu("Test Card Validation")]
+    public void TestCardValidation()
     {
-        LogDebug("🧪 TESTING: Temporary block for 2 seconds");
-        if (lifeManager != null)
-        {
-            lifeManager.TemporaryBlock(2f);
-            LogDebug("LifeManager temporarily blocked - will auto unblock");
-        }
-        else
-        {
-            LogDebug("LifeManager is NULL!");
-        }
+        LogDebug("🧪 TESTING: Card validation with mixed hand");
+
+        // Simulate a mixed hand với Jokers
+        playedCardsThisTurn.Clear();
+        playedCardsThisTurn.Add(new CardData { cardName = "K" });
+        playedCardsThisTurn.Add(new CardData { cardName = "Joker" });
+        playedCardsThisTurn.Add(new CardData { cardName = "Q" });
+
+        currentTargetCard = "K";
+
+        LogDebug($"Simulated hand: K, Joker, Q");
+        LogDebug($"Target card: {currentTargetCard}");
+
+        bool allMatch = playedCardsThisTurn.All(card => IsCardMatchingTarget(card.cardName, currentTargetCard));
+        LogDebug($"All cards match target: {allMatch}");
+        LogDebug($"Expected: TRUE (because Joker should match K, even though Q doesn't)");
+
+        // Test pure Joker hand
+        playedCardsThisTurn.Clear();
+        playedCardsThisTurn.Add(new CardData { cardName = "Joker" });
+        playedCardsThisTurn.Add(new CardData { cardName = "joker" });
+
+        bool allJokersMatch = playedCardsThisTurn.All(card => IsCardMatchingTarget(card.cardName, currentTargetCard));
+        LogDebug($"\nPure Joker hand vs '{currentTargetCard}': {allJokersMatch}");
+        LogDebug($"Expected: TRUE (Jokers should always match)");
     }
 
     [ContextMenu("Debug LifeManager State")]

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Title: heart
   m_Type: heart
-  m_Count: 0
-  m_Icon: {fileID: -205270267638800340, guid: 5f056faa8e2ff0b4293bd1eb48fbaa89, type: 3}
-  m_IsSpecialReset: 0
+  m_Count: -1
+  m_Icon: {fileID: 3732634909847249153, guid: c1256a17ec9c11d42a52325c08351464, type: 3}
+  m_IsSpecialReset: 1
   m_IsObtained: 0
