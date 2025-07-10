@@ -2,20 +2,49 @@
 using UnityEngine.UI;
 using TMPro;
 using Photon.Pun;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.SceneManagement;
 
 public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 {
+    #region Enums and Constants
+    public enum GameState
+    {
+        WaitingForPlayers,
+        RoundStart,
+        PlayerPlaying,
+        WaitingForChallenge,
+        RevealingCards,
+        WaitingForRoulette,
+        GameOver
+    }
+
+    private const string PUNISHMENT_RESULT_KEY = "RouletteResult";
+    private const string PUNISHED_PLAYER_KEY = "PunishedPlayer";
+    private const string HAND_COUNT_PREFIX = "HandCount_";
+    private const string HAND_DATA_PREFIX = "HandData_";
+    private const string LAST_ROOM_KEY = "LastGameRoom";
+
+    private readonly string[] CARD_NAMES = { "K", "Q", "J", "A", "Joker" };
+    #endregion
+
+    #region Game State Variables
     [Header("Game State")]
     public GameState currentState = GameState.WaitingForPlayers;
     public int currentPlayerIndex = 0;
     public string currentTargetCard = "";
     public int currentRound = 0;
-    public List<CardData> middlePile = new List<CardData>();
-    private List<CardData> playedCardsThisTurn = new List<CardData>();
+    public readonly List<CardData> middlePile = new List<CardData>();
+    private readonly List<CardData> playedCardsThisTurn = new List<CardData>();
+    private bool isMyTurn = false;
+    private int cardsPlayedThisTurn = 0;
+    private bool shouldLoadRoulette = false;
+    private int playersReady = 0;
+    #endregion
 
+    #region UI References
     [Header("UI References")]
     public TextMeshProUGUI gameStatusText;
     public TextMeshProUGUI roundDisplayText;
@@ -30,7 +59,9 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     public TextMeshProUGUI popupRoundInfo;
     public TextMeshProUGUI popupTargetCardInfo;
     public Button popupOkButton;
+    #endregion
 
+    #region Scene and Player Management
     [Header("Scene Names")]
     public string victorySceneName = "Victory";
     public string defeatSceneName = "Defeat";
@@ -39,16 +70,18 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     [Header("Player Management")]
     public List<PlayerData> players = new List<PlayerData>();
     public LiarBarHandManager localHandManager;
-
-    [Header("Life Management")]
     public LifeManager lifeManager;
+    #endregion
 
+    #region Timer Settings
     [Header("Timer Settings")]
     public float playTimeLimit = 15f;
     public float challengeTimeLimit = 10f;
     private float currentTimer = 0f;
     private bool timerActive = false;
+    #endregion
 
+    #region Audio and Effects
     [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip cardPlaySound;
@@ -61,40 +94,189 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     [Header("Visual Effects")]
     public ParticleSystem confettiEffect;
+    #endregion
 
+    #region Debug
     [Header("Debug")]
     public bool enableDebugLogs = true;
+    #endregion
 
-    private bool isMyTurn = false;
-    private int cardsPlayedThisTurn = 0;
-    private int playersReady = 0;
-
-    private const string PUNISHMENT_RESULT_KEY = "RouletteResult";
-    private const string PUNISHED_PLAYER_KEY = "PunishedPlayer";
-
-    public enum GameState
-    {
-        WaitingForPlayers,
-        RoundStart,
-        PlayerPlaying,
-        WaitingForChallenge,
-        RevealingCards,
-        WaitingForRoulette,
-        GameOver
-    }
-
+    #region Unity Lifecycle
     void Start()
     {
-        InitializeGame();
+        LogDebug($"Start() called on GameObject: {gameObject.name}, Instance ID: {GetInstanceID()}");
+        LogDebug($"currentRound at very beginning of Start(): {currentRound}");
+
+        // FORCE RESET currentRound to 0 at the very beginning
+        currentRound = 0;
+        LogDebug($"FORCED currentRound to 0 in Start()");
+
+        // BLOCK UI updates during initialization to prevent flicker
+        bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
+        if (isAfterRoulette)
+        {
+            LogDebug("⚠️ Start() detected AfterRoulette - will prevent UI flicker during init");
+        }
+
+        InitializePhotonSettings();
+        InitializeGameSession();
         SetupUI();
-        CheckRouletteResult();
+        ProcessRouletteResultIfExists();
     }
 
-    void InitializeGame()
+    void Update()
     {
-        players.Clear();
-        currentRound = 0;
-        playersReady = 0;
+        UpdateTimerUI();
+    }
+
+    void OnDestroy()
+    {
+        LogDebug("OnDestroy called - cleaning up");
+
+        if (!PhotonNetwork.IsConnected || PhotonNetwork.CurrentRoom == null)
+        {
+            LogDebug("Disconnected - clearing game data for next session");
+            ClearAllGameData();
+        }
+    }
+    #endregion
+
+    #region Initialization Methods
+    private void InitializePhotonSettings()
+    {
+        PhotonNetwork.AutomaticallySyncScene = false;
+
+        if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("curScn"))
+        {
+            var roomProps = new ExitGames.Client.Photon.Hashtable();
+            roomProps["curScn"] = null;
+            PhotonNetwork.CurrentRoom.SetCustomProperties(roomProps);
+            LogDebug("Cleared curScn room property");
+        }
+    }
+
+    private void InitializeGameSession()
+    {
+        bool isNewSession = CheckIfNewGameSession();
+
+        if (isNewSession)
+        {
+            LogDebug("NEW GAME SESSION DETECTED - Clearing all persistent data");
+            ClearAllGameData();
+            // FORCE RESET currentRound for new session
+            currentRound = 0;
+            LogDebug($"FORCED currentRound = {currentRound} for new session");
+        }
+        else
+        {
+            LogDebug("CONTINUING EXISTING SESSION - Restoring data");
+            RestoreGameStateFromPlayerPrefs();
+            LogDebug($"After restore: currentRound = {currentRound}");
+        }
+
+        InitializeGame();
+    }
+
+    private bool CheckIfNewGameSession()
+    {
+        string roomId = PhotonNetwork.CurrentRoom?.Name ?? "unknown";
+        string lastRoom = PlayerPrefs.GetString(LAST_ROOM_KEY, "");
+
+        LogDebug($"Current room: {roomId}, Last room: {lastRoom}");
+
+        if (roomId != lastRoom)
+        {
+            PlayerPrefs.SetString(LAST_ROOM_KEY, roomId);
+            PlayerPrefs.Save();
+            return true;
+        }
+
+        bool hasRouletteData = PlayerPrefs.HasKey(PUNISHMENT_RESULT_KEY);
+        bool hasGameStateData = PlayerPrefs.HasKey("GameState_CurrentRound");
+
+        if (!hasRouletteData && hasGameStateData)
+        {
+            LogDebug("Found orphaned game state without roulette data - treating as new session");
+            return true;
+        }
+
+        return false;
+    }
+    #endregion
+
+    #region Data Management
+    private void ClearAllGameData()
+    {
+        LogDebug("Clearing ALL persistent game data");
+
+        // Clear game state
+        PlayerPrefs.DeleteKey("GameState_CurrentRound");
+        PlayerPrefs.DeleteKey("GameState_TargetCard");
+        PlayerPrefs.DeleteKey("GameState_PlayerIndex");
+
+        // Clear roulette data
+        PlayerPrefs.DeleteKey(PUNISHMENT_RESULT_KEY);
+        PlayerPrefs.DeleteKey(PUNISHED_PLAYER_KEY);
+
+        // Clear hand data for all possible players
+        for (int actorNumber = 1; actorNumber <= 10; actorNumber++)
+        {
+            PlayerPrefs.DeleteKey(HAND_COUNT_PREFIX + actorNumber);
+            PlayerPrefs.DeleteKey("GameState_Lives_" + actorNumber);
+
+            for (int cardIndex = 0; cardIndex < 10; cardIndex++)
+            {
+                PlayerPrefs.DeleteKey(HAND_DATA_PREFIX + actorNumber + "_" + cardIndex);
+            }
+        }
+
+        PlayerPrefs.Save();
+        LogDebug("All persistent data cleared - fresh start");
+    }
+
+    private void RestoreGameStateFromPlayerPrefs()
+    {
+        if (PlayerPrefs.HasKey("GameState_CurrentRound"))
+        {
+            currentRound = PlayerPrefs.GetInt("GameState_CurrentRound");
+            LogDebug($"Restored currentRound: {currentRound}");
+        }
+
+        if (PlayerPrefs.HasKey("GameState_TargetCard"))
+        {
+            currentTargetCard = PlayerPrefs.GetString("GameState_TargetCard");
+            LogDebug($"Restored currentTargetCard: {currentTargetCard}");
+        }
+
+        if (PlayerPrefs.HasKey("GameState_PlayerIndex"))
+        {
+            currentPlayerIndex = PlayerPrefs.GetInt("GameState_PlayerIndex");
+            LogDebug($"Restored currentPlayerIndex: {currentPlayerIndex}");
+        }
+    }
+
+    private void SaveGameStateToPlayerPrefs()
+    {
+        PlayerPrefs.SetInt("GameState_CurrentRound", currentRound);
+        PlayerPrefs.SetString("GameState_TargetCard", currentTargetCard);
+        PlayerPrefs.SetInt("GameState_PlayerIndex", currentPlayerIndex);
+
+        foreach (var player in players)
+        {
+            string livesKey = "GameState_Lives_" + player.photonPlayer.ActorNumber;
+            PlayerPrefs.SetInt(livesKey, player.lives);
+            LogDebug($"Saved {player.photonPlayer.NickName} lives: {player.lives}");
+        }
+
+        PlayerPrefs.Save();
+        LogDebug($"Saved game state - Round: {currentRound}, Target: {currentTargetCard}");
+    }
+    #endregion
+
+    #region Player and Game Initialization
+    private void InitializeGame()
+    {
+        LogDebug($"InitializeGame() called! currentRound at start = {currentRound}");
 
         var photonPlayers = PhotonNetwork.PlayerList.OrderBy(p => p.ActorNumber).ToArray();
 
@@ -103,6 +285,19 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             Debug.LogError("Liar's Bar 1v1 requires exactly 2 players!");
             return;
         }
+
+        InitializePlayers(photonPlayers);
+        RestoreLivesIfNeeded();
+        InitializeLifeManager();
+
+        LogDebug($"Before StartGameFlow: currentRound = {currentRound}");
+        StartGameFlow();
+    }
+
+    private void InitializePlayers(Photon.Realtime.Player[] photonPlayers)
+    {
+        players.Clear();
+        playersReady = 0;
 
         for (int i = 0; i < photonPlayers.Length; i++)
         {
@@ -116,159 +311,353 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             });
         }
 
-        // Khởi tạo LifeManager
+        LogDebug("Created fresh player data");
+    }
+
+    private void RestoreLivesIfNeeded()
+    {
+        LogDebug("RestoreLivesIfNeeded called");
+
+        bool anyLivesRestored = false;
+
+        // KIỂM TRA VÀ RESTORE LIVES CHO TỪNG PLAYER
+        foreach (var player in players)
+        {
+            string livesKey = "GameState_Lives_" + player.photonPlayer.ActorNumber;
+            if (PlayerPrefs.HasKey(livesKey))
+            {
+                int savedLives = PlayerPrefs.GetInt(livesKey);
+                int originalLives = player.lives;
+                player.lives = savedLives;
+                anyLivesRestored = true;
+                LogDebug($"RESTORED {player.photonPlayer.NickName} lives: {originalLives} → {savedLives}");
+            }
+            else
+            {
+                LogDebug($"No saved lives found for {player.photonPlayer.NickName}, keeping default: {player.lives}");
+            }
+        }
+
+        if (anyLivesRestored)
+        {
+            LogDebug("Lives restoration completed - will sync with UI later");
+        }
+        else
+        {
+            LogDebug("No lives restoration needed - all players keep default lives");
+        }
+    }
+
+    private void InitializeLifeManager()
+    {
+        LogDebug("=== InitializeLifeManager START ===");
+
         if (lifeManager != null)
         {
-            lifeManager.ResetHearts();
-            if (enableDebugLogs)
-                Debug.Log("LifeManager initialized and hearts reset");
+            LogDebug("Lives BEFORE InitializeLifeManager:");
+            foreach (var player in players)
+            {
+                LogDebug($"  {player.photonPlayer.NickName}: {player.lives} lives");
+            }
+
+            lifeManager.enableDebugLogs = false;
+
+            bool hasAnyRestoredLives = false;
+            foreach (var player in players)
+            {
+                string livesKey = "GameState_Lives_" + player.photonPlayer.ActorNumber;
+                if (PlayerPrefs.HasKey(livesKey))
+                {
+                    int savedLives = PlayerPrefs.GetInt(livesKey);
+                    LogDebug($"Found saved lives for player {player.photonPlayer.ActorNumber}: {savedLives}");
+                    player.lives = savedLives;
+                    hasAnyRestoredLives = true;
+                }
+            }
+
+            bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette");
+            LogDebug($"Is after roulette: {isAfterRoulette}");
+            LogDebug($"Has any restored lives: {hasAnyRestoredLives}");
+
+            if (hasAnyRestoredLives || isAfterRoulette)
+            {
+                LogDebug("🚫 CRITICAL: Lives were restored OR after roulette - COMPLETELY BYPASSING LifeManager.Start()");
+
+                PlayerPrefs.SetString("BypassLifeManagerReset", "true");
+                PlayerPrefs.Save();
+
+                LogDebug("⏳ DELAYING LifeManager setup to prevent any resets...");
+
+                Invoke(nameof(SetLifesManagerAfterDelay), 3f);
+            }
+            else
+            {
+                LogDebug("Fresh game - allowing normal LifeManager reset");
+                PlayerPrefs.DeleteKey("BypassLifeManagerReset");
+
+                foreach (var player in players)
+                {
+                    player.lives = 3;
+                }
+            }
         }
         else
         {
             Debug.LogError("LifeManager is NULL! Please assign it in Inspector!");
         }
 
+        LogDebug("=== InitializeLifeManager END ===");
+    }
+
+    private void SetLifesManagerAfterDelay()
+    {
+        LogDebug("=== SetLifesManagerAfterDelay START ===");
+        LogDebug("Setting LifeManager AFTER everything has settled...");
+
+        if (lifeManager == null)
+        {
+            Debug.LogError("LifeManager is NULL in SetLifesManagerAfterDelay!");
+            return;
+        }
+
+        // CRITICAL: OVERRIDE bất kỳ reset nào từ LifeManager.Start()
+        LogDebug("🔥 OVERRIDING any LifeManager resets that may have occurred...");
+
+        StartCoroutine(OverrideLifeManagerCoroutine());
+    }
+
+    private System.Collections.IEnumerator OverrideLifeManagerCoroutine()
+    {
+        LogDebug("=== OverrideLifeManagerCoroutine START ===");
+
+        // STEP 1: Set all internal values without UI updates
+        foreach (var player in players)
+        {
+            bool isLocalPlayer = (player.photonPlayer.ActorNumber == PhotonNetwork.LocalPlayer.ActorNumber);
+            LogDebug($"🎯 SETTING INTERNAL: {player.photonPlayer.NickName}: {player.lives} lives, isLocal: {isLocalPlayer}");
+
+            // Validate lives
+            if (player.lives <= 0)
+            {
+                Debug.LogWarning($"⚠️ Player {player.photonPlayer.NickName} has {player.lives} lives - fixing...");
+
+                string livesKey = "GameState_Lives_" + player.photonPlayer.ActorNumber;
+                int savedLives = PlayerPrefs.GetInt(livesKey, -1);
+
+                if (savedLives > 0)
+                {
+                    player.lives = savedLives;
+                    LogDebug($"Fixed using PlayerPrefs: {savedLives}");
+                }
+                else
+                {
+                    player.lives = 1;
+                    LogDebug($"Fixed using default: 1");
+                }
+            }
+
+            // Set internal values (UI blocked)
+            if (isLocalPlayer)
+            {
+                lifeManager.SetPlayerLives(player.lives);
+            }
+            else
+            {
+                lifeManager.SetEnemyLives(player.lives);
+            }
+        }
+
+        // STEP 2: Wait a moment
+        yield return new WaitForSeconds(0.5f);
+
+        // STEP 3: Unblock and force update UI all at once
+        LogDebug("🔓 UNBLOCKING LifeManager and forcing UI update...");
+        lifeManager.UnblockAndForceUpdateAll();
+
+        // STEP 4: Cleanup
+        lifeManager.enableDebugLogs = true;
+        PlayerPrefs.DeleteKey("AfterRoulette");
+        PlayerPrefs.DeleteKey("BypassLifeManagerReset");
+        LogDebug("Cleared all flags after successful override");
+
         if (PhotonNetwork.IsMasterClient)
         {
-            StartNewRound();
+            Invoke(nameof(BroadcastCurrentLives), 1f);
         }
+
+        LogDebug("=== OverrideLifeManagerCoroutine END ===");
     }
 
-    void SetupUI()
-    {
-        if (playButton != null)
-            playButton.onClick.AddListener(PlayCards);
-        if (liarButton != null)
-            liarButton.onClick.AddListener(ChallengeLiar);
-        if (skipButton != null)
-            skipButton.onClick.AddListener(SkipAction);
-        if (popupOkButton != null)
-            popupOkButton.onClick.AddListener(OnPopupOk);
-
-        if (popupInfoPanel) popupInfoPanel.SetActive(false);
-        if (playPanel) playPanel.SetActive(false);
-        if (challengePanel) challengePanel.SetActive(false);
-
-        if (roundDisplayText) roundDisplayText.text = "";
-        if (gameStatusText) gameStatusText.text = "Waiting...";
-
-        UpdateUI();
-    }
-
-    void StartNewRound()
+    private void BroadcastCurrentLives()
     {
         if (!PhotonNetwork.IsMasterClient) return;
 
-        currentRound++;
+        LogDebug("🔄 BroadcastCurrentLives - Final sync step");
+
+        // FINAL CHECK: Đảm bảo đây là broadcast cuối cùng
+        bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
+        if (isAfterRoulette)
+        {
+            LogDebug("⚠️ BroadcastCurrentLives called but AfterRoulette flag still exists - this might cause flicker");
+        }
+
+        foreach (var player in players)
+        {
+            LogDebug($"📡 Final broadcast: {player.photonPlayer.NickName}: {player.lives} lives");
+
+            // GỬI VỚI FLAG ĐẶC BIỆT để SyncLifeUI biết đây là final sync
+            photonView.RPC("FinalSyncLifeUI", RpcTarget.All, player.photonPlayer.ActorNumber, player.lives);
+        }
+    }
+
+    [PunRPC]
+    void FinalSyncLifeUI(int playerActorNumber, int newLives)
+    {
+        LogDebug($"🎯 FinalSyncLifeUI: Player {playerActorNumber} to {newLives} lives");
+
+        // CẬP NHẬT DATA
+        var player = GetPlayerByActorNumber(playerActorNumber);
+        if (player != null)
+        {
+            player.lives = newLives;
+
+            string livesKey = "GameState_Lives_" + playerActorNumber;
+            PlayerPrefs.SetInt(livesKey, newLives);
+            PlayerPrefs.Save();
+        }
+
+        if (lifeManager == null) return;
+
+        // SET UI FINAL
+        bool isTargetPlayerLocal = (playerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber);
+
+        if (isTargetPlayerLocal)
+        {
+            lifeManager.SetPlayerLives(newLives);
+            LogDebug($"🎯 FINAL: Set LOCAL player to {newLives} lives");
+        }
+        else
+        {
+            lifeManager.SetEnemyLives(newLives);
+            LogDebug($"🎯 FINAL: Set ENEMY to {newLives} lives");
+        }
+    }
+
+    private void SyncLivesWithUI()
+    {
+        LogDebug("=== SyncLivesWithUI START ===");
+        foreach (var player in players)
+        {
+            bool isLocalPlayer = (player.photonPlayer.ActorNumber == PhotonNetwork.LocalPlayer.ActorNumber);
+            LogDebug($"Syncing {player.photonPlayer.NickName} (Actor {player.photonPlayer.ActorNumber}): {player.lives} lives, isLocal: {isLocalPlayer}");
+
+            if (isLocalPlayer)
+            {
+                lifeManager.SetPlayerLives(player.lives);
+                LogDebug($"Set LOCAL player lives to {player.lives}");
+            }
+            else
+            {
+                lifeManager.SetEnemyLives(player.lives);
+                LogDebug($"Set ENEMY lives to {player.lives}");
+            }
+        }
+        LogDebug("=== SyncLivesWithUI END ===");
+    }
+
+    private void StartGameFlow()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            // DEBUG: Log giá trị currentRound trước khi xử lý
+            LogDebug($"StartGameFlow: currentRound BEFORE processing = {currentRound}");
+
+            if (currentRound == 0)
+            {
+                LogDebug("Fresh game - FORCING Round 1 start");
+                // FORCE SET về 0 và bắt đầu round đầu tiên
+                currentRound = 0;
+                StartFirstRoundExplicitly();
+            }
+            else
+            {
+                LogDebug($"Continuing existing game at round {currentRound}");
+                HandleGameContinuation();
+            }
+        }
+        else
+        {
+            LogDebug($"Not Master Client, waiting for game continuation. Round: {currentRound}");
+        }
+
+        LogDebug($"InitializeGame completed. Players: {players.Count}, Round: {currentRound}");
+    }
+
+    private void StartFirstRoundExplicitly()
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        LogDebug("StartFirstRoundExplicitly() called! FORCING Round 1");
+
+        // FORCE SET round = 1 (không increment)
+        currentRound = 1;
         middlePile.Clear();
         playedCardsThisTurn.Clear();
         playersReady = 0;
 
-        string[] cardNames = { "K", "Q", "J", "A", "Joker" };
-        string newTargetCard = cardNames[Random.Range(0, cardNames.Length)];
+        HandManager.ResetSharedDeck();
+        ResetPlayerHandCounts();
 
-        photonView.RPC("NewRoundStarted", RpcTarget.All, newTargetCard, currentRound);
+        int randomStartPlayer = GetRandomAlivePlayer();
+        string newTargetCard = CARD_NAMES[Random.Range(0, CARD_NAMES.Length)];
+
+        LogDebug($"EXPLICITLY starting ROUND {currentRound}. Start player index: {randomStartPlayer}");
+
+        photonView.RPC("NewRoundStarted", RpcTarget.All, newTargetCard, currentRound, randomStartPlayer);
     }
 
-    [PunRPC]
-    void NewRoundStarted(string targetCard, int roundNumber)
+    private void HandleGameContinuation()
     {
-        if (enableDebugLogs)
-            Debug.Log($"NewRoundStarted called - Round: {roundNumber}, Target: {targetCard}");
-
-        currentTargetCard = targetCard;
-        currentRound = roundNumber;
-        currentState = GameState.RoundStart;
-        playedCardsThisTurn.Clear();
-
-        Invoke(nameof(ShowRoundPopup), 0.1f);
-        PlaySound(roundStartSound);
-    }
-
-    void ShowRoundPopup()
-    {
-        if (enableDebugLogs)
-            Debug.Log("ShowRoundPopup called");
-
-        if (popupInfoPanel != null)
+        if (string.IsNullOrEmpty(currentTargetCard))
         {
-            if (popupRoundInfo != null)
-                popupRoundInfo.text = $"ROUND {currentRound}";
-
-            if (popupTargetCardInfo != null)
-                popupTargetCardInfo.text = $"TARGET: {currentTargetCard}";
-
-            popupInfoPanel.SetActive(true);
+            Debug.LogWarning("No target card found, starting new round");
+            StartNewRound(); // Chỉ gọi StartNewRound khi cần thiết
         }
         else
         {
-            Debug.LogError("popupInfoPanel is NULL! Assign it in Inspector!");
+            LogDebug($"Resuming game with target card: {currentTargetCard}");
+            currentState = GameState.PlayerPlaying;
+            Invoke(nameof(ResumeGameFlow), 1f);
         }
     }
+    #endregion
 
-    public void OnPopupOk()
+    #region UI Setup and Management
+    private void SetupUI()
     {
-        if (enableDebugLogs)
-            Debug.Log("OnPopupOk called!");
-
-        if (popupInfoPanel != null)
-        {
-            popupInfoPanel.SetActive(false);
-        }
-
-        if (PhotonNetwork.IsMasterClient)
-        {
-            StartPlayerTurn();
-        }
+        SetupButtonListeners();
+        InitializeUIComponents();
+        UpdateUI();
     }
 
-    [PunRPC]
-    void PlayerReadyForRound(int playerActorNumber)
+    private void SetupButtonListeners()
     {
-        playersReady++;
-        if (enableDebugLogs)
-            Debug.Log($"Player {playerActorNumber} ready. Total ready: {playersReady}");
+        if (playButton != null) playButton.onClick.AddListener(PlayCards);
+        if (liarButton != null) liarButton.onClick.AddListener(ChallengeLiar);
+        if (skipButton != null) skipButton.onClick.AddListener(SkipAction);
+        if (popupOkButton != null) popupOkButton.onClick.AddListener(OnPopupOk);
+    }
 
+    private void InitializeUIComponents()
+    {
+        if (popupInfoPanel) popupInfoPanel.SetActive(false);
+        if (playPanel) playPanel.SetActive(false);
+        if (challengePanel) challengePanel.SetActive(false);
         if (roundDisplayText) roundDisplayText.text = "";
-
-        if (playersReady >= PhotonNetwork.PlayerList.Length && PhotonNetwork.IsMasterClient)
-        {
-            playersReady = 0;
-            StartPlayerTurn();
-        }
+        if (gameStatusText) gameStatusText.text = "Waiting...";
     }
 
-    void StartPlayerTurn()
-    {
-        if (!PhotonNetwork.IsMasterClient) return;
-
-        currentPlayerIndex = 0;
-        while (currentPlayerIndex < players.Count && !players[currentPlayerIndex].isAlive)
-        {
-            currentPlayerIndex++;
-        }
-
-        photonView.RPC("UpdateGameState", RpcTarget.All, (int)GameState.PlayerPlaying, currentPlayerIndex);
-    }
-
-    void CheckRouletteResult()
-    {
-        if (PlayerPrefs.HasKey(PUNISHMENT_RESULT_KEY))
-        {
-            bool hitSpecialSlot = PlayerPrefs.GetInt(PUNISHMENT_RESULT_KEY) == 1;
-            int punishedPlayer = PlayerPrefs.GetInt(PUNISHED_PLAYER_KEY, -1);
-
-            PlayerPrefs.DeleteKey(PUNISHMENT_RESULT_KEY);
-            PlayerPrefs.DeleteKey(PUNISHED_PLAYER_KEY);
-
-            if (punishedPlayer == PhotonNetwork.LocalPlayer.ActorNumber)
-            {
-                photonView.RPC("RouletteResult", RpcTarget.All, punishedPlayer, hitSpecialSlot);
-            }
-        }
-    }
-
-    void UpdateUI()
+    private void UpdateUI()
     {
         if (players.Count == 0 || currentPlayerIndex >= players.Count) return;
 
@@ -276,58 +665,69 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         switch (currentState)
         {
-            case GameState.RoundStart:
-                break;
-
             case GameState.PlayerPlaying:
-                if (isMyTurn)
-                {
-                    if (playPanel) playPanel.SetActive(true);
-                    if (challengePanel) challengePanel.SetActive(false);
-                    if (skipButton) skipButton.gameObject.SetActive(true);
-                    StartPlayTimer();
-                }
-                else
-                {
-                    if (playPanel) playPanel.SetActive(false);
-                    if (challengePanel) challengePanel.SetActive(false);
-                    if (skipButton) skipButton.gameObject.SetActive(false);
-                }
+                UpdatePlayerPlayingUI();
                 break;
-
             case GameState.WaitingForChallenge:
-                if (!isMyTurn)
-                {
-                    if (challengePanel) challengePanel.SetActive(true);
-                    if (playPanel) playPanel.SetActive(false);
-                    if (skipButton) skipButton.gameObject.SetActive(true);
-                    StartChallengeTimer();
-                }
-                else
-                {
-                    if (playPanel) playPanel.SetActive(false);
-                    if (challengePanel) challengePanel.SetActive(false);
-                    if (skipButton) skipButton.gameObject.SetActive(false);
-                }
+                UpdateWaitingForChallengeUI();
                 break;
-
             case GameState.RevealingCards:
-                if (gameStatusText) gameStatusText.text = "Revealing...";
-                if (playPanel) playPanel.SetActive(false);
-                if (challengePanel) challengePanel.SetActive(false);
-                if (skipButton) skipButton.gameObject.SetActive(false);
+                UpdateRevealingCardsUI();
                 break;
-
             case GameState.WaitingForRoulette:
-                if (gameStatusText) gameStatusText.text = "Roulette...";
-                if (playPanel) playPanel.SetActive(false);
-                if (challengePanel) challengePanel.SetActive(false);
-                if (skipButton) skipButton.gameObject.SetActive(false);
+                UpdateWaitingForRouletteUI();
                 break;
         }
     }
 
-    void StartPlayTimer()
+    private void UpdatePlayerPlayingUI()
+    {
+        if (isMyTurn)
+        {
+            SetUIState(playPanel: true, challengePanel: false, skipButton: true);
+            StartPlayTimer();
+        }
+        else
+        {
+            SetUIState(playPanel: false, challengePanel: false, skipButton: false);
+        }
+    }
+
+    private void UpdateWaitingForChallengeUI()
+    {
+        if (!isMyTurn)
+        {
+            SetUIState(playPanel: false, challengePanel: true, skipButton: true);
+            StartChallengeTimer();
+        }
+        else
+        {
+            SetUIState(playPanel: false, challengePanel: false, skipButton: false);
+        }
+    }
+
+    private void UpdateRevealingCardsUI()
+    {
+        if (gameStatusText) gameStatusText.text = "Revealing...";
+        SetUIState(playPanel: false, challengePanel: false, skipButton: false);
+    }
+
+    private void UpdateWaitingForRouletteUI()
+    {
+        if (gameStatusText) gameStatusText.text = "Roulette...";
+        SetUIState(playPanel: false, challengePanel: false, skipButton: false);
+    }
+
+    private void SetUIState(bool playPanel = false, bool challengePanel = false, bool skipButton = false)
+    {
+        if (this.playPanel) this.playPanel.SetActive(playPanel);
+        if (this.challengePanel) this.challengePanel.SetActive(challengePanel);
+        if (this.skipButton) this.skipButton.gameObject.SetActive(skipButton);
+    }
+    #endregion
+
+    #region Timer Management
+    private void StartPlayTimer()
     {
         currentTimer = playTimeLimit;
         timerActive = true;
@@ -335,7 +735,7 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             gameStatusText.text = isMyTurn ? "Your Turn" : "Opponent Turn";
     }
 
-    void StartChallengeTimer()
+    private void StartChallengeTimer()
     {
         currentTimer = challengeTimeLimit;
         timerActive = true;
@@ -343,66 +743,80 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             gameStatusText.text = !isMyTurn ? "Challenge?" : "Waiting...";
     }
 
-    void StopTimer()
+    private void StopTimer()
     {
         timerActive = false;
     }
 
-    void Update()
+    private void UpdateTimerUI()
     {
         if (timerActive && gameStatusText)
         {
             currentTimer -= Time.deltaTime;
 
-            string baseText = "";
-            if (currentState == GameState.PlayerPlaying)
-            {
-                baseText = isMyTurn ? "Your Turn" : "Opponent Turn";
-            }
-            else if (currentState == GameState.WaitingForChallenge)
-            {
-                baseText = !isMyTurn ? "Challenge?" : "Waiting...";
-            }
-
+            string baseText = GetTimerBaseText();
             if (!string.IsNullOrEmpty(baseText))
             {
                 gameStatusText.text = $"{baseText} ({Mathf.Ceil(currentTimer)}s)";
             }
 
-            if (currentTimer <= 3f && currentTimer > 2f)
-            {
-                PlaySound(timerTickSound);
-            }
-
-            if (currentTimer <= 0)
-            {
-                HandleTimerExpired();
-            }
+            HandleTimerEffects();
         }
         else if (!timerActive && gameStatusText)
         {
-            switch (currentState)
-            {
-                case GameState.PlayerPlaying:
-                    gameStatusText.text = isMyTurn ? "Your Turn" : "Opponent Turn";
-                    break;
-                case GameState.WaitingForChallenge:
-                    gameStatusText.text = !isMyTurn ? "Challenge?" : "Waiting...";
-                    break;
-                case GameState.RevealingCards:
-                    gameStatusText.text = "Revealing...";
-                    break;
-                case GameState.WaitingForRoulette:
-                    gameStatusText.text = "Roulette...";
-                    break;
-                default:
-                    gameStatusText.text = "Waiting...";
-                    break;
-            }
+            UpdateNonTimerUI();
         }
     }
 
-    void HandleTimerExpired()
+    private string GetTimerBaseText()
+    {
+        if (currentState == GameState.PlayerPlaying)
+        {
+            return isMyTurn ? "Your Turn" : "Opponent Turn";
+        }
+        else if (currentState == GameState.WaitingForChallenge)
+        {
+            return !isMyTurn ? "Challenge?" : "Waiting...";
+        }
+        return "";
+    }
+
+    private void HandleTimerEffects()
+    {
+        if (currentTimer <= 3f && currentTimer > 2f)
+        {
+            PlaySound(timerTickSound);
+        }
+
+        if (currentTimer <= 0)
+        {
+            HandleTimerExpired();
+        }
+    }
+
+    private void UpdateNonTimerUI()
+    {
+        switch (currentState)
+        {
+            case GameState.PlayerPlaying:
+                gameStatusText.text = isMyTurn ? "Your Turn" : "Opponent Turn";
+                break;
+            case GameState.WaitingForChallenge:
+                gameStatusText.text = !isMyTurn ? "Challenge?" : "Waiting...";
+                break;
+            case GameState.RevealingCards:
+                gameStatusText.text = "Revealing...";
+                break;
+            case GameState.WaitingForRoulette:
+                gameStatusText.text = "Roulette...";
+                break;
+            default:
+                gameStatusText.text = "Waiting...";
+                break;
+        }
+    }
+
+    private void HandleTimerExpired()
     {
         StopTimer();
 
@@ -416,48 +830,822 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             AcceptPlay();
         }
     }
+    #endregion
 
+    #region Card Helper Methods
+    private bool IsCardMatchingTarget(string cardName, string targetCard)
+    {
+        string normalizedCard = NormalizeCardName(cardName);
+        string normalizedTarget = NormalizeCardName(targetCard);
+
+        LogDebug($"Comparing: '{cardName}' -> '{normalizedCard}' vs '{targetCard}' -> '{normalizedTarget}'");
+
+        return normalizedCard.Equals(normalizedTarget, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string NormalizeCardName(string cardName)
+    {
+        if (string.IsNullOrEmpty(cardName)) return "";
+
+        string normalized = cardName.Trim().ToUpper();
+
+        return normalized switch
+        {
+            "KING" or "K" => "K",
+            "QUEEN" or "Q" => "Q",
+            "JACK" or "J" => "J",
+            "ACE" or "A" => "A",
+            "JOKER" => "JOKER",
+            _ => normalized
+        };
+    }
+    #endregion
+
+    #region Round Management
+    private void StartNewRound()
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        LogDebug($"StartNewRound() called! Current round was: {currentRound}");
+
+        currentRound++;
+        middlePile.Clear();
+        playedCardsThisTurn.Clear();
+        playersReady = 0;
+
+        HandManager.ResetSharedDeck();
+
+        ResetPlayerHandCounts();
+
+        int randomStartPlayer = GetRandomAlivePlayer();
+        string newTargetCard = CARD_NAMES[Random.Range(0, CARD_NAMES.Length)];
+
+        LogDebug($"Starting NEW ROUND {currentRound}. RANDOM start player index: {randomStartPlayer}. KEEPING CURRENT LIVES.");
+
+        photonView.RPC("NewRoundStarted", RpcTarget.All, newTargetCard, currentRound, randomStartPlayer);
+    }
+
+    private void ResetPlayerHandCounts()
+    {
+        foreach (var player in players)
+        {
+            if (player.isAlive)
+            {
+                int oldLives = player.lives;
+                player.handCount = 6;
+                LogDebug($"Player {player.photonPlayer.NickName} - keeping {oldLives} lives");
+            }
+        }
+    }
+
+    private int GetRandomAlivePlayer()
+    {
+        int randomStartPlayer = Random.Range(0, 2);
+
+        while (!players[randomStartPlayer].isAlive)
+        {
+            randomStartPlayer = (randomStartPlayer + 1) % 2;
+        }
+
+        return randomStartPlayer;
+    }
+
+    private void ContinueCurrentRound()
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        LogDebug("Continuing SAME ROUND after roulette survival - next player turn");
+        photonView.RPC("ContinueRound", RpcTarget.All);
+    }
+
+    private void ResumeGameFlow()
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        LogDebug("ResumeGameFlow - continuing with existing round");
+
+        ValidateCurrentPlayerIndex();
+        photonView.RPC("UpdateGameState", RpcTarget.All, (int)GameState.PlayerPlaying, currentPlayerIndex);
+    }
+
+    private void ValidateCurrentPlayerIndex()
+    {
+        if (currentPlayerIndex < 0 || currentPlayerIndex >= players.Count)
+        {
+            currentPlayerIndex = 0;
+        }
+
+        while (currentPlayerIndex < players.Count && !players[currentPlayerIndex].isAlive)
+        {
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.Count;
+        }
+    }
+    #endregion
+
+    #region RPC Methods
+    [PunRPC]
+    void NewRoundStarted(string targetCard, int roundNumber, int startPlayerIndex)
+    {
+        LogDebug($"NewRoundStarted RPC - Round: {roundNumber}, Target: {targetCard}, Start Player: {startPlayerIndex}");
+        LogDebug($"BEFORE setting: currentRound was {currentRound}");
+
+        // DEBUG: Log lives BEFORE any changes
+        LogDebug("=== LIVES BEFORE NewRoundStarted ===");
+        foreach (var player in players)
+        {
+            LogDebug($"Player {player.photonPlayer.NickName}: {player.lives} lives");
+        }
+
+        currentTargetCard = targetCard;
+        currentRound = roundNumber;
+        currentPlayerIndex = startPlayerIndex;
+        currentState = GameState.RoundStart;
+        playedCardsThisTurn.Clear();
+
+        LogDebug($"AFTER setting: currentRound is now {currentRound}");
+
+        // QUAN TRỌNG: KHÔNG TẠO HAND MỚI NẾU ĐÂY LÀ CONTINUATION SAU ROULETTE
+        bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
+        if (isAfterRoulette)
+        {
+            LogDebug("This is AFTER ROULETTE - NOT creating new hand, preserving everything");
+            PlayerPrefs.DeleteKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
+
+            // KHÔNG GỌI CreateNewHandForNewRound()
+            // KHÔNG RESET GÌ CẢ
+        }
+        else
+        {
+            LogDebug("This is NORMAL new round - creating new hand");
+            CreateNewHandForNewRound();
+        }
+
+        // DEBUG: Log lives AFTER any changes
+        LogDebug("=== LIVES AFTER NewRoundStarted ===");
+        foreach (var player in players)
+        {
+            LogDebug($"Player {player.photonPlayer.NickName}: {player.lives} lives");
+        }
+
+        Invoke(nameof(ShowRoundPopup), 1f);
+        PlaySound(roundStartSound);
+    }
+
+    private void CreateNewHandForNewRound()
+    {
+        if (localHandManager != null)
+        {
+            var baseHandManager = localHandManager.GetComponent<HandManager>();
+            if (baseHandManager != null)
+            {
+                StartCoroutine(CreateNewHandCoroutine(baseHandManager));
+                LogDebug("Creating NEW HAND for NEW ROUND");
+            }
+        }
+    }
+
+    [PunRPC]
+    void ContinueRound()
+    {
+        LogDebug("ContinueRound RPC received - KEEP EXISTING HAND, same round, next player");
+
+        currentState = GameState.PlayerPlaying;
+        playedCardsThisTurn.Clear();
+
+        if (gameStatusText)
+            gameStatusText.text = "Round continues...";
+
+        NextPlayerTurn();
+    }
+
+    [PunRPC]
+    void ReceiveCardPlay(int cardCount, int playerActorNumber, string[] cardNames)
+    {
+        LogDebug($"ReceiveCardPlay - Player: {playerActorNumber}, Cards: {cardCount}");
+
+        cardsPlayedThisTurn = cardCount;
+
+        var player = GetPlayerByActorNumber(playerActorNumber);
+        if (player != null)
+        {
+            player.handCount -= cardCount;
+            LogDebug($"Updated hand count for player {playerActorNumber}: {player.handCount} cards remaining");
+        }
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            UpdatePlayedCardsForMaster(cardNames);
+        }
+
+        currentState = GameState.WaitingForChallenge;
+        UpdateUI();
+    }
+
+    private void UpdatePlayedCardsForMaster(string[] cardNames)
+    {
+        playedCardsThisTurn.Clear();
+        foreach (string cardName in cardNames)
+        {
+            playedCardsThisTurn.Add(new CardData { cardName = cardName });
+        }
+
+        LogDebug($"Master Client updated playedCardsThisTurn with {playedCardsThisTurn.Count} cards");
+    }
+
+    [PunRPC]
+    void PlayAccepted()
+    {
+        StopTimer();
+
+        if (gameStatusText) gameStatusText.text = "Play accepted!";
+
+        if (CheckForGameEndingConditions()) return;
+
+        LogDebug("No one finished cards, continuing to next turn");
+        Invoke(nameof(NextPlayerTurn), 1.5f);
+    }
+
+    private bool CheckForGameEndingConditions()
+    {
+        var currentPlayer = players[currentPlayerIndex];
+
+        LogDebug("PlayAccepted - checking if anyone finished cards");
+
+        if (CheckLocalPlayerFinished(currentPlayer)) return true;
+        if (CheckOpponentFinished()) return true;
+
+        return false;
+    }
+
+    private bool CheckLocalPlayerFinished(PlayerData currentPlayer)
+    {
+        if (currentPlayer.photonPlayer == PhotonNetwork.LocalPlayer)
+        {
+            int localHandCount = localHandManager?.GetCurrentHand()?.Count ?? -1;
+            LogDebug($"Local player hand count: {localHandCount}");
+
+            if (localHandCount == 0)
+            {
+                LogDebug("Local player finished all cards! Other player must go to roulette!");
+
+                var otherPlayer = players.FirstOrDefault(p => p.photonPlayer != PhotonNetwork.LocalPlayer);
+                if (otherPlayer != null)
+                {
+                    if (gameStatusText)
+                        gameStatusText.text = $"{PhotonNetwork.LocalPlayer.NickName} finished cards! {otherPlayer.photonPlayer.NickName} must play roulette!";
+
+                    photonView.RPC("StartRussianRoulette", RpcTarget.All, otherPlayer.photonPlayer.ActorNumber);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private bool CheckOpponentFinished()
+    {
+        foreach (var player in players)
+        {
+            if (player.photonPlayer != PhotonNetwork.LocalPlayer && player.handCount <= 0)
+            {
+                LogDebug($"Opponent {player.photonPlayer.NickName} finished cards! Local player must go to roulette!");
+
+                if (gameStatusText)
+                    gameStatusText.text = $"{player.photonPlayer.NickName} finished cards! {PhotonNetwork.LocalPlayer.NickName} must play roulette!";
+
+                photonView.RPC("StartRussianRoulette", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    [PunRPC]
+    void PlayChallenged(int challengerActorNumber)
+    {
+        StopTimer();
+        currentState = GameState.RevealingCards;
+
+        var challenger = GetPlayerByActorNumber(challengerActorNumber);
+        var player = players[currentPlayerIndex];
+
+        if (gameStatusText)
+            gameStatusText.text = $"{challenger.photonPlayer.NickName} called LIAR!";
+
+        UpdateUI();
+        Invoke(nameof(RevealCardsAndJudge), 2f);
+    }
+
+    [PunRPC]
+    void UpdateGameState(int newState, int newPlayerIndex)
+    {
+        currentState = (GameState)newState;
+        currentPlayerIndex = newPlayerIndex;
+        UpdateUI();
+    }
+
+    [PunRPC]
+    void SyncHandCount(int playerActorNumber, int handCount)
+    {
+        var player = GetPlayerByActorNumber(playerActorNumber);
+        if (player != null)
+        {
+            player.handCount = handCount;
+            LogDebug($"Synced hand count: Player {playerActorNumber} has {handCount} cards");
+        }
+    }
+
+    [PunRPC]
+    void StartRussianRoulette(int punishedPlayerActorNumber)
+    {
+        currentState = GameState.WaitingForRoulette;
+
+        var punishedPlayer = GetPlayerByActorNumber(punishedPlayerActorNumber);
+        if (gameStatusText)
+            gameStatusText.text = $"{punishedPlayer.photonPlayer.NickName} must play Russian Roulette!";
+
+        UpdateUI();
+        SaveGameStateToPlayerPrefs();
+
+        shouldLoadRoulette = false;
+
+        LogDebug($"StartRussianRoulette: Punished player = {punishedPlayerActorNumber}");
+
+        PlayerPrefs.DeleteKey(PUNISHMENT_RESULT_KEY);
+        PlayerPrefs.DeleteKey(PUNISHED_PLAYER_KEY);
+
+        if (PhotonNetwork.LocalPlayer.ActorNumber == punishedPlayerActorNumber)
+        {
+            shouldLoadRoulette = true;
+            SaveHandDataBeforeRoulette();
+            LogDebug($"I am punished player {punishedPlayerActorNumber}, SET FLAG TO LOAD ROULETTE");
+            StartCoroutine(LoadRouletteScene());
+        }
+        else
+        {
+            shouldLoadRoulette = false;
+            LogDebug($"I am NOT punished player. Punished player is {punishedPlayerActorNumber}, I am {PhotonNetwork.LocalPlayer.ActorNumber}");
+        }
+    }
+
+    [PunRPC]
+    void RouletteResult(int playerActorNumber, bool hitSpecialSlot)
+    {
+        LogDebug($"=== RouletteResult RPC START ===");
+        LogDebug($"RouletteResult: Player {playerActorNumber}, hitSpecialSlot: {hitSpecialSlot}");
+
+        var player = GetPlayerByActorNumber(playerActorNumber);
+        if (player == null)
+        {
+            Debug.LogError($"Cannot find player with ActorNumber {playerActorNumber}");
+            return;
+        }
+
+        LogDebug($"Player {playerActorNumber} current lives BEFORE roulette result: {player.lives}");
+
+        if (hitSpecialSlot)
+        {
+            HandlePlayerDeath(player, playerActorNumber);
+        }
+        else
+        {
+            HandlePlayerSurvival(player, playerActorNumber);
+        }
+
+        LogDebug($"=== RouletteResult RPC END ===");
+    }
+
+    private void HandlePlayerDeath(PlayerData player, int playerActorNumber)
+    {
+        int oldLives = player.lives;
+        player.lives = Mathf.Max(0, player.lives - 1);
+
+        LogDebug($"Player {playerActorNumber} hit special slot (DIED) - lives: {oldLives} → {player.lives}");
+
+        // SYNC NGAY LẬP TỨC VỚI TẤT CẢ PLAYERS
+        photonView.RPC("SyncLifeUI", RpcTarget.All, playerActorNumber, player.lives);
+
+        // DELAY 1 CHÚT RỒI SYNC LẠI ĐỂ ĐẢM BẢO
+        StartCoroutine(DelaySyncLife(playerActorNumber, player.lives));
+
+        PlaySound(loseLifeSound);
+
+        if (gameStatusText)
+            gameStatusText.text = $"{player.photonPlayer.NickName} lost a life! ({player.lives} left)";
+
+        if (player.lives <= 0)
+        {
+            HandlePlayerElimination(player);
+        }
+        else if (PhotonNetwork.IsMasterClient)
+        {
+            LogDebug($"Player died in roulette → Starting NEW ROUND with current lives ({player.lives})");
+            Invoke(nameof(StartNewRound), 3f);
+        }
+    }
+
+    private System.Collections.IEnumerator DelaySyncLife(int playerActorNumber, int lives)
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        LogDebug($"DelaySyncLife: Re-syncing player {playerActorNumber} to {lives} lives");
+        photonView.RPC("SyncLifeUI", RpcTarget.All, playerActorNumber, lives);
+
+        // DOUBLE CHECK: Sync tất cả players
+        yield return new WaitForSeconds(0.5f);
+        if (PhotonNetwork.IsMasterClient)
+        {
+            LogDebug("DelaySyncLife: Broadcasting all current lives for double-check");
+            BroadcastCurrentLives();
+        }
+    }
+
+    private void HandlePlayerElimination(PlayerData player)
+    {
+        player.isAlive = false;
+        if (gameStatusText)
+            gameStatusText.text = $"{player.photonPlayer.NickName} is eliminated!";
+
+        PlaySound(defeatSound);
+
+        var winner = players.FirstOrDefault(p => p.isAlive);
+        if (winner != null)
+        {
+            photonView.RPC("GameOver", RpcTarget.All, winner.photonPlayer.ActorNumber);
+        }
+    }
+
+    private void HandlePlayerSurvival(PlayerData player, int playerActorNumber)
+    {
+        LogDebug($"Player {playerActorNumber} survived roulette (got lucky) - keeping {player.lives} lives");
+
+        if (gameStatusText)
+            gameStatusText.text = $"{player.photonPlayer.NickName} got lucky!";
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            // CHECK: Có ai đã hết bài chưa?
+            bool someoneFinished = CheckForPlayerWithNoCards();
+
+            LogDebug($"CheckForPlayerWithNoCards result: {someoneFinished}");
+
+            if (someoneFinished)
+            {
+                LogDebug("Someone has no cards after survival - check for sequential roulette");
+
+                // Kiểm tra xem có phải là sequence roulette không
+                var finishedPlayer = players.FirstOrDefault(p => p.isAlive && HasPlayerFinishedCards(p));
+                var survivedPlayer = player;
+
+                if (finishedPlayer != null && finishedPlayer != survivedPlayer)
+                {
+                    LogDebug($"Sequential roulette: {finishedPlayer.photonPlayer.NickName} (finished cards) must play next");
+
+                    if (gameStatusText)
+                        gameStatusText.text = $"{survivedPlayer.photonPlayer.NickName} survived! Now {finishedPlayer.photonPlayer.NickName} must play roulette!";
+
+                    photonView.RPC("StartRussianRoulette", RpcTarget.All, finishedPlayer.photonPlayer.ActorNumber);
+                    return;
+                }
+
+                // Nếu không có sequential, bắt đầu round mới
+                LogDebug("No sequential roulette needed - starting new round");
+                Invoke(nameof(StartNewRound), 3f);
+            }
+            else
+            {
+                LogDebug("No one finished cards - continue same round");
+                Invoke(nameof(ContinueCurrentRound), 3f);
+            }
+        }
+    }
+
+    [PunRPC]
+    void SyncLifeUI(int playerActorNumber, int newLives)
+    {
+        LogDebug($"=== SyncLifeUI START ===");
+        LogDebug($"Target Player ActorNumber: {playerActorNumber}, New Lives: {newLives}");
+        LogDebug($"My ActorNumber: {PhotonNetwork.LocalPlayer.ActorNumber}");
+
+        // CHECK: Nếu đang trong quá trình restore sau roulette, SKIP để tránh flicker
+        bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
+        if (isAfterRoulette)
+        {
+            LogDebug("⚠️ SKIPPING SyncLifeUI - Currently restoring after roulette to prevent flicker");
+            return;
+        }
+
+        // CẬP NHẬT DATA TRƯỚC
+        var player = GetPlayerByActorNumber(playerActorNumber);
+        if (player != null)
+        {
+            int oldLives = player.lives;
+            player.lives = newLives;
+            LogDebug($"Updated player {playerActorNumber} ({player.photonPlayer.NickName}) lives: {oldLives} → {newLives}");
+
+            string livesKey = "GameState_Lives_" + playerActorNumber;
+            PlayerPrefs.SetInt(livesKey, newLives);
+            PlayerPrefs.Save();
+        }
+        else
+        {
+            Debug.LogError($"Cannot find player with ActorNumber {playerActorNumber}!");
+            return;
+        }
+
+        if (lifeManager == null)
+        {
+            Debug.LogError("LifeManager is NULL in SyncLifeUI!");
+            return;
+        }
+
+        // XÁC ĐỊNH AI LÀ LOCAL PLAYER VÀ AI LÀ ENEMY
+        bool isTargetPlayerLocal = (playerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber);
+
+        LogDebug($"Is Target Player Local: {isTargetPlayerLocal}");
+
+        if (isTargetPlayerLocal)
+        {
+            // CẬP NHẬT LIVES CỦA CHÍNH MÌNH (Ở DƯỚI)
+            lifeManager.SetPlayerLives(newLives);
+            LogDebug($"✅ Updated LOCAL PLAYER (bottom) hearts to {newLives}");
+        }
+        else
+        {
+            // CẬP NHẬT LIVES CỦA ĐỐI THỦ (Ở TRÊN)  
+            lifeManager.SetEnemyLives(newLives);
+            LogDebug($"✅ Updated ENEMY (top) hearts to {newLives}");
+        }
+
+        LogDebug($"=== SyncLifeUI END ===");
+    }
+
+    [PunRPC]
+    void PlayerWon(int winnerActorNumber)
+    {
+        var winner = GetPlayerByActorNumber(winnerActorNumber);
+        winner.totalWins++;
+        photonView.RPC("GameOver", RpcTarget.All, winnerActorNumber);
+    }
+
+    [PunRPC]
+    void GameOver(int winnerActorNumber)
+    {
+        currentState = GameState.GameOver;
+        var winner = GetPlayerByActorNumber(winnerActorNumber);
+
+        if (gameStatusText)
+            gameStatusText.text = $"{winner.photonPlayer.NickName} WINS!";
+
+        if (winner.photonPlayer == PhotonNetwork.LocalPlayer)
+        {
+            PlaySound(victorySound);
+            if (confettiEffect) confettiEffect.Play();
+            StartCoroutine(LoadVictoryScene());
+        }
+        else
+        {
+            PlaySound(defeatSound);
+            StartCoroutine(LoadDefeatScene());
+        }
+    }
+
+    [PunRPC]
+    void PlayerReadyForRound(int playerActorNumber)
+    {
+        playersReady++;
+        LogDebug($"Player {playerActorNumber} ready. Total ready: {playersReady}");
+
+        if (roundDisplayText) roundDisplayText.text = "";
+
+        if (playersReady >= PhotonNetwork.PlayerList.Length && PhotonNetwork.IsMasterClient)
+        {
+            playersReady = 0;
+            StartPlayerTurn();
+        }
+    }
+    #endregion
+
+    #region Hand Data Management
+    private void SaveHandDataBeforeRoulette()
+    {
+        if (localHandManager != null)
+        {
+            var currentHand = localHandManager.GetCurrentHand();
+            int handCount = currentHand.Count;
+
+            LogDebug($"SaveHandDataBeforeRoulette - Current hand has {handCount} cards");
+
+            PlayerPrefs.SetInt(HAND_COUNT_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber, handCount);
+
+            for (int i = 0; i < currentHand.Count; i++)
+            {
+                string cardName = currentHand[i].cardName;
+                string key = HAND_DATA_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber + "_" + i;
+                PlayerPrefs.SetString(key, cardName);
+
+                LogDebug($"Saved card {i}: {cardName} with key: {key}");
+            }
+
+            photonView.RPC("SyncHandCount", RpcTarget.Others, PhotonNetwork.LocalPlayer.ActorNumber, handCount);
+
+            LogDebug($"SaveHandDataBeforeRoulette completed: {handCount} cards saved for player {PhotonNetwork.LocalPlayer.ActorNumber}");
+        }
+        else
+        {
+            Debug.LogError("localHandManager is NULL in SaveHandDataBeforeRoulette!");
+        }
+    }
+
+    private void RestoreHandDataAfterRoulette()
+    {
+        string handCountKey = HAND_COUNT_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber;
+
+        LogDebug($"RestoreHandDataAfterRoulette - Looking for key: {handCountKey}");
+
+        if (PlayerPrefs.HasKey(handCountKey))
+        {
+            int savedHandCount = PlayerPrefs.GetInt(handCountKey);
+
+            LogDebug($"Found saved hand count: {savedHandCount} for player {PhotonNetwork.LocalPlayer.ActorNumber}");
+
+            if (localHandManager != null)
+            {
+                List<CardData> restoredHand = RestoreCardsFromPlayerPrefs(savedHandCount);
+
+                if (restoredHand.Count > 0)
+                {
+                    SetHandAndUpdateCount(restoredHand);
+                }
+                else
+                {
+                    Debug.LogError("No cards were restored! restoredHand is empty.");
+                }
+            }
+            else
+            {
+                Debug.LogError("localHandManager is NULL!");
+            }
+
+            PlayerPrefs.DeleteKey(handCountKey);
+        }
+        else
+        {
+            LogDebug($"No saved hand data found for player {PhotonNetwork.LocalPlayer.ActorNumber}");
+            DebugOrphanedCardKeys();
+        }
+    }
+
+    private List<CardData> RestoreCardsFromPlayerPrefs(int savedHandCount)
+    {
+        List<CardData> restoredHand = new List<CardData>();
+
+        for (int i = 0; i < savedHandCount; i++)
+        {
+            string cardKey = HAND_DATA_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber + "_" + i;
+            LogDebug($"Looking for card key: {cardKey}");
+
+            if (PlayerPrefs.HasKey(cardKey))
+            {
+                string cardName = PlayerPrefs.GetString(cardKey);
+
+                CardData restoredCard = new CardData();
+                restoredCard.cardName = cardName;
+                restoredHand.Add(restoredCard);
+
+                LogDebug($"Restored card {i}: {cardName}");
+                PlayerPrefs.DeleteKey(cardKey);
+            }
+            else
+            {
+                Debug.LogError($"Card key not found: {cardKey}");
+            }
+        }
+
+        return restoredHand;
+    }
+
+    private void SetHandAndUpdateCount(List<CardData> restoredHand)
+    {
+        var baseHandManager = localHandManager.GetComponent<HandManager>();
+        if (baseHandManager != null)
+        {
+            LogDebug($"Calling SetHand with {restoredHand.Count} cards");
+
+            baseHandManager.SetHand(restoredHand);
+
+            var localPlayer = GetPlayerByActorNumber(PhotonNetwork.LocalPlayer.ActorNumber);
+            if (localPlayer != null)
+            {
+                localPlayer.handCount = restoredHand.Count;
+            }
+
+            LogDebug($"Hand successfully restored with {restoredHand.Count} cards");
+        }
+        else
+        {
+            Debug.LogError("baseHandManager is NULL!");
+        }
+    }
+
+    private void DebugOrphanedCardKeys()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            string testKey = HAND_DATA_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber + "_" + i;
+            if (PlayerPrefs.HasKey(testKey))
+            {
+                LogDebug($"Found orphaned card key: {testKey} = {PlayerPrefs.GetString(testKey)}");
+            }
+        }
+    }
+    #endregion
+
+    #region Game Actions
     public void PlayCards()
     {
         if (!isMyTurn || currentState != GameState.PlayerPlaying) return;
 
         var selectedCards = GetSelectedCardsFromHand();
 
+        if (!ValidateSelectedCards(selectedCards)) return;
+
+        ExecuteCardPlay(selectedCards);
+    }
+
+    private bool ValidateSelectedCards(List<CardData> selectedCards)
+    {
         if (selectedCards.Count == 0)
         {
             if (gameStatusText)
                 gameStatusText.text = "Select 1-3 cards first!";
-            return;
+            return false;
         }
 
         if (selectedCards.Count > 3)
         {
             if (gameStatusText)
                 gameStatusText.text = "Maximum 3 cards allowed!";
-            return;
+            return false;
         }
 
+        return true;
+    }
+
+    private void ExecuteCardPlay(List<CardData> selectedCards)
+    {
         StopTimer();
 
         playedCardsThisTurn.Clear();
         playedCardsThisTurn.AddRange(selectedCards);
 
-        photonView.RPC("ReceiveCardPlay", RpcTarget.All, selectedCards.Count, PhotonNetwork.LocalPlayer.ActorNumber);
+        LogDebugCardPlay(selectedCards);
 
+        string[] cardNames = selectedCards.Select(c => c.cardName).ToArray();
+        photonView.RPC("ReceiveCardPlay", RpcTarget.All, selectedCards.Count, PhotonNetwork.LocalPlayer.ActorNumber, cardNames);
+
+        RemoveCardsFromHand(selectedCards);
+        PlaySound(cardPlaySound);
+
+        LogDebug($"Cards played and removed from UI. Remaining hand count: {localHandManager?.GetCurrentHand()?.Count ?? 0}");
+    }
+
+    private void LogDebugCardPlay(List<CardData> selectedCards)
+    {
+        if (enableDebugLogs)
+        {
+            LogDebug("=== PLAYING CARDS DEBUG ===");
+            LogDebug($"Player: {PhotonNetwork.LocalPlayer.NickName}");
+            LogDebug($"Selected cards count: {selectedCards.Count}");
+            LogDebug($"Target card: '{currentTargetCard}'");
+
+            for (int i = 0; i < selectedCards.Count; i++)
+            {
+                var card = selectedCards[i];
+                LogDebug($"Selected Card {i}: cardName='{card.cardName}'");
+            }
+        }
+    }
+
+    private void RemoveCardsFromHand(List<CardData> selectedCards)
+    {
         foreach (var card in selectedCards)
         {
             if (localHandManager != null)
+            {
                 localHandManager.RemoveCard(card);
+                if (card?.gameObject != null)
+                {
+                    DestroyImmediate(card.gameObject);
+                }
+            }
             middlePile.Add(card);
         }
 
-        if (localHandManager != null)
-            localHandManager.ClearSelection();
-
-        PlaySound(cardPlaySound);
+        localHandManager?.ClearSelection();
     }
 
-    List<CardData> GetSelectedCardsFromHand()
+    private List<CardData> GetSelectedCardsFromHand()
     {
         if (localHandManager == null) return new List<CardData>();
 
@@ -493,266 +1681,149 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         PlaySound(challengeSound);
     }
 
-    void AcceptPlay()
+    private void AcceptPlay()
     {
         StopTimer();
         photonView.RPC("PlayAccepted", RpcTarget.All);
     }
+    #endregion
 
-    [PunRPC]
-    void ReceiveCardPlay(int cardCount, int playerActorNumber)
+    #region Card Revelation and Judgment
+    private void RevealCardsAndJudge()
     {
-        cardsPlayedThisTurn = cardCount;
-        currentState = GameState.WaitingForChallenge;
-        UpdateUI();
-    }
-
-    [PunRPC]
-    void PlayAccepted()
-    {
-        StopTimer();
-
-        if (gameStatusText) gameStatusText.text = "Play accepted!";
-
-        var currentPlayer = players[currentPlayerIndex];
-        if (localHandManager != null && localHandManager.GetCurrentHand().Count == 0 &&
-            currentPlayer.photonPlayer == PhotonNetwork.LocalPlayer)
+        if (!PhotonNetwork.IsMasterClient)
         {
-            photonView.RPC("PlayerWon", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber);
+            LogDebug("RevealCardsAndJudge: Not master client, ignoring");
             return;
         }
 
-        Invoke(nameof(NextPlayerTurn), 1.5f);
+        if (!ValidatePlayedCards()) return;
+
+        bool allCardsAreTarget = playedCardsThisTurn.All(card => IsCardMatchingTarget(card.cardName, currentTargetCard));
+
+        LogDebug($"=== FINAL RESULT: allCardsAreTarget = {allCardsAreTarget} ===");
+
+        var currentPlayer = players[currentPlayerIndex];
+        var challenger = players.FirstOrDefault(p => p.photonPlayer != currentPlayer.photonPlayer);
+
+        if (challenger == null)
+        {
+            Debug.LogError("Cannot find challenger!");
+            return;
+        }
+
+        ProcessChallengeResult(allCardsAreTarget, currentPlayer, challenger);
     }
 
-    [PunRPC]
-    void PlayChallenged(int challengerActorNumber)
+    private bool ValidatePlayedCards()
     {
-        StopTimer();
-        currentState = GameState.RevealingCards;
+        LogDebug($"playedCardsThisTurn.Count: {playedCardsThisTurn.Count}");
 
-        var challenger = GetPlayerByActorNumber(challengerActorNumber);
-        var player = players[currentPlayerIndex];
+        if (playedCardsThisTurn.Count == 0)
+        {
+            Debug.LogError("playedCardsThisTurn is empty! This shouldn't happen.");
+            return false;
+        }
 
-        if (gameStatusText)
-            gameStatusText.text = $"{challenger.photonPlayer.NickName} called LIAR!";
+        if (enableDebugLogs)
+        {
+            for (int i = 0; i < playedCardsThisTurn.Count; i++)
+            {
+                string cardName = playedCardsThisTurn[i].cardName;
+                bool isMatch = IsCardMatchingTarget(cardName, currentTargetCard);
+                LogDebug($"Card {i}: '{cardName}' -> Matches target: {isMatch}");
+            }
+        }
 
-        UpdateUI();
-        Invoke(nameof(RevealCardsAndJudge), 2f);
+        return true;
     }
 
-    void RevealCardsAndJudge()
+    private void ProcessChallengeResult(bool allCardsAreTarget, PlayerData currentPlayer, PlayerData challenger)
     {
-        bool allCardsAreTarget = playedCardsThisTurn.All(card => card.cardName == currentTargetCard);
+        LogDebug($"Current Player (played cards): {currentPlayer.photonPlayer.NickName}");
+        LogDebug($"Challenger: {challenger.photonPlayer.NickName}");
 
-        var player = players[currentPlayerIndex];
-        var challenger = GetPlayerByActorNumber(
-            PhotonNetwork.PlayerList.FirstOrDefault(p => p != player.photonPlayer)?.ActorNumber ?? -1);
+        // CHECK XEM CÓ AI HẾT BÀI KHÔNG
+        bool currentPlayerHasNoCards = HasPlayerFinishedCards(currentPlayer);
+        bool challengerHasNoCards = HasPlayerFinishedCards(challenger);
+
+        LogDebug($"Cards status - Current player has no cards: {currentPlayerHasNoCards}, Challenger has no cards: {challengerHasNoCards}");
+
+        if (currentPlayerHasNoCards && !challengerHasNoCards)
+        {
+            // NGƯỜI CHƠI HẾT BÀI BỊ TỐ
+            HandleChallengeWithFinishedCards(allCardsAreTarget, currentPlayer, challenger);
+        }
+        else
+        {
+            // TRƯỜNG HỢP BÌNH THƯỜNG - KHÔNG AI HẾT BÀI
+            HandleNormalChallenge(allCardsAreTarget, currentPlayer, challenger);
+        }
+    }
+
+    private void HandleChallengeWithFinishedCards(bool allCardsAreTarget, PlayerData finishedPlayer, PlayerData challengerPlayer)
+    {
+        LogDebug($"=== CHALLENGE WITH FINISHED CARDS ===");
+        LogDebug($"Finished player: {finishedPlayer.photonPlayer.NickName}, Honest: {allCardsAreTarget}");
 
         if (allCardsAreTarget)
         {
+            // TỐ ĐÚNG: Người hết bài nói thật
+            LogDebug($"🎯 CHALLENGE CORRECT: {finishedPlayer.photonPlayer.NickName} was honest!");
+
             if (gameStatusText)
-                gameStatusText.text = $"{player.photonPlayer.NickName} was honest! {challenger.photonPlayer.NickName} gets punished!";
+                gameStatusText.text = $"{finishedPlayer.photonPlayer.NickName} was honest! {challengerPlayer.photonPlayer.NickName} plays roulette first!";
+
+            // Người tố phải quay roulette trước
+            photonView.RPC("StartRussianRoulette", RpcTarget.All, challengerPlayer.photonPlayer.ActorNumber);
+        }
+        else
+        {
+            // TỐ SAI: Người hết bài nói dối
+            LogDebug($"🎯 CHALLENGE WRONG: {finishedPlayer.photonPlayer.NickName} was lying!");
+
+            if (gameStatusText)
+                gameStatusText.text = $"{finishedPlayer.photonPlayer.NickName} was lying! {challengerPlayer.photonPlayer.NickName} plays single roulette!";
+
+            // Người tố quay duy nhất 1 lần roulette
+            photonView.RPC("StartRussianRoulette", RpcTarget.All, challengerPlayer.photonPlayer.ActorNumber);
+        }
+    }
+
+    private void HandleNormalChallenge(bool allCardsAreTarget, PlayerData currentPlayer, PlayerData challenger)
+    {
+        LogDebug($"=== NORMAL CHALLENGE ===");
+
+        if (allCardsAreTarget)
+        {
+            // Người chơi hiện tại nói thật → Challenger bị phạt
+            LogDebug($"RESULT: {currentPlayer.photonPlayer.NickName} was HONEST! {challenger.photonPlayer.NickName} gets punished!");
+
+            if (gameStatusText)
+                gameStatusText.text = $"{currentPlayer.photonPlayer.NickName} was honest! {challenger.photonPlayer.NickName} gets punished!";
+
             photonView.RPC("StartRussianRoulette", RpcTarget.All, challenger.photonPlayer.ActorNumber);
         }
         else
         {
-            if (gameStatusText)
-                gameStatusText.text = $"{player.photonPlayer.NickName} was LYING! They get punished!";
-            photonView.RPC("StartRussianRoulette", RpcTarget.All, player.photonPlayer.ActorNumber);
-        }
-    }
-
-    [PunRPC]
-    void StartRussianRoulette(int punishedPlayerActorNumber)
-    {
-        currentState = GameState.WaitingForRoulette;
-
-        var punishedPlayer = GetPlayerByActorNumber(punishedPlayerActorNumber);
-        if (gameStatusText)
-            gameStatusText.text = $"{punishedPlayer.photonPlayer.NickName} must play Russian Roulette!";
-
-        UpdateUI();
-
-        if (PhotonNetwork.LocalPlayer.ActorNumber == punishedPlayerActorNumber)
-        {
-            StartCoroutine(LoadRouletteScene());
-        }
-    }
-
-    System.Collections.IEnumerator LoadRouletteScene()
-    {
-        yield return new WaitForSeconds(2f);
-        PlayerPrefs.SetInt(PUNISHED_PLAYER_KEY, PhotonNetwork.LocalPlayer.ActorNumber);
-        SceneManager.LoadScene(rouletteSceneName);
-    }
-
-    // ============= FIXED ROULETTE RESULT - ĐÂY LÀ PHẦN QUAN TRỌNG NHẤT =============
-    [PunRPC]
-    void RouletteResult(int playerActorNumber, bool hitSpecialSlot)
-    {
-        if (enableDebugLogs)
-            Debug.Log($"RouletteResult: Player {playerActorNumber}, hitSpecialSlot: {hitSpecialSlot}");
-
-        var player = GetPlayerByActorNumber(playerActorNumber);
-        if (player == null)
-        {
-            Debug.LogError($"Cannot find player with ActorNumber {playerActorNumber}");
-            return;
-        }
-
-        if (hitSpecialSlot)
-        {
-            // Trừ mạng
-            player.lives--;
-
-            if (enableDebugLogs)
-                Debug.Log($"Player {playerActorNumber} lives reduced to {player.lives}");
-
-            // ĐỒNG BỘ UI QUA RPC RIÊNG
-            photonView.RPC("SyncLifeUI", RpcTarget.All, playerActorNumber, player.lives);
-
-            // Play sound effect
-            PlaySound(loseLifeSound);
+            // Người chơi hiện tại nói dối → Current player bị phạt
+            LogDebug($"RESULT: {currentPlayer.photonPlayer.NickName} was LYING! They get punished!");
 
             if (gameStatusText)
-                gameStatusText.text = $"{player.photonPlayer.NickName} lost a life! ({player.lives} left)";
+                gameStatusText.text = $"{currentPlayer.photonPlayer.NickName} was LYING! They get punished!";
 
-            // Kiểm tra xem player có hết mạng không
-            if (player.lives <= 0)
-            {
-                player.isAlive = false;
-                if (gameStatusText)
-                    gameStatusText.text = $"{player.photonPlayer.NickName} is eliminated!";
-
-                PlaySound(defeatSound);
-
-                // Tìm người thắng
-                var winner = players.FirstOrDefault(p => p.isAlive);
-                if (winner != null)
-                {
-                    photonView.RPC("GameOver", RpcTarget.All, winner.photonPlayer.ActorNumber);
-                    return;
-                }
-            }
-            else
-            {
-                // Còn mạng, bắt đầu round mới
-                if (PhotonNetwork.IsMasterClient)
-                {
-                    Invoke(nameof(StartNewRound), 3f);
-                }
-            }
-        }
-        else
-        {
-            // Quay trúng ô thường - không trừ mạng
-            if (gameStatusText)
-                gameStatusText.text = $"{player.photonPlayer.NickName} got lucky! Starting new round...";
-
-            if (PhotonNetwork.IsMasterClient)
-            {
-                Invoke(nameof(StartNewRound), 3f);
-            }
+            photonView.RPC("StartRussianRoulette", RpcTarget.All, currentPlayer.photonPlayer.ActorNumber);
         }
     }
+    #endregion
 
-    // ============= RPC MỚI ĐỂ ĐỒNG BỘ UI HOÀN TOÀN =============
-    [PunRPC]
-    void SyncLifeUI(int playerActorNumber, int newLives)
-    {
-        if (enableDebugLogs)
-            Debug.Log($"SyncLifeUI called: Player {playerActorNumber} has {newLives} lives");
-
-        // Cập nhật data cho player
-        var player = GetPlayerByActorNumber(playerActorNumber);
-        if (player != null)
-        {
-            player.lives = newLives;
-            if (enableDebugLogs)
-                Debug.Log($"Updated player data: {player.photonPlayer.NickName} now has {newLives} lives");
-        }
-
-        // Kiểm tra LifeManager
-        if (lifeManager == null)
-        {
-            Debug.LogError("LifeManager is NULL in SyncLifeUI!");
-            return;
-        }
-
-        // XÁC ĐỊNH AI LÀ PLAYER VÀ AI LÀ ENEMY DỰA TRÊN ACTOR NUMBER
-        bool isLocalPlayer = (playerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber);
-
-        if (enableDebugLogs)
-        {
-            Debug.Log($"Local Player ActorNumber: {PhotonNetwork.LocalPlayer.ActorNumber}");
-            Debug.Log($"Target Player ActorNumber: {playerActorNumber}");
-            Debug.Log($"Is Local Player: {isLocalPlayer}");
-        }
-
-        if (isLocalPlayer)
-        {
-            // Người bị trừ mạng là local player → cập nhật playerHearts
-            lifeManager.SetPlayerLives(newLives);
-            if (enableDebugLogs)
-                Debug.Log($"Updated LOCAL PLAYER hearts to {newLives}");
-        }
-        else
-        {
-            // Người bị trừ mạng là đối thủ → cập nhật enemyHearts
-            lifeManager.SetEnemyLives(newLives);
-            if (enableDebugLogs)
-                Debug.Log($"Updated ENEMY hearts to {newLives}");
-        }
-    }
-
-    [PunRPC]
-    void PlayerWon(int winnerActorNumber)
-    {
-        var winner = GetPlayerByActorNumber(winnerActorNumber);
-        winner.totalWins++;
-        photonView.RPC("GameOver", RpcTarget.All, winnerActorNumber);
-    }
-
-    [PunRPC]
-    void GameOver(int winnerActorNumber)
-    {
-        currentState = GameState.GameOver;
-        var winner = GetPlayerByActorNumber(winnerActorNumber);
-
-        if (gameStatusText)
-            gameStatusText.text = $"{winner.photonPlayer.NickName} WINS!";
-
-        if (winner.photonPlayer == PhotonNetwork.LocalPlayer)
-        {
-            PlaySound(victorySound);
-            if (confettiEffect) confettiEffect.Play();
-            StartCoroutine(LoadVictoryScene());
-        }
-        else
-        {
-            PlaySound(defeatSound);
-            StartCoroutine(LoadDefeatScene());
-        }
-    }
-
-    System.Collections.IEnumerator LoadVictoryScene()
-    {
-        yield return new WaitForSeconds(3f);
-        SceneManager.LoadScene(victorySceneName);
-    }
-
-    System.Collections.IEnumerator LoadDefeatScene()
-    {
-        yield return new WaitForSeconds(3f);
-        SceneManager.LoadScene(defeatSceneName);
-    }
-
-    void NextPlayerTurn()
+    #region Game Flow Control
+    private void NextPlayerTurn()
     {
         if (!PhotonNetwork.IsMasterClient) return;
 
         playedCardsThisTurn.Clear();
+
         currentPlayerIndex = (currentPlayerIndex + 1) % 2;
 
         if (!players[currentPlayerIndex].isAlive)
@@ -760,50 +1831,555 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             currentPlayerIndex = (currentPlayerIndex + 1) % 2;
         }
 
+        LogDebug($"NextPlayerTurn: Moving to player index {currentPlayerIndex}");
+
         photonView.RPC("UpdateGameState", RpcTarget.All, (int)GameState.PlayerPlaying, currentPlayerIndex);
     }
 
-    [PunRPC]
-    void UpdateGameState(int newState, int newPlayerIndex)
+    private void StartPlayerTurn()
     {
-        currentState = (GameState)newState;
-        currentPlayerIndex = newPlayerIndex;
-        UpdateUI();
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        ValidateCurrentPlayerIndex();
+
+        LogDebug($"Starting player turn. Current player index: {currentPlayerIndex}");
+
+        photonView.RPC("UpdateGameState", RpcTarget.All, (int)GameState.PlayerPlaying, currentPlayerIndex);
     }
 
-    PlayerData GetPlayerByActorNumber(int actorNumber)
+    private bool CheckForPlayerWithNoCards()
+    {
+        LogDebug("CheckForPlayerWithNoCards called");
+
+        foreach (var player in players)
+        {
+            if (!player.isAlive)
+            {
+                LogDebug($"Player {player.photonPlayer.NickName} is not alive, skipping");
+                continue;
+            }
+
+            if (HasPlayerFinishedCards(player))
+            {
+                LogDebug($"Player {player.photonPlayer.NickName} has no cards - FOUND WINNER!");
+                return true;
+            }
+        }
+
+        LogDebug("No player has finished cards");
+        return false;
+    }
+
+    private bool HasPlayerFinishedCards(PlayerData player)
+    {
+        if (player.photonPlayer == PhotonNetwork.LocalPlayer)
+        {
+            int localHandCount = localHandManager?.GetCurrentHand()?.Count ?? -1;
+            LogDebug($"Local player {player.photonPlayer.NickName} has {localHandCount} cards");
+            return localHandCount == 0;
+        }
+        else
+        {
+            LogDebug($"Opponent {player.photonPlayer.NickName} has {player.handCount} cards (synced)");
+            return player.handCount <= 0;
+        }
+    }
+    #endregion
+
+    #region Scene Loading and Coroutines
+    private System.Collections.IEnumerator LoadRouletteScene()
+    {
+        LogDebug($"LoadRouletteScene START - GameObject: {gameObject.name}, Instance: {GetInstanceID()}");
+
+        yield return new WaitForSeconds(2f);
+
+        if (!shouldLoadRoulette)
+        {
+            LogDebug($"PREVENTED ROULETTE LOAD: shouldLoadRoulette = false on Instance {GetInstanceID()}");
+            yield break;
+        }
+
+        LogDebug($"LOADING ROULETTE SCENE NOW from Instance {GetInstanceID()}");
+
+        PlayerPrefs.SetInt(PUNISHED_PLAYER_KEY, PhotonNetwork.LocalPlayer.ActorNumber);
+        SceneManager.LoadScene(rouletteSceneName);
+    }
+
+    private System.Collections.IEnumerator LoadVictoryScene()
+    {
+        yield return new WaitForSeconds(3f);
+        SceneManager.LoadScene(victorySceneName);
+    }
+
+    private System.Collections.IEnumerator LoadDefeatScene()
+    {
+        yield return new WaitForSeconds(3f);
+        SceneManager.LoadScene(defeatSceneName);
+    }
+
+    private System.Collections.IEnumerator CreateNewHandCoroutine(HandManager handManager)
+    {
+        LogDebug("=== CreateNewHandCoroutine START ===");
+
+        // DEBUG: Log lives trước khi tạo hand
+        LogDebug("Lives BEFORE creating new hand:");
+        foreach (var player in players)
+        {
+            LogDebug($"  {player.photonPlayer.NickName}: {player.lives} lives");
+        }
+
+        yield return new WaitForSeconds(0.1f);
+
+        LogDebug("CreateNewHandCoroutine - Creating new hand via coroutine...");
+
+        if (handManager == null)
+        {
+            Debug.LogError("HandManager is NULL in CreateNewHandCoroutine!");
+            yield break;
+        }
+
+        handManager.CreateNewHand();
+
+        yield return new WaitForSeconds(1f);
+
+        var localPlayer = GetPlayerByActorNumber(PhotonNetwork.LocalPlayer.ActorNumber);
+        if (localPlayer != null)
+        {
+            // QUAN TRỌNG: CHỈ UPDATE HAND COUNT, KHÔNG TOUCH LIVES
+            int oldLives = localPlayer.lives;
+            localPlayer.handCount = 6;
+            LogDebug($"Updated local player hand count to 6 (NEW ROUND) - Lives unchanged: {oldLives}");
+
+            // DEBUG: Verify lives không thay đổi
+            if (localPlayer.lives != oldLives)
+            {
+                Debug.LogError($"LIVES CHANGED UNEXPECTEDLY! Was {oldLives}, now {localPlayer.lives}");
+            }
+        }
+
+        photonView.RPC("SyncHandCount", RpcTarget.Others, PhotonNetwork.LocalPlayer.ActorNumber, 6);
+
+        if (localHandManager != null)
+        {
+            var currentHand = localHandManager.GetCurrentHand();
+            LogDebug($"Hand creation completed. Hand count: {currentHand.Count}");
+        }
+
+        // DEBUG: Log lives sau khi tạo hand
+        LogDebug("Lives AFTER creating new hand:");
+        foreach (var player in players)
+        {
+            LogDebug($"  {player.photonPlayer.NickName}: {player.lives} lives");
+        }
+
+        LogDebug("=== CreateNewHandCoroutine END ===");
+    }
+    #endregion
+
+    #region Popup Management
+    private void ShowRoundPopup()
+    {
+        LogDebug($"ShowRoundPopup called for player {PhotonNetwork.LocalPlayer.NickName}");
+
+        if (popupInfoPanel != null)
+        {
+            UpdatePopupContent();
+            popupInfoPanel.SetActive(true);
+            LogDebug($"Popup activated");
+
+            Invoke(nameof(AutoClosePopup), 3f);
+        }
+        else
+        {
+            Debug.LogError("popupInfoPanel is NULL! Check Inspector assignment!");
+            HandleMissingPopup();
+        }
+    }
+
+    private void UpdatePopupContent()
+    {
+        // DEBUG: Log giá trị currentRound khi popup được hiển thị
+        LogDebug($"UpdatePopupContent: currentRound = {currentRound}");
+
+        if (popupRoundInfo != null)
+        {
+            popupRoundInfo.text = $"ROUND {currentRound}";
+            LogDebug($"Set round text: ROUND {currentRound}");
+        }
+
+        if (popupTargetCardInfo != null)
+        {
+            popupTargetCardInfo.text = $"TARGET: {currentTargetCard}";
+            LogDebug($"Set target text: TARGET: {currentTargetCard}");
+        }
+    }
+
+    private void HandleMissingPopup()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            LogDebug("Popup null but continuing game flow");
+            Invoke(nameof(StartPlayerTurn), 1f);
+        }
+    }
+
+    private void AutoClosePopup()
+    {
+        if (popupInfoPanel != null && popupInfoPanel.activeInHierarchy)
+        {
+            LogDebug("Auto closing popup");
+            OnPopupOk();
+        }
+    }
+
+    public void OnPopupOk()
+    {
+        LogDebug("OnPopupOk called!");
+
+        if (popupInfoPanel != null)
+        {
+            popupInfoPanel.SetActive(false);
+        }
+
+        CancelInvoke(nameof(AutoClosePopup));
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            LogDebug("Master Client starting player turn directly");
+            StartPlayerTurn();
+        }
+        else
+        {
+            LogDebug("Not Master Client, waiting for turn start");
+        }
+    }
+    #endregion
+
+    #region Roulette Result Handling
+    private void ProcessRouletteResultIfExists()
+    {
+        LogDebug("ProcessRouletteResultIfExists() called");
+
+        if (PlayerPrefs.HasKey(PUNISHMENT_RESULT_KEY))
+        {
+            LogDebug("🎰 Roulette result detected - processing...");
+
+            // BLOCK UI ngay lập tức để tránh flicker
+            if (lifeManager != null)
+            {
+                lifeManager.TemporaryBlock(3f); // Block 3 giây
+                LogDebug("🚫 Blocked LifeManager UI for 3 seconds during roulette processing");
+            }
+
+            ProcessRouletteResult();
+        }
+        else
+        {
+            LogDebug("No roulette result found in PlayerPrefs - this is normal for fresh start");
+            HandleNoRouletteResult();
+        }
+    }
+
+    private void CheckRouletteResult()
+    {
+        LogDebug("CheckRouletteResult() called");
+
+        if (PlayerPrefs.HasKey(PUNISHMENT_RESULT_KEY))
+        {
+            ProcessRouletteResult();
+        }
+        else
+        {
+            LogDebug("No roulette result found in PlayerPrefs - this is normal for fresh start");
+            HandleNoRouletteResult();
+        }
+    }
+
+    private void ProcessRouletteResult()
+    {
+        bool hitSpecialSlot = PlayerPrefs.GetInt(PUNISHMENT_RESULT_KEY) == 1;
+        int punishedPlayer = PlayerPrefs.GetInt(PUNISHED_PLAYER_KEY, -1);
+
+        LogDebug($"=== PROCESSING ROULETTE RESULT ===");
+        LogDebug($"Hit special slot (died): {hitSpecialSlot}");
+        LogDebug($"Punished player: {punishedPlayer}");
+        LogDebug($"My ActorNumber: {PhotonNetwork.LocalPlayer.ActorNumber}");
+
+        // VERIFY data integrity
+        if (punishedPlayer == -1)
+        {
+            Debug.LogError("🚨 CRITICAL: No punished player found! Roulette data corrupted!");
+
+            // EMERGENCY: Clear corrupted data và skip
+            PlayerPrefs.DeleteKey(PUNISHMENT_RESULT_KEY);
+            PlayerPrefs.DeleteKey(PUNISHED_PLAYER_KEY);
+            PlayerPrefs.DeleteKey("RouletteCompleted");
+
+            if (lifeManager != null)
+            {
+                lifeManager.UnblockAndForceUpdateAll(); // Unblock UI
+            }
+            return;
+        }
+
+        // SET FLAG để LifeManager biết đang restore
+        PlayerPrefs.SetString("AfterRoulette", "true");
+        PlayerPrefs.Save();
+        LogDebug("🎰 Set AfterRoulette flag to prevent lives reset");
+
+        // CLEAN UP roulette data
+        PlayerPrefs.DeleteKey(PUNISHMENT_RESULT_KEY);
+        PlayerPrefs.DeleteKey(PUNISHED_PLAYER_KEY);
+        PlayerPrefs.DeleteKey("RouletteCompleted");
+
+        if (!hitSpecialSlot)
+        {
+            LogDebug("😅 Player SURVIVED roulette - attempting to restore hand");
+            RestoreHandDataAfterRoulette();
+            LogDebug("⚠️ IMPORTANT: Not touching lives - keeping current lives intact");
+        }
+        else
+        {
+            LogDebug("💀 Player DIED in roulette - will get new hand in new round");
+        }
+
+        if (punishedPlayer == PhotonNetwork.LocalPlayer.ActorNumber)
+        {
+            LogDebug("📡 I was the punished player, sending RouletteResult RPC");
+            photonView.RPC("RouletteResult", RpcTarget.All, punishedPlayer, hitSpecialSlot);
+        }
+        else
+        {
+            LogDebug("👀 I was NOT the punished player, just observing result");
+        }
+    }
+
+    private void HandleNoRouletteResult()
+    {
+        if (currentRound > 0 && PhotonNetwork.IsMasterClient)
+        {
+            LogDebug("Game was restored but no roulette result - may need to resume game flow");
+            Invoke(nameof(EnsureGameFlowContinues), 2f);
+        }
+    }
+
+    private void EnsureGameFlowContinues()
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        if (currentState == GameState.WaitingForPlayers || gameStatusText.text.Contains("Waiting"))
+        {
+            LogDebug("Game seems stuck, forcing flow continuation");
+
+            if (string.IsNullOrEmpty(currentTargetCard))
+            {
+                StartNewRound();
+            }
+            else
+            {
+                ResumeGameFlow();
+            }
+        }
+    }
+    #endregion
+
+    #region Utility Methods
+    private PlayerData GetPlayerByActorNumber(int actorNumber)
     {
         return players.FirstOrDefault(p => p.photonPlayer.ActorNumber == actorNumber);
     }
 
-    void PlaySound(AudioClip clip)
+    private void PlaySound(AudioClip clip)
     {
-        if (audioSource && clip)
+        if (audioSource != null && clip != null)
         {
             audioSource.PlayOneShot(clip);
         }
     }
 
-    // ============= SIMPLIFIED PHOTON SERIALIZE =============
+    private void LogDebug(string message)
+    {
+        if (enableDebugLogs)
+        {
+            Debug.Log($"[GAMEMANAGER] {message}");
+        }
+    }
+    #endregion
+
+    #region Photon Callbacks
+    public override void OnLeftRoom()
+    {
+        LogDebug("OnLeftRoom called - clearing game data");
+        ClearAllGameData();
+    }
+
+    public override void OnDisconnected(Photon.Realtime.DisconnectCause cause)
+    {
+        LogDebug($"OnDisconnected called with cause: {cause} - clearing game data");
+        ClearAllGameData();
+    }
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
+        // BLOCK sync trong lúc restore để tránh conflict
+        bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
+
         if (stream.IsWriting)
         {
+            // MASTER CLIENT gửi data
             stream.SendNext(currentPlayerIndex);
             stream.SendNext(currentTargetCard);
             stream.SendNext(currentRound);
             stream.SendNext((int)currentState);
+
+            if (!isAfterRoulette)
+            {
+                LogDebug($"OnPhotonSerializeView SENDING: currentRound = {currentRound}");
+            }
         }
         else
         {
+            // NON-MASTER CLIENT nhận data
+            if (isAfterRoulette)
+            {
+                // SKIP nhận data để tránh override lives đã restore
+                LogDebug("⚠️ BLOCKING OnPhotonSerializeView receive during roulette restore");
+
+                // Consume data nhưng không apply
+                stream.ReceiveNext(); // currentPlayerIndex
+                stream.ReceiveNext(); // currentTargetCard
+                stream.ReceiveNext(); // currentRound
+                stream.ReceiveNext(); // currentState
+                return;
+            }
+
+            int oldRound = currentRound;
             currentPlayerIndex = (int)stream.ReceiveNext();
             currentTargetCard = (string)stream.ReceiveNext();
             currentRound = (int)stream.ReceiveNext();
             currentState = (GameState)stream.ReceiveNext();
+
+            if (oldRound != currentRound)
+            {
+                LogDebug($"OnPhotonSerializeView RECEIVED: currentRound changed from {oldRound} to {currentRound}");
+            }
+        }
+    }
+    #endregion
+
+    #region Debug Methods
+    [ContextMenu("Clear All Game Data")]
+    public void ManualClearGameData()
+    {
+        LogDebug("MANUAL: Clearing all game data");
+        ClearAllGameData();
+    }
+
+    [ContextMenu("Debug Lives vs PlayerPrefs")]
+    public void DebugLivesVsPlayerPrefs()
+    {
+        LogDebug("=== LIVES MEMORY vs PLAYERPREFS COMPARISON ===");
+
+        foreach (var player in players)
+        {
+            string livesKey = "GameState_Lives_" + player.photonPlayer.ActorNumber;
+            int savedLives = PlayerPrefs.GetInt(livesKey, -1);
+            int memoryLives = player.lives;
+
+            LogDebug($"Player {player.photonPlayer.NickName} (Actor {player.photonPlayer.ActorNumber}):");
+            LogDebug($"  - Lives in memory: {memoryLives}");
+            LogDebug($"  - Lives in PlayerPrefs: {savedLives}");
+
+            if (savedLives != -1 && savedLives != memoryLives)
+            {
+                Debug.LogWarning($"  ⚠️ MISMATCH! Memory={memoryLives}, PlayerPrefs={savedLives}");
+            }
+
+            if (memoryLives <= 0)
+            {
+                Debug.LogError($"  🚨 CRITICAL: Memory lives is {memoryLives} - this will cause 0-lives flicker!");
+            }
+
+            if (savedLives == 0)
+            {
+                Debug.LogError($"  🚨 CRITICAL: PlayerPrefs lives is {savedLives} - this will cause 0-lives flicker!");
+            }
+        }
+
+        // Check flags
+        bool afterRouletteFlag = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
+        bool bypassFlag = PlayerPrefs.HasKey("BypassLifeManagerReset");
+
+        LogDebug($"Flags - AfterRoulette: {afterRouletteFlag}, BypassReset: {bypassFlag}");
+
+        if (lifeManager != null)
+        {
+            LogDebug($"LifeManager state - Player: {lifeManager.GetPlayerLives()}, Enemy: {lifeManager.GetEnemyLives()}");
         }
     }
 
-    // ============= TEST METHODS ĐỂ DEBUG =============
+    [ContextMenu("Test Temporary Block")]
+    public void TestTemporaryBlock()
+    {
+        LogDebug("🧪 TESTING: Temporary block for 2 seconds");
+        if (lifeManager != null)
+        {
+            lifeManager.TemporaryBlock(2f);
+            LogDebug("LifeManager temporarily blocked - will auto unblock");
+        }
+        else
+        {
+            LogDebug("LifeManager is NULL!");
+        }
+    }
+
+    [ContextMenu("Debug LifeManager State")]
+    public void DebugLifeManagerState()
+    {
+        if (lifeManager != null)
+        {
+            LogDebug("=== LIFEMANAGER STATE ===");
+            LogDebug($"Player Lives: {lifeManager.GetPlayerLives()}");
+            LogDebug($"Enemy Lives: {lifeManager.GetEnemyLives()}");
+            LogDebug($"Max Player Lives: {lifeManager.GetMaxPlayerLives()}");
+            LogDebug($"Max Enemy Lives: {lifeManager.GetMaxEnemyLives()}");
+
+            // Call LifeManager's debug
+            lifeManager.DebugHeartStatus();
+        }
+        else
+        {
+            LogDebug("LifeManager is NULL!");
+        }
+    }
+
+    [ContextMenu("Reset All Lives To 3")]
+    public void ResetAllLivesToThree()
+    {
+        LogDebug("MANUAL: Resetting all lives to 3");
+
+        foreach (var player in players)
+        {
+            player.lives = 3;
+            LogDebug($"Reset {player.photonPlayer.NickName} to 3 lives");
+        }
+
+        if (lifeManager != null)
+        {
+            lifeManager.ResetHearts();
+            LogDebug("Reset LifeManager hearts");
+        }
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            LogDebug("Broadcasting life reset to all players");
+            foreach (var player in players)
+            {
+                photonView.RPC("SyncLifeUI", RpcTarget.All, player.photonPlayer.ActorNumber, 3);
+            }
+        }
+    }
+
     [ContextMenu("Test Lose My Life")]
     public void TestLoseMyLife()
     {
@@ -826,18 +2402,19 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    [ContextMenu("Debug Life Manager")]
-    public void DebugLifeManager()
+    [ContextMenu("Debug All GameManager Instances")]
+    public void DebugAllGameManagerInstances()
     {
-        if (lifeManager != null)
+        var allGameManagers = FindObjectsOfType<LiarBarGameManager>();
+        LogDebug($"Found {allGameManagers.Length} GameManager instances:");
+
+        for (int i = 0; i < allGameManagers.Length; i++)
         {
-            lifeManager.DebugHeartStatus();
-        }
-        else
-        {
-            Debug.LogError("LifeManager is NULL!");
+            var gm = allGameManagers[i];
+            LogDebug($"Instance {i}: GameObject={gm.gameObject.name}, InstanceID={gm.GetInstanceID()}, shouldLoadRoulette={gm.shouldLoadRoulette}");
         }
     }
+    #endregion
 }
 
 [System.Serializable]

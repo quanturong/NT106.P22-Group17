@@ -2,29 +2,26 @@
 using UnityEngine.SceneManagement;
 using JSG.FortuneSpinWheel;
 
-/// <summary>
-/// Script này gắn vào SpinWheel scene để kết nối kết quả Russian Roulette với Liar's Bar
-/// </summary>
 public class RouletteResultConnector : MonoBehaviour
 {
     [Header("Scene Management")]
-    public string gameSceneName = "GameUI"; // Tên scene game chính
-    public float delayBeforeReturn = 2f; // Thời gian delay trước khi quay về
+    public string gameSceneName = "GameUI";
+    public float delayBeforeReturn = 2f;
 
     [Header("UI References")]
-    public GameObject rouletteInstructions; // Panel hiển thị hướng dẫn
+    public GameObject rouletteInstructions;
     public TMPro.TextMeshProUGUI instructionText;
 
     private FortuneSpinWheel fortuneWheel;
     private bool resultProcessed = false;
 
-    // Constants
     private const string PUNISHMENT_RESULT_KEY = "RouletteResult";
     private const string PUNISHED_PLAYER_KEY = "PunishedPlayer";
 
     void Start()
     {
-        // Tìm FortuneSpinWheel component
+        Debug.Log("=== RouletteResultConnector START ===");
+
         fortuneWheel = FindObjectOfType<FortuneSpinWheel>();
 
         if (fortuneWheel == null)
@@ -33,10 +30,16 @@ public class RouletteResultConnector : MonoBehaviour
             return;
         }
 
-        // Hiển thị hướng dẫn
-        ShowInstructions();
+        // CRITICAL: Get punished player from PlayerPrefs
+        int punishedPlayer = PlayerPrefs.GetInt(PUNISHED_PLAYER_KEY, -1);
+        Debug.Log($"Punished player ActorNumber: {punishedPlayer}");
 
-        // Override reward handling
+        if (punishedPlayer == -1)
+        {
+            Debug.LogError("No punished player found! This shouldn't happen!");
+        }
+
+        ShowInstructions();
         SetupRouletteLogic();
     }
 
@@ -52,7 +55,6 @@ public class RouletteResultConnector : MonoBehaviour
             instructionText.text = "🎲 RUSSIAN ROULETTE\n\nSpin the wheel...\nIf you hit the DEATH slot, you're eliminated!\nAny other slot and you survive!";
         }
 
-        // Ẩn hướng dẫn sau 3 giây
         Invoke(nameof(HideInstructions), 3f);
     }
 
@@ -66,14 +68,12 @@ public class RouletteResultConnector : MonoBehaviour
 
     void SetupRouletteLogic()
     {
-        // Đảm bảo wheel có ít nhất 1 ô đặc biệt (death)
         bool hasDeathSlot = false;
         for (int i = 0; i < fortuneWheel.m_RewardData.Length; i++)
         {
             if (fortuneWheel.m_RewardData[i].m_IsSpecialReset)
             {
                 hasDeathSlot = true;
-                // Đổi tên thành "DEATH" cho rõ ràng
                 fortuneWheel.m_RewardData[i].m_Title = "DEATH";
                 break;
             }
@@ -84,25 +84,20 @@ public class RouletteResultConnector : MonoBehaviour
             Debug.LogWarning("No special reset slot found! Russian Roulette won't work properly.");
         }
 
-        // Reset tất cả ô về trạng thái chưa obtained
         for (int i = 0; i < fortuneWheel.m_RewardData.Length; i++)
         {
             fortuneWheel.m_RewardData[i].m_IsObtained = false;
         }
 
-        // Hook vào reward handling
         StartCoroutine(MonitorRouletteResult());
     }
 
     System.Collections.IEnumerator MonitorRouletteResult()
     {
-        // Chờ cho đến khi có kết quả
         while (!resultProcessed)
         {
-            // Kiểm tra xem wheel có đang quay không
             if (!fortuneWheel.m_IsSpinning && fortuneWheel.m_RewardNumber >= 0)
             {
-                // Có kết quả rồi
                 ProcessRouletteResult();
                 resultProcessed = true;
             }
@@ -120,17 +115,24 @@ public class RouletteResultConnector : MonoBehaviour
         }
 
         var hitReward = fortuneWheel.m_RewardData[fortuneWheel.m_RewardNumber];
-        bool died = hitReward.m_IsSpecialReset; // Nếu trúng ô đặc biệt = chết
+        bool died = hitReward.m_IsSpecialReset;
 
-        Debug.Log($"Roulette result: {(died ? "DEATH" : "SAFE")}");
+        Debug.Log($"=== ROULETTE RESULT ===");
+        Debug.Log($"Reward slot: {fortuneWheel.m_RewardNumber}");
+        Debug.Log($"Result: {(died ? "DEATH" : "SAFE")}");
 
-        // Lưu kết quả vào PlayerPrefs
+        // CRITICAL: Lưu cả kết quả VÀ player bị phạt
         PlayerPrefs.SetInt(PUNISHMENT_RESULT_KEY, died ? 1 : 0);
 
-        // Hiển thị kết quả
-        ShowResult(died);
+        // KHÔNG GHI ĐÈ punished player - giữ nguyên value từ GameManager
+        int punishedPlayer = PlayerPrefs.GetInt(PUNISHED_PLAYER_KEY, -1);
+        Debug.Log($"Maintaining punished player: {punishedPlayer}");
 
-        // Quay về game scene sau delay
+        // SET FLAG để GameManager biết đã có kết quả roulette
+        PlayerPrefs.SetString("RouletteCompleted", "true");
+        PlayerPrefs.Save();
+
+        ShowResult(died);
         Invoke(nameof(ReturnToGameScene), delayBeforeReturn);
     }
 
@@ -158,13 +160,19 @@ public class RouletteResultConnector : MonoBehaviour
 
     void ReturnToGameScene()
     {
-        // Quay về scene game chính
+        Debug.Log("=== RETURNING TO GAME SCENE ===");
+
+        // Debug final state
+        int result = PlayerPrefs.GetInt(PUNISHMENT_RESULT_KEY, -1);
+        int player = PlayerPrefs.GetInt(PUNISHED_PLAYER_KEY, -1);
+        Debug.Log($"Final result: {result} (0=survived, 1=died)");
+        Debug.Log($"Final punished player: {player}");
+
         SceneManager.LoadScene(gameSceneName);
     }
 
     void Update()
     {
-        // Cho phép ESC để quay về sớm (debug)
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             ReturnToGameScene();

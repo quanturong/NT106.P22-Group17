@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -20,6 +21,9 @@ public class LiarBarHandManager : MonoBehaviour
     public Button selectAllJButton;
     public Button selectAllAButton;
     public Button selectAllJokerButton;
+
+    [Header("Debug")]
+    public bool enableDebugLogs = true;
 
     private HandManager baseHandManager;
     private List<LiarBarCardClick> selectedCards = new List<LiarBarCardClick>();
@@ -70,6 +74,78 @@ public class LiarBarHandManager : MonoBehaviour
         }
         UpdateSelectionInfo();
         UpdateQuickSelectButtons();
+    }
+
+    // THÊM METHOD ĐỂ KHÔI PHỤC HAND SAU ROULETTE
+    public void RestoreHand(List<CardData> handData)
+    {
+        if (baseHandManager == null)
+        {
+            Debug.LogError("BaseHandManager is null, cannot restore hand!");
+            return;
+        }
+
+        Debug.Log($"RestoreHand called with {handData.Count} cards");
+
+        // Xóa tất cả cards hiện tại
+        ClearAllCards();
+
+        // Thay vì tạo từ prefab, chúng ta sẽ gọi method có sẵn của baseHandManager
+        // hoặc tạo một cách đơn giản hơn
+        if (baseHandManager.handPanel != null)
+        {
+            // Cập nhật hand data trong baseHandManager trực tiếp
+            baseHandManager.SetHand(handData);
+
+            // Sau đó tái tạo UI cards
+            Invoke(nameof(ReinitializeCardsAfterRestore), 0.5f);
+        }
+
+        Debug.Log($"Hand restoration initiated with {handData.Count} cards");
+    }
+
+    void ReinitializeCardsAfterRestore()
+    {
+        // Tái khởi tạo card UI sau khi restore
+        allCards.Clear();
+        selectedCards.Clear();
+
+        var cardObjects = baseHandManager.handPanel.GetComponentsInChildren<CardData>();
+        foreach (var cardData in cardObjects)
+        {
+            var liarBarClick = cardData.GetComponent<LiarBarCardClick>();
+            if (liarBarClick == null)
+            {
+                liarBarClick = cardData.gameObject.AddComponent<LiarBarCardClick>();
+                liarBarClick.handManager = this;
+            }
+            allCards.Add(liarBarClick);
+        }
+
+        UpdateSelectionInfo();
+        UpdateQuickSelectButtons();
+
+        Debug.Log($"Cards reinitialized after restore: {allCards.Count} cards available");
+    }
+
+    void ClearAllCards()
+    {
+        // Xóa tất cả cards hiện có
+        selectedCards.Clear();
+        allCards.Clear();
+
+        // Xóa UI cards
+        if (baseHandManager != null && baseHandManager.handPanel != null)
+        {
+            var existingCards = baseHandManager.handPanel.GetComponentsInChildren<CardData>();
+            foreach (var card in existingCards)
+            {
+                if (card.gameObject != null)
+                {
+                    DestroyImmediate(card.gameObject);
+                }
+            }
+        }
     }
 
     public void AddSelectedCard(LiarBarCardClick card)
@@ -208,7 +284,39 @@ public class LiarBarHandManager : MonoBehaviour
 
     public void RemoveCard(CardData card)
     {
-        baseHandManager.RemoveCard(card);
+        if (enableDebugLogs)
+            Debug.Log($"[LIARBARHANDMANAGER] RemoveCard called for: {card.cardName}");
+
+        // Tìm và xóa card tương ứng từ allCards và selectedCards
+        var cardToRemove = allCards.FirstOrDefault(c =>
+            c.GetCardData() != null &&
+            c.GetCardData().cardName == card.cardName &&
+            c.gameObject == card.gameObject);
+
+        if (cardToRemove != null)
+        {
+            allCards.Remove(cardToRemove);
+            if (selectedCards.Contains(cardToRemove))
+            {
+                selectedCards.Remove(cardToRemove);
+            }
+
+            if (enableDebugLogs)
+                Debug.Log($"[LIARBARHANDMANAGER] Removed {card.cardName} from allCards and selectedCards");
+        }
+
+        // Remove from base hand manager
+        if (baseHandManager != null)
+        {
+            baseHandManager.RemoveCard(card);
+        }
+
+        // Update UI
+        UpdateSelectionInfo();
+        UpdateQuickSelectButtons();
+
+        if (enableDebugLogs)
+            Debug.Log($"[LIARBARHANDMANAGER] RemoveCard completed. Remaining cards: {allCards.Count}");
     }
 
     public bool ValidateSelection(string claimedCardType, int claimedCount)

@@ -9,81 +9,153 @@ public class LifeManager : MonoBehaviour
     public Image[] enemyHearts;
 
     [Header("Heart Colors")]
-    public Color normalHeartColor = Color.red; // Màu đỏ mặc định cho tim
-    public Color darkHeartColor = new Color(0.3f, 0.3f, 0.3f, 1f); // Màu tối
+    public Color normalHeartColor = Color.red;
+    public Color darkHeartColor = new Color(0.3f, 0.3f, 0.3f, 1f);
 
     [Header("Debug")]
     public bool enableDebugLogs = true;
+    public bool blockAllUpdates = false; // NEW: Block all UI updates
 
     private int playerLives;
     private int enemyLives;
 
     void Start()
     {
-        ResetHearts();
-        ValidateSetup();
+        // CHECK FLAG để tránh reset khi đang restore sau roulette
+        bool shouldBypassReset = PlayerPrefs.HasKey("BypassLifeManagerReset");
+
+        if (shouldBypassReset)
+        {
+            if (enableDebugLogs)
+                Debug.Log("LifeManager: BYPASSING ResetHearts() due to restore flag");
+
+            // CHỈ BLOCK khi restore, không block normal gameplay
+            blockAllUpdates = true;
+
+            // CHỈ validate, không reset
+            ValidateSetup();
+
+            // AUTO UNBLOCK sau 5 giây để tránh bị stuck
+            StartCoroutine(AutoUnblockAfterDelay());
+        }
+        else
+        {
+            if (enableDebugLogs)
+                Debug.Log("LifeManager: Normal start - calling ResetHearts()");
+
+            blockAllUpdates = false;
+            ResetHearts();
+            ValidateSetup();
+        }
     }
 
-    // ========== MAIN METHODS ĐỂ SET LIVES ==========
+    private System.Collections.IEnumerator AutoUnblockAfterDelay()
+    {
+        yield return new WaitForSeconds(5f);
 
-    /// <summary>
-    /// Set số mạng cho người chơi với force update
-    /// </summary>
+        if (blockAllUpdates)
+        {
+            if (enableDebugLogs)
+                Debug.Log("⏰ LifeManager: AUTO UNBLOCK after 5 seconds to prevent permanent block");
+
+            blockAllUpdates = false;
+        }
+    }
+
     public void SetPlayerLives(int lives)
     {
         int clampedLives = Mathf.Clamp(lives, 0, playerHearts != null ? playerHearts.Length : 3);
 
         if (enableDebugLogs)
-            Debug.Log($"LifeManager: SetPlayerLives called with {lives}, clamped to {clampedLives}");
+            Debug.Log($"LifeManager: SetPlayerLives called with {lives}, clamped to {clampedLives}, blockAllUpdates={blockAllUpdates}");
 
+        // ALWAYS update internal value
         playerLives = clampedLives;
 
-        // Force update ngay lập tức
-        StartCoroutine(ForceUpdatePlayerHearts());
+        // BUT only update UI if not blocked
+        if (!blockAllUpdates)
+        {
+            StartCoroutine(ForceUpdatePlayerHearts());
+        }
+        else
+        {
+            if (enableDebugLogs)
+                Debug.Log($"⚠️ LifeManager: BLOCKED UI update for SetPlayerLives({clampedLives}) - will update later");
+        }
     }
 
-    /// <summary>
-    /// Set số mạng cho đối thủ với force update
-    /// </summary>
     public void SetEnemyLives(int lives)
     {
         int clampedLives = Mathf.Clamp(lives, 0, enemyHearts != null ? enemyHearts.Length : 3);
 
         if (enableDebugLogs)
-            Debug.Log($"LifeManager: SetEnemyLives called with {lives}, clamped to {clampedLives}");
+            Debug.Log($"LifeManager: SetEnemyLives called with {lives}, clamped to {clampedLives}, blockAllUpdates={blockAllUpdates}");
 
+        // ALWAYS update internal value
         enemyLives = clampedLives;
 
-        // Force update ngay lập tức
+        // BUT only update UI if not blocked
+        if (!blockAllUpdates)
+        {
+            StartCoroutine(ForceUpdateEnemyHearts());
+        }
+        else
+        {
+            if (enableDebugLogs)
+                Debug.Log($"⚠️ LifeManager: BLOCKED UI update for SetEnemyLives({clampedLives}) - will update later");
+        }
+    }
+
+    // NEW: Method to unblock and force update all
+    public void UnblockAndForceUpdateAll()
+    {
+        if (enableDebugLogs)
+            Debug.Log($"🔓 LifeManager: UNBLOCKING and force updating all UI - Player:{playerLives}, Enemy:{enemyLives}");
+
+        blockAllUpdates = false;
+
+        // Force update both immediately
+        StartCoroutine(ForceUpdatePlayerHearts());
         StartCoroutine(ForceUpdateEnemyHearts());
     }
 
-    // ========== BACKWARD COMPATIBILITY METHODS ==========
+    // NEW: Temporary block for critical updates
+    public void TemporaryBlock(float duration = 1f)
+    {
+        if (enableDebugLogs)
+            Debug.Log($"⏸️ LifeManager: TEMPORARY BLOCK for {duration} seconds");
 
-    /// <summary>
-    /// Trừ 1 mạng của người chơi (method cũ)
-    /// </summary>
+        blockAllUpdates = true;
+        StartCoroutine(UnblockAfterDuration(duration));
+    }
+
+    private System.Collections.IEnumerator UnblockAfterDuration(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+
+        if (enableDebugLogs)
+            Debug.Log($"🔓 LifeManager: AUTO UNBLOCK after {duration} seconds");
+
+        blockAllUpdates = false;
+
+        // Force update với current values
+        StartCoroutine(ForceUpdatePlayerHearts());
+        StartCoroutine(ForceUpdateEnemyHearts());
+    }
+
     public void LosePlayerLife()
     {
         SetPlayerLives(playerLives - 1);
     }
 
-    /// <summary>
-    /// Trừ 1 mạng của đối thủ (method cũ)
-    /// </summary>
     public void LoseEnemyLife()
     {
         SetEnemyLives(enemyLives - 1);
     }
 
-    // ========== FORCE UPDATE COROUTINES ==========
-
-    /// <summary>
-    /// Force update player hearts với coroutine để đảm bảo UI cập nhật
-    /// </summary>
     private IEnumerator ForceUpdatePlayerHearts()
     {
-        yield return null; // Wait 1 frame để đảm bảo UI ready
+        yield return null;
 
         if (playerHearts == null)
         {
@@ -103,7 +175,7 @@ public class LifeManager : MonoBehaviour
                 playerHearts[i].gameObject.SetActive(true);
 
                 if (enableDebugLogs)
-                    Debug.Log($"Player Heart {i}: Lives={playerLives}, Color={targetColor}, Active={i < playerLives}");
+                    Debug.Log($"Player Heart {i}: Lives={playerLives}, Color={targetColor}");
             }
             else
             {
@@ -115,12 +187,9 @@ public class LifeManager : MonoBehaviour
             Debug.Log($"✅ COMPLETED: Force updated PLAYER hearts display to {playerLives} lives");
     }
 
-    /// <summary>
-    /// Force update enemy hearts với coroutine để đảm bảo UI cập nhật
-    /// </summary>
     private IEnumerator ForceUpdateEnemyHearts()
     {
-        yield return null; // Wait 1 frame để đảm bảo UI ready
+        yield return null;
 
         if (enemyHearts == null)
         {
@@ -140,7 +209,7 @@ public class LifeManager : MonoBehaviour
                 enemyHearts[i].gameObject.SetActive(true);
 
                 if (enableDebugLogs)
-                    Debug.Log($"Enemy Heart {i}: Lives={enemyLives}, Color={targetColor}, Active={i < enemyLives}");
+                    Debug.Log($"Enemy Heart {i}: Lives={enemyLives}, Color={targetColor}");
             }
             else
             {
@@ -152,11 +221,6 @@ public class LifeManager : MonoBehaviour
             Debug.Log($"✅ COMPLETED: Force updated ENEMY hearts display to {enemyLives} lives");
     }
 
-    // ========== TRADITIONAL UPDATE METHODS (FALLBACK) ==========
-
-    /// <summary>
-    /// Cập nhật hiển thị hearts của player (method truyền thống)
-    /// </summary>
     private void UpdatePlayerHeartsDisplay()
     {
         if (playerHearts == null) return;
@@ -171,9 +235,6 @@ public class LifeManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Cập nhật hiển thị hearts của enemy (method truyền thống)
-    /// </summary>
     private void UpdateEnemyHeartsDisplay()
     {
         if (enemyHearts == null) return;
@@ -188,18 +249,11 @@ public class LifeManager : MonoBehaviour
         }
     }
 
-    // ========== RESET VÀ KHỞI TẠO ==========
-
-    /// <summary>
-    /// Reset tất cả hearts về trạng thái ban đầu (full lives)
-    /// </summary>
     public void ResetHearts()
     {
-        // Set về số mạng tối đa
         playerLives = playerHearts != null ? playerHearts.Length : 3;
         enemyLives = enemyHearts != null ? enemyHearts.Length : 3;
 
-        // Cập nhật hiển thị
         UpdatePlayerHeartsDisplay();
         UpdateEnemyHeartsDisplay();
 
@@ -207,17 +261,11 @@ public class LifeManager : MonoBehaviour
             Debug.Log($"LifeManager: Reset hearts - Player: {playerLives}, Enemy: {enemyLives}");
     }
 
-    // ========== CONFIGURATION ==========
-
-    /// <summary>
-    /// Thay đổi màu sắc của hearts
-    /// </summary>
     public void SetHeartColors(Color normal, Color dark)
     {
         normalHeartColor = normal;
         darkHeartColor = dark;
 
-        // Cập nhật lại hiển thị với màu mới
         UpdatePlayerHeartsDisplay();
         UpdateEnemyHeartsDisplay();
 
@@ -225,67 +273,36 @@ public class LifeManager : MonoBehaviour
             Debug.Log($"LifeManager: Updated heart colors - Normal: {normal}, Dark: {dark}");
     }
 
-    // ========== GETTER METHODS ==========
-
-    /// <summary>
-    /// Lấy số mạng hiện tại của player
-    /// </summary>
     public int GetPlayerLives() => playerLives;
-
-    /// <summary>
-    /// Lấy số mạng hiện tại của enemy
-    /// </summary>
     public int GetEnemyLives() => enemyLives;
-
-    /// <summary>
-    /// Lấy số mạng tối đa của player
-    /// </summary>
     public int GetMaxPlayerLives() => playerHearts != null ? playerHearts.Length : 3;
-
-    /// <summary>
-    /// Lấy số mạng tối đa của enemy
-    /// </summary>
     public int GetMaxEnemyLives() => enemyHearts != null ? enemyHearts.Length : 3;
-
-    // ========== VALIDATION METHODS ==========
-
-    /// <summary>
-    /// Kiểm tra xem player còn sống không
-    /// </summary>
     public bool IsPlayerAlive() => playerLives > 0;
-
-    /// <summary>
-    /// Kiểm tra xem enemy còn sống không
-    /// </summary>
     public bool IsEnemyAlive() => enemyLives > 0;
 
-    /// <summary>
-    /// Kiểm tra setup hearts có hợp lệ không
-    /// </summary>
     public bool ValidateSetup()
     {
         bool isValid = true;
 
         if (playerHearts == null || playerHearts.Length == 0)
         {
-            Debug.LogError("LifeManager: playerHearts array is null or empty! Please assign in Inspector!");
+            Debug.LogError("LifeManager: playerHearts array is null or empty!");
             isValid = false;
         }
 
         if (enemyHearts == null || enemyHearts.Length == 0)
         {
-            Debug.LogError("LifeManager: enemyHearts array is null or empty! Please assign in Inspector!");
+            Debug.LogError("LifeManager: enemyHearts array is null or empty!");
             isValid = false;
         }
 
-        // Kiểm tra các hearts có null không
         if (playerHearts != null)
         {
             for (int i = 0; i < playerHearts.Length; i++)
             {
                 if (playerHearts[i] == null)
                 {
-                    Debug.LogError($"LifeManager: playerHearts[{i}] is null! Please assign all heart images!");
+                    Debug.LogError($"LifeManager: playerHearts[{i}] is null!");
                     isValid = false;
                 }
             }
@@ -297,7 +314,7 @@ public class LifeManager : MonoBehaviour
             {
                 if (enemyHearts[i] == null)
                 {
-                    Debug.LogError($"LifeManager: enemyHearts[{i}] is null! Please assign all heart images!");
+                    Debug.LogError($"LifeManager: enemyHearts[{i}] is null!");
                     isValid = false;
                 }
             }
@@ -314,11 +331,6 @@ public class LifeManager : MonoBehaviour
         return isValid;
     }
 
-    // ========== DEBUG METHODS ==========
-
-    /// <summary>
-    /// Debug hiển thị trạng thái hiện tại
-    /// </summary>
     public void DebugHeartStatus()
     {
         Debug.Log("=================== LIFE MANAGER STATUS ===================");
@@ -329,7 +341,6 @@ public class LifeManager : MonoBehaviour
         Debug.Log($"Setup Valid: {ValidateSetup()}");
         Debug.Log($"Debug Logs Enabled: {enableDebugLogs}");
 
-        // Debug individual hearts
         if (playerHearts != null)
         {
             for (int i = 0; i < playerHearts.Length; i++)
@@ -355,11 +366,6 @@ public class LifeManager : MonoBehaviour
         Debug.Log("========================================================");
     }
 
-    // ========== TEST METHODS (Context Menu) ==========
-
-    /// <summary>
-    /// Test method để kiểm tra việc mất mạng player
-    /// </summary>
     [ContextMenu("Test Lose Player Life")]
     public void TestLosePlayerLife()
     {
@@ -368,9 +374,6 @@ public class LifeManager : MonoBehaviour
         DebugHeartStatus();
     }
 
-    /// <summary>
-    /// Test method để kiểm tra việc mất mạng enemy
-    /// </summary>
     [ContextMenu("Test Lose Enemy Life")]
     public void TestLoseEnemyLife()
     {
@@ -379,9 +382,6 @@ public class LifeManager : MonoBehaviour
         DebugHeartStatus();
     }
 
-    /// <summary>
-    /// Test method để reset hearts
-    /// </summary>
     [ContextMenu("Test Reset Hearts")]
     public void TestResetHearts()
     {
@@ -390,9 +390,6 @@ public class LifeManager : MonoBehaviour
         DebugHeartStatus();
     }
 
-    /// <summary>
-    /// Test method để set player lives trực tiếp
-    /// </summary>
     [ContextMenu("Test Set Player Lives to 1")]
     public void TestSetPlayerLives()
     {
@@ -401,9 +398,6 @@ public class LifeManager : MonoBehaviour
         DebugHeartStatus();
     }
 
-    /// <summary>
-    /// Test method để set enemy lives trực tiếp
-    /// </summary>
     [ContextMenu("Test Set Enemy Lives to 2")]
     public void TestSetEnemyLives()
     {
@@ -412,9 +406,6 @@ public class LifeManager : MonoBehaviour
         DebugHeartStatus();
     }
 
-    /// <summary>
-    /// Test method để force update tất cả
-    /// </summary>
     [ContextMenu("Force Update All Hearts")]
     public void ForceUpdateAllHearts()
     {
@@ -422,8 +413,6 @@ public class LifeManager : MonoBehaviour
         StartCoroutine(ForceUpdatePlayerHearts());
         StartCoroutine(ForceUpdateEnemyHearts());
     }
-
-    // ========== UNITY LIFECYCLE ==========
 
     void Awake()
     {
@@ -433,7 +422,6 @@ public class LifeManager : MonoBehaviour
 
     void OnValidate()
     {
-        // Cập nhật colors khi thay đổi trong Inspector
         if (Application.isPlaying)
         {
             UpdatePlayerHeartsDisplay();
