@@ -15,6 +15,7 @@ public class Victory : MonoBehaviourPunCallbacks
     public bool showDebugLogs = true;
 
     private bool isDisconnecting = false;
+    private bool statsUpdated = false; // Thêm flag để track việc update stats
 
     // Critical properties to clean
     private readonly string[] CRITICAL_PROPERTIES = {
@@ -34,16 +35,17 @@ public class Victory : MonoBehaviourPunCallbacks
         if (lobbyButton != null)
             lobbyButton.onClick.AddListener(OnLobbyButtonClicked);
 
+        // CHỈ update stats, KHÔNG tự động return to lobby
         if (PlayerStatisticsManager.Instance != null)
         {
             PlayerStatisticsManager.Instance.UpdateMatchResult(true, () => {
-                Debug.Log("Victory stats updated → returning to lobby");
-                StartCoroutine(ReturnToLobbySequence());
+                Debug.Log("Victory stats updated successfully");
+                statsUpdated = true; // Đánh dấu là đã update stats
             });
         }
         else
         {
-            StartCoroutine(ReturnToLobbySequence());
+            statsUpdated = true; // Nếu không có stats manager thì coi như đã xong
         }
     }
 
@@ -92,6 +94,16 @@ public class Victory : MonoBehaviourPunCallbacks
             return;
         }
 
+        // Kiểm tra xem stats đã được update chưa
+        if (!statsUpdated)
+        {
+            if (showDebugLogs)
+                Debug.Log("Victory: Stats not updated yet, waiting...");
+
+            StartCoroutine(WaitForStatsAndReturn());
+            return;
+        }
+
         isDisconnecting = true;
 
         if (lobbyButton != null)
@@ -99,6 +111,40 @@ public class Victory : MonoBehaviourPunCallbacks
 
         if (showDebugLogs)
             Debug.Log("Victory: Starting return to lobby process...");
+
+        StartCoroutine(ReturnToLobbySequence());
+    }
+
+    // Coroutine để đợi stats update xong rồi mới return
+    private IEnumerator WaitForStatsAndReturn()
+    {
+        if (lobbyButton != null)
+            lobbyButton.interactable = false;
+
+        if (showDebugLogs)
+            Debug.Log("Victory: Waiting for stats to update...");
+
+        // Đợi stats update xong (tối đa 5 giây)
+        float timeout = 5f;
+        float timer = 0f;
+        while (!statsUpdated && timer < timeout)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        if (!statsUpdated)
+        {
+            if (showDebugLogs)
+                Debug.LogWarning("Victory: Stats update timeout, proceeding anyway");
+            statsUpdated = true;
+        }
+
+        // Bây giờ mới bắt đầu return to lobby
+        isDisconnecting = true;
+
+        if (showDebugLogs)
+            Debug.Log("Victory: Stats ready, starting return to lobby process...");
 
         StartCoroutine(ReturnToLobbySequence());
     }
@@ -277,7 +323,7 @@ public class Victory : MonoBehaviourPunCallbacks
         if (showDebugLogs)
             Debug.Log("Victory: Loading lobby scene");
 
-        SceneManager.LoadScene("UI");
+        SceneManager.LoadScene("Lobby");
     }
     #endregion
 
