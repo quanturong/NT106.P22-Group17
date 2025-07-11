@@ -157,8 +157,11 @@ public class LoginPagePlayfab : MonoBehaviour
         ShowMessage("Login successful! Loading game...", 3f);
 
         if (PlayerStatisticsManager.Instance != null)
+        {
             PlayerStatisticsManager.Instance.InitializeStatisticsIfNeeded();
-
+           
+        }    
+            
         PlayfabAuthManager.Instance.OnLoginSuccess -= OnLoginSuccess;
         PlayfabAuthManager.Instance.OnLoginFailed -= OnLoginFailed;
 
@@ -193,7 +196,25 @@ public class LoginPagePlayfab : MonoBehaviour
         ShowMessage("Ready! Loading game...", 2f);
         yield return new WaitForSeconds(1f);
 
+        // Load scene
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+
+        // Đợi scene load xong rồi tạo StatMNG nếu chưa có
+        SceneManager.sceneLoaded += (scene, mode) =>
+        {
+            if (PlayerStatisticsManager.Instance == null)
+            {
+                Debug.Log("No PlayerStatisticsManager found → Instantiating StatMNG prefab");
+                Instantiate(Resources.Load("Prefabs/StatMNG"));
+            }
+            else
+            {
+                Debug.Log("PlayerStatisticsManager already exists");
+            }
+
+            // Gỡ bỏ để tránh trùng lặp listener
+            SceneManager.sceneLoaded -= (scene, mode) => { };
+        };
     }
 
     public void RecoverPassword()

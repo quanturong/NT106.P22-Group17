@@ -35,7 +35,16 @@ public class Victory : MonoBehaviourPunCallbacks
             lobbyButton.onClick.AddListener(OnLobbyButtonClicked);
 
         if (PlayerStatisticsManager.Instance != null)
-            PlayerStatisticsManager.Instance.UpdateMatchResult(true); 
+        {
+            PlayerStatisticsManager.Instance.UpdateMatchResult(true, () => {
+                Debug.Log("Victory stats updated → returning to lobby");
+                StartCoroutine(ReturnToLobbySequence());
+            });
+        }
+        else
+        {
+            StartCoroutine(ReturnToLobbySequence());
+        }
     }
 
     IEnumerator PopAndShineLoop()

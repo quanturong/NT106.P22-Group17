@@ -24,13 +24,30 @@ public class UIManager : MonoBehaviourPunCallbacks
     public void QuitGame()
     {
         var roomManager = Object.FindFirstObjectByType<RoomManager>();
+
+        bool shouldCountAsLoss = false;
+
+        // Nếu đang trong trận và có room manager → tính là thua
         if (PhotonNetwork.InRoom && roomManager != null)
         {
+            // Lấy trạng thái từ GameManager nếu cần
+            var liarBarGameManager = FindObjectOfType<LiarBarGameManager>();
+            if (liarBarGameManager != null && liarBarGameManager.currentState != LiarBarGameManager.GameState.GameOver)
+            {
+                shouldCountAsLoss = true;
+            }
+
+            if (shouldCountAsLoss && PlayerStatisticsManager.Instance != null)
+            {
+                PlayerStatisticsManager.Instance.UpdateMatchResult(false);
+                Debug.Log("[UIManager] Quit mid-game → Counted as LOSS");
+            }
+
             roomManager.QuitGame();
         }
         else
         {
-            ShowStart();
+            ShowStart(); // fallback nếu không trong trận
         }
     }
     private IEnumerator DisconnectAndGoToLobby()

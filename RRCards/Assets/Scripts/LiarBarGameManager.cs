@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.SceneManagement;
-
+using Photon.Realtime;
 public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     #region Enums and Constants
@@ -139,6 +139,9 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             LogDebug("Disconnected - clearing game data for next session");
             ClearAllGameData();
         }
+
+        // ✅ Gọi xử lý nếu thoát giữa trận
+        HandlePlayerQuitMidGame();
     }
     #endregion
 
@@ -2146,6 +2149,48 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
     #endregion
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        Debug.Log($"[LiarBarGameManager] Player {otherPlayer.NickName} has left the room.");
+
+        // Chỉ xử lý nếu đang giữa trận
+        if (currentState != GameState.GameOver && PhotonNetwork.CurrentRoom.PlayerCount == 1)
+        {
+            Debug.Log("[LiarBarGameManager] Opponent left mid-game → local player wins");
+
+            if (PlayerStatisticsManager.Instance != null)
+            {
+                PlayerStatisticsManager.Instance.UpdateMatchResult(true, () =>
+                {
+                    Debug.Log("[LiarBarGameManager] Stats updated → Loading Victory scene");
+                    SceneManager.LoadScene(victorySceneName);
+                });
+            }
+            else
+            {
+                SceneManager.LoadScene(victorySceneName);
+            }
+        }
+    }
+    void OnApplicationQuit()
+    {
+        HandlePlayerQuitMidGame();
+    }
+
+
+    private void HandlePlayerQuitMidGame()
+    {
+        // Chỉ tính thua nếu đang trong trận và còn đủ 2 người chơi
+        if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.PlayerCount == 2 && currentState != GameState.GameOver)
+        {
+            Debug.Log("[LiarBarGameManager] You quit mid-game → Counted as LOSS");
+
+            if (PlayerStatisticsManager.Instance != null)
+            {
+                PlayerStatisticsManager.Instance.UpdateMatchResult(false);
+            }
+        }
+    }
 
     #region Debug Methods
     [ContextMenu("Clear All Game Data")]

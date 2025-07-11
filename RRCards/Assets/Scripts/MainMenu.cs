@@ -64,9 +64,13 @@ public class MainMenu : MonoBehaviour
         optionPanel.SetActive(false);
         rulePanel.SetActive(false);
         statsPanel.SetActive(true);
+      
 
+        // Gọi lại hàm để fetch dữ liệu từ PlayFab
         if (PlayerStatisticsManager.Instance != null)
             PlayerStatisticsManager.Instance.LoadAndDisplayStats();
+        else
+            Debug.LogWarning("PlayerStatisticsManager.Instance is null!");
     }
     public void OnLogout()
     {
