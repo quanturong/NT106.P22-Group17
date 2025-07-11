@@ -156,6 +156,9 @@ public class LoginPagePlayfab : MonoBehaviour
     {
         ShowMessage("Login successful! Loading game...", 3f);
 
+        if (PlayerStatisticsManager.Instance != null)
+            PlayerStatisticsManager.Instance.InitializeStatisticsIfNeeded();
+
         PlayfabAuthManager.Instance.OnLoginSuccess -= OnLoginSuccess;
         PlayfabAuthManager.Instance.OnLoginFailed -= OnLoginFailed;
 

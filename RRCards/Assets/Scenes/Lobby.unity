@@ -205,6 +205,7 @@ MonoBehaviour:
   joinButton: {fileID: 1251545647}
   statusText: {fileID: 0}
   maxPlayers: 2
+  showDebugLogs: 1
 --- !u!4 &38896598
 Transform:
   m_ObjectHideFlags: 0
@@ -1972,7 +1973,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   musicAudioSound: {fileID: 844310711}
   sfxAudioSound: {fileID: 2038484661}
-  musicClip: {fileID: 8300000, guid: 70be7234aa3b48a488b64f9bd8db7dbb, type: 3}
+  musicClip: {fileID: 8300000, guid: 300293f1f8595704d9f65c5914352b7e, type: 3}
 --- !u!4 &1299022081
 Transform:
   m_ObjectHideFlags: 0

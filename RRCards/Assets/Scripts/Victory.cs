@@ -33,6 +33,9 @@ public class Victory : MonoBehaviourPunCallbacks
 
         if (lobbyButton != null)
             lobbyButton.onClick.AddListener(OnLobbyButtonClicked);
+
+        if (PlayerStatisticsManager.Instance != null)
+            PlayerStatisticsManager.Instance.UpdateMatchResult(true); 
     }
 
     IEnumerator PopAndShineLoop()

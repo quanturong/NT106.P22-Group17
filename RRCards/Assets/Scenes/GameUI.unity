@@ -700,8 +700,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 144919d8526038347be695c7c89640f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  myMixer: {fileID: 24100000, guid: 8b1c3d3125936ca48af8d1fe600e019e, type: 2}
   musicSlider: {fileID: 1445803883}
+  sfxSlider: {fileID: 2085887630}
+  musicAudioSource: {fileID: 885452073}
+  sfxAudioSource: {fileID: 1333892878}
 --- !u!1 &126716235
 GameObject:
   m_ObjectHideFlags: 0
@@ -3956,6 +3958,7 @@ GameObject:
   - component: {fileID: 1033633167}
   - component: {fileID: 1033633170}
   - component: {fileID: 1033633169}
+  - component: {fileID: 1033633171}
   m_Layer: 0
   m_Name: Audio Manager
   m_TagString: Audio
@@ -4021,6 +4024,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioSource: {fileID: 1333892878}
   clickSound: {fileID: 8300000, guid: 56ddd83dcd63fcc4e97d40626f1f94c6, type: 3}
+--- !u!114 &1033633171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1033633166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 144919d8526038347be695c7c89640f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  musicSlider: {fileID: 0}
+  sfxSlider: {fileID: 0}
+  musicAudioSource: {fileID: 0}
+  sfxAudioSource: {fileID: 0}
 --- !u!1 &1043123949
 GameObject:
   m_ObjectHideFlags: 0
@@ -4565,14 +4584,14 @@ MonoBehaviour:
   opponentCardCounter: {fileID: 802981227}
   playTimeLimit: 15
   challengeTimeLimit: 15
-  audioSource: {fileID: 0}
-  cardPlaySound: {fileID: 0}
-  challengeSound: {fileID: 0}
-  roundStartSound: {fileID: 0}
-  timerTickSound: {fileID: 0}
-  victorySound: {fileID: 0}
-  defeatSound: {fileID: 0}
-  loseLifeSound: {fileID: 0}
+  audioSource: {fileID: 1333892878}
+  cardPlaySound: {fileID: 8300000, guid: 7886c88d8bbb7d946918b1c3e98fc71a, type: 3}
+  challengeSound: {fileID: 8300000, guid: 5bdb5f235ad917047a3a856ec819cfdb, type: 3}
+  roundStartSound: {fileID: 8300000, guid: a2995166c5ee77542ab532f21a00df30, type: 3}
+  timerTickSound: {fileID: 8300000, guid: b03e8a9b698c217449e2ce9122571a74, type: 3}
+  victorySound: {fileID: 8300000, guid: e3173466bee6e04468a83a9668b6d76f, type: 3}
+  defeatSound: {fileID: 8300000, guid: f2596720e76cdf2409997bbfccbbc1d1, type: 3}
+  loseLifeSound: {fileID: 8300000, guid: cc3cb17f0c8521a498d33101c3d8fa3e, type: 3}
   confettiEffect: {fileID: 0}
   enableDebugLogs: 1
 --- !u!1 &1182486669
@@ -7290,7 +7309,19 @@ MonoBehaviour:
   m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 125113132}
+        m_TargetAssemblyTypeName: VolumeSetting, Assembly-CSharp
+        m_MethodName: SetSFXVolume
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &2117321546
 GameObject:
   m_ObjectHideFlags: 0

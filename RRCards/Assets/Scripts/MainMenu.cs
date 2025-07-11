@@ -64,6 +64,9 @@ public class MainMenu : MonoBehaviour
         optionPanel.SetActive(false);
         rulePanel.SetActive(false);
         statsPanel.SetActive(true);
+
+        if (PlayerStatisticsManager.Instance != null)
+            PlayerStatisticsManager.Instance.LoadAndDisplayStats();
     }
     public void OnLogout()
     {

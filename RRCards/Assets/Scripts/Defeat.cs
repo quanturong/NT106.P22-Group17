@@ -33,6 +33,9 @@ public class Defeat : MonoBehaviourPunCallbacks
 
         if (lobbyButton != null)
             lobbyButton.onClick.AddListener(OnLobbyButtonClicked);
+
+        if (PlayerStatisticsManager.Instance != null)
+            PlayerStatisticsManager.Instance.UpdateMatchResult(false); 
     }
 
     IEnumerator PopAndShineLoop()

@@ -20,10 +20,19 @@ public class AudioManager : MonoBehaviour
         }
 
         Instance = this;
-        //DontDestroyOnLoad(gameObject); 
+        // Không giữ giữa scene
 
-        musicAudioSound.clip = musicClip;
-        musicAudioSound.loop = true;
-        musicAudioSound.Play();
+        float musicVolume = PlayerPrefs.GetFloat("musicVolume", 1f);
+        float sfxVolume = PlayerPrefs.GetFloat("sfxVolume", 1f);
+
+        musicAudioSound.volume = musicVolume;
+        sfxAudioSound.volume = sfxVolume;
+
+        if (musicClip != null)
+        {
+            musicAudioSound.clip = musicClip;
+            musicAudioSound.loop = true;
+            musicAudioSound.Play();
+        }
     }
 }
