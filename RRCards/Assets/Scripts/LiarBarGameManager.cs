@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.SceneManagement;
 using Photon.Realtime;
+
 public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     #region Enums and Constants
@@ -1369,16 +1370,44 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         if (gameStatusText)
             gameStatusText.text = $"{winner.photonPlayer.NickName} WINS!";
 
-        if (winner.photonPlayer == PhotonNetwork.LocalPlayer)
+        bool isLocalWinner = (winner.photonPlayer == PhotonNetwork.LocalPlayer);
+
+        if (isLocalWinner)
         {
             PlaySound(victorySound);
             if (confettiEffect) confettiEffect.Play();
-            StartCoroutine(LoadVictoryScene());
+
+            // Cập nhật stats cho thắng
+            if (PlayerStatisticsManager.Instance != null)
+            {
+                PlayerStatisticsManager.Instance.UpdateMatchResult(true, () =>
+                {
+                    StartCoroutine(LoadSceneAfterDelay(victorySceneName, 1f));
+                });
+            }
+            else
+            {
+                Debug.Log("[LiarBarGameManager] No PlayerStatisticsManager found, loading victory scene without stats update");
+                StartCoroutine(LoadSceneAfterDelay(victorySceneName, 2f));
+            }
         }
         else
         {
             PlaySound(defeatSound);
-            StartCoroutine(LoadDefeatScene());
+
+            // Cập nhật stats cho thua
+            if (PlayerStatisticsManager.Instance != null)
+            {
+                PlayerStatisticsManager.Instance.UpdateMatchResult(false, () =>
+                {
+                    StartCoroutine(LoadSceneAfterDelay(defeatSceneName, 1f));
+                });
+            }
+            else
+            {
+                Debug.Log("[LiarBarGameManager] No PlayerStatisticsManager found, loading defeat scene without stats update");
+                StartCoroutine(LoadSceneAfterDelay(defeatSceneName, 2f));
+            }
         }
     }
 
@@ -1395,6 +1424,57 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             playersReady = 0;
             StartPlayerTurn();
         }
+    }
+    #endregion
+
+    #region Simple Stats Integration
+    // Cập nhật OnPlayerLeftRoom method
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        Debug.Log($"[LiarBarGameManager] Player {otherPlayer.NickName} has left the room.");
+
+        // Chỉ xử lý nếu đang giữa trận
+        if (currentState != GameState.GameOver && PhotonNetwork.CurrentRoom.PlayerCount == 1)
+        {
+            Debug.Log("[LiarBarGameManager] Opponent left mid-game → local player wins");
+
+            // Cập nhật stats
+            if (PlayerStatisticsManager.Instance != null)
+            {
+                PlayerStatisticsManager.Instance.UpdateMatchResult(true, () =>
+                {
+                    Debug.Log("[LiarBarGameManager] Stats updated → Loading Victory scene");
+                    SceneManager.LoadScene(victorySceneName);
+                });
+            }
+            else
+            {
+                Debug.Log("[LiarBarGameManager] No PlayerStatisticsManager found, loading scene without stats update");
+                SceneManager.LoadScene(victorySceneName);
+            }
+        }
+    }
+
+    // Cập nhật HandlePlayerQuitMidGame method
+    private void HandlePlayerQuitMidGame()
+    {
+        // Chỉ tính thua nếu đang trong trận và còn đủ 2 người chơi
+        if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.PlayerCount == 2 && currentState != GameState.GameOver)
+        {
+            Debug.Log("[LiarBarGameManager] You quit mid-game → Counted as LOSS");
+            if (PlayerStatisticsManager.Instance != null)
+            {
+                PlayerStatisticsManager.Instance.UpdateMatchResult(false);
+            }
+        }
+    }
+
+    // Thêm method helper
+    private System.Collections.IEnumerator LoadSceneAfterDelay(string sceneName, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        Debug.Log($"[LiarBarGameManager] Loading scene: {sceneName}");
+        SceneManager.LoadScene(sceneName);
     }
     #endregion
 
@@ -2102,6 +2182,12 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         ClearAllGameData();
     }
 
+    void OnApplicationQuit()
+    {
+        Debug.Log("[LiarBarGameManager] Application quitting");
+        HandlePlayerQuitMidGame();
+    }
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         // BLOCK sync trong lúc restore để tránh conflict
@@ -2149,48 +2235,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
     #endregion
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        Debug.Log($"[LiarBarGameManager] Player {otherPlayer.NickName} has left the room.");
-
-        // Chỉ xử lý nếu đang giữa trận
-        if (currentState != GameState.GameOver && PhotonNetwork.CurrentRoom.PlayerCount == 1)
-        {
-            Debug.Log("[LiarBarGameManager] Opponent left mid-game → local player wins");
-
-            if (PlayerStatisticsManager.Instance != null)
-            {
-                PlayerStatisticsManager.Instance.UpdateMatchResult(true, () =>
-                {
-                    Debug.Log("[LiarBarGameManager] Stats updated → Loading Victory scene");
-                    SceneManager.LoadScene(victorySceneName);
-                });
-            }
-            else
-            {
-                SceneManager.LoadScene(victorySceneName);
-            }
-        }
-    }
-    void OnApplicationQuit()
-    {
-        HandlePlayerQuitMidGame();
-    }
-
-
-    private void HandlePlayerQuitMidGame()
-    {
-        // Chỉ tính thua nếu đang trong trận và còn đủ 2 người chơi
-        if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.PlayerCount == 2 && currentState != GameState.GameOver)
-        {
-            Debug.Log("[LiarBarGameManager] You quit mid-game → Counted as LOSS");
-
-            if (PlayerStatisticsManager.Instance != null)
-            {
-                PlayerStatisticsManager.Instance.UpdateMatchResult(false);
-            }
-        }
-    }
 
     #region Debug Methods
     [ContextMenu("Clear All Game Data")]
@@ -2352,6 +2396,78 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         {
             var gm = allGameManagers[i];
             LogDebug($"Instance {i}: GameObject={gm.gameObject.name}, InstanceID={gm.GetInstanceID()}, shouldLoadRoulette={gm.shouldLoadRoulette}");
+        }
+    }
+
+    [ContextMenu("Test Victory Stats")]
+    public void TestVictoryStats()
+    {
+        if (Application.isPlaying)
+        {
+            Debug.Log("[LiarBarGameManager] Testing victory stats update");
+            if (PlayerStatisticsManager.Instance != null)
+            {
+                PlayerStatisticsManager.Instance.UpdateMatchResult(true, () =>
+                {
+                    StartCoroutine(LoadSceneAfterDelay(victorySceneName, 1f));
+                });
+            }
+            else
+            {
+                Debug.Log("[LiarBarGameManager] No PlayerStatisticsManager found");
+                StartCoroutine(LoadSceneAfterDelay(victorySceneName, 2f));
+            }
+        }
+    }
+
+    [ContextMenu("Test Defeat Stats")]
+    public void TestDefeatStats()
+    {
+        if (Application.isPlaying)
+        {
+            Debug.Log("[LiarBarGameManager] Testing defeat stats update");
+            if (PlayerStatisticsManager.Instance != null)
+            {
+                PlayerStatisticsManager.Instance.UpdateMatchResult(false, () =>
+                {
+                    StartCoroutine(LoadSceneAfterDelay(defeatSceneName, 1f));
+                });
+            }
+            else
+            {
+                Debug.Log("[LiarBarGameManager] No PlayerStatisticsManager found");
+                StartCoroutine(LoadSceneAfterDelay(defeatSceneName, 2f));
+            }
+        }
+    }
+
+    [ContextMenu("Debug Stats Manager Connection")]
+    public void DebugStatsManagerConnection()
+    {
+        Debug.Log("=== LIAR BAR GAME MANAGER - STATS DEBUG ===");
+        Debug.Log($"PlayerStatisticsManager.Instance exists: {PlayerStatisticsManager.Instance != null}");
+
+        if (PlayerStatisticsManager.Instance != null)
+        {
+            Debug.Log("PlayerStatisticsManager.Instance is available and ready to use");
+        }
+        else
+        {
+            Debug.LogWarning("PlayerStatisticsManager.Instance is NULL!");
+        }
+
+        var foundInScene = FindObjectOfType<PlayerStatisticsManager>();
+        Debug.Log($"Found PlayerStatisticsManager in scene: {foundInScene != null}");
+
+        if (foundInScene != null)
+        {
+            Debug.Log($"Scene instance GameObject: {foundInScene.gameObject.name}");
+            Debug.Log($"Scene instance Active: {foundInScene.gameObject.activeInHierarchy}");
+            Debug.Log($"Scene instance Enabled: {foundInScene.enabled}");
+        }
+        else
+        {
+            Debug.LogWarning("No PlayerStatisticsManager found in current scene!");
         }
     }
     #endregion

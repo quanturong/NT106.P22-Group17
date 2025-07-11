@@ -4,6 +4,9 @@ using System.Collections;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
 using Photon.Realtime;
+using PlayFab;
+using PlayFab.ClientModels;
+using System.Collections.Generic;
 
 public class Defeat : MonoBehaviourPunCallbacks
 {
@@ -15,7 +18,7 @@ public class Defeat : MonoBehaviourPunCallbacks
     public bool showDebugLogs = true;
 
     private bool isDisconnecting = false;
-    private bool statsUpdated = false; // Thêm flag để track việc update stats
+    private bool statsUpdated = false; // Flag để track việc update stats
 
     // Critical properties to clean
     private readonly string[] CRITICAL_PROPERTIES = {
@@ -30,23 +33,157 @@ public class Defeat : MonoBehaviourPunCallbacks
         if (showDebugLogs)
             Debug.Log("=== DEFEAT SCREEN STARTED ===");
 
+        // COMPREHENSIVE DEBUG
+        Debug.Log($"=== DEFEAT SCENE DEBUG ===");
+        Debug.Log($"PlayFab IsClientLoggedIn: {PlayFabClientAPI.IsClientLoggedIn()}");
+        Debug.Log($"PlayerStatisticsManager.Instance exists: {PlayerStatisticsManager.Instance != null}");
+
+        // Find all PlayerStatisticsManager objects
+        var allStatsManagers = FindObjectsOfType<PlayerStatisticsManager>();
+        Debug.Log($"Found {allStatsManagers.Length} PlayerStatisticsManager objects in scene");
+
+        foreach (var manager in allStatsManagers)
+        {
+            Debug.Log($"  - GameObject: {manager.gameObject.name}, Active: {manager.gameObject.activeInHierarchy}");
+        }
+
         StartCoroutine(PopAndShineLoop());
 
         if (lobbyButton != null)
             lobbyButton.onClick.AddListener(OnLobbyButtonClicked);
 
-        // CHỈ update stats, KHÔNG tự động return to lobby
+        // DELAY stats update to ensure everything is loaded
+        StartCoroutine(DelayedStatsUpdate());
+    }
+
+    private IEnumerator DelayedStatsUpdate()
+    {
+        // Wait a bit for everything to settle
+        yield return new WaitForSeconds(1f);
+
+        Debug.Log("=== DELAYED STATS UPDATE START ===");
+        Debug.Log($"PlayerStatisticsManager.Instance exists: {PlayerStatisticsManager.Instance != null}");
+        Debug.Log($"PlayFab IsClientLoggedIn: {PlayFabClientAPI.IsClientLoggedIn()}");
+
+        // Try to ensure stats manager exists
+        EnsureStatsManager();
+
         if (PlayerStatisticsManager.Instance != null)
         {
+            Debug.Log("✅ Calling UpdateMatchResult for LOSS...");
             PlayerStatisticsManager.Instance.UpdateMatchResult(false, () => {
-                Debug.Log("Defeat stats updated successfully");
-                statsUpdated = true; // Đánh dấu là đã update stats
+                Debug.Log("✅ [Defeat] Stats updated successfully - LOSS recorded");
+                statsUpdated = true;
             });
         }
         else
         {
-            statsUpdated = true; // Nếu không có stats manager thì coi như đã xong
+            Debug.LogError("❌ [Defeat] PlayerStatisticsManager.Instance is STILL null after delay!");
+
+            // Try manual stats update as fallback
+            if (PlayFabClientAPI.IsClientLoggedIn())
+            {
+                Debug.Log("🔄 Attempting manual stats update as fallback...");
+                ManualStatsUpdate();
+            }
+            else
+            {
+                Debug.LogError("❌ PlayFab not logged in - cannot update stats");
+                statsUpdated = true; // Skip stats update
+            }
         }
+    }
+
+    private void EnsureStatsManager()
+    {
+        Debug.Log("=== ENSURING STATS MANAGER ===");
+
+        if (PlayerStatisticsManager.Instance == null)
+        {
+            Debug.Log("PlayerStatisticsManager.Instance is null, trying to find or fix...");
+
+            // Try to find existing one
+            var foundManager = FindObjectOfType<PlayerStatisticsManager>();
+
+            if (foundManager != null)
+            {
+                Debug.Log("✅ Found PlayerStatisticsManager, setting as Instance");
+                PlayerStatisticsManager.Instance = foundManager;
+
+                // Initialize if needed
+                if (!foundManager.IsInitialized() && PlayFabClientAPI.IsClientLoggedIn())
+                {
+                    Debug.Log("Initializing found PlayerStatisticsManager...");
+                    foundManager.ManualInitialize();
+                }
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ No PlayerStatisticsManager found in scene");
+                Debug.Log("This explains why stats aren't updating - PlayerStatisticsManager was destroyed during scene transition");
+            }
+        }
+        else
+        {
+            Debug.Log("✅ PlayerStatisticsManager.Instance already exists");
+        }
+    }
+
+    private void ManualStatsUpdate()
+    {
+        Debug.Log("=== MANUAL STATS UPDATE ===");
+
+        if (!PlayFabClientAPI.IsClientLoggedIn())
+        {
+            Debug.LogError("❌ PlayFab not logged in for manual update!");
+            statsUpdated = true;
+            return;
+        }
+
+        // Get current stats first
+        PlayFabClientAPI.GetPlayerStatistics(new GetPlayerStatisticsRequest(), result =>
+        {
+            int total = 0, wins = 0, losses = 0;
+
+            foreach (var stat in result.Statistics)
+            {
+                if (stat.StatisticName == "TotalGames") total = stat.Value;
+                else if (stat.StatisticName == "Wins") wins = stat.Value;
+                else if (stat.StatisticName == "Losses") losses = stat.Value;
+            }
+
+            Debug.Log($"📊 Current manual stats - Total: {total}, Wins: {wins}, Losses: {losses}");
+
+            // Update with loss
+            total++;
+            losses++;
+
+            Debug.Log($"📊 New manual stats - Total: {total}, Wins: {wins}, Losses: {losses}");
+
+            var updatedStats = new List<StatisticUpdate>
+            {
+                new StatisticUpdate { StatisticName = "TotalGames", Value = total },
+                new StatisticUpdate { StatisticName = "Wins", Value = wins },
+                new StatisticUpdate { StatisticName = "Losses", Value = losses }
+            };
+
+            PlayFabClientAPI.UpdatePlayerStatistics(new UpdatePlayerStatisticsRequest
+            {
+                Statistics = updatedStats
+            },
+            updateResult => {
+                Debug.Log("✅ Manual stats update successful - LOSS recorded!");
+                statsUpdated = true;
+            },
+            error => {
+                Debug.LogError($"❌ Manual stats update failed: {error.ErrorMessage}");
+                statsUpdated = true; // Continue anyway
+            });
+        }, error =>
+        {
+            Debug.LogError($"❌ Failed to get current stats for manual update: {error.ErrorMessage}");
+            statsUpdated = true; // Continue anyway
+        });
     }
 
     IEnumerator PopAndShineLoop()
@@ -451,6 +588,78 @@ public class Defeat : MonoBehaviourPunCallbacks
             Debug.Log($"NetworkClientState: {PhotonNetwork.NetworkClientState}");
             Debug.Log($"IsDisconnecting: {isDisconnecting}");
         }
+    }
+
+    [ContextMenu("Debug Stats Manager")]
+    public void DebugStatsManager()
+    {
+        if (showDebugLogs)
+        {
+            Debug.Log("=== DEFEAT - STATS MANAGER DEBUG ===");
+            Debug.Log($"PlayerStatisticsManager.Instance exists: {PlayerStatisticsManager.Instance != null}");
+            Debug.Log($"Stats updated flag: {statsUpdated}");
+            Debug.Log($"PlayFab IsClientLoggedIn: {PlayFabClientAPI.IsClientLoggedIn()}");
+
+            if (PlayerStatisticsManager.Instance != null)
+            {
+                Debug.Log("PlayerStatisticsManager is available and ready to use");
+                Debug.Log($"Is Initialized: {PlayerStatisticsManager.Instance.IsInitialized()}");
+            }
+            else
+            {
+                Debug.LogWarning("PlayerStatisticsManager.Instance is NULL!");
+
+                var foundManager = FindObjectOfType<PlayerStatisticsManager>();
+                if (foundManager != null)
+                {
+                    Debug.Log($"Found PlayerStatisticsManager in scene: {foundManager.gameObject.name}");
+                }
+                else
+                {
+                    Debug.LogError("No PlayerStatisticsManager found in scene at all!");
+                }
+            }
+        }
+    }
+
+    [ContextMenu("Force Stats Update")]
+    public void ForceStatsUpdate()
+    {
+        Debug.Log("=== CONTEXT MENU: FORCE STATS UPDATE ===");
+        EnsureStatsManager();
+
+        if (PlayerStatisticsManager.Instance != null)
+        {
+            PlayerStatisticsManager.Instance.UpdateMatchResult(false, () => {
+                Debug.Log("✅ Context menu stats update completed");
+            });
+        }
+        else
+        {
+            Debug.Log("Attempting manual stats update...");
+            ManualStatsUpdate();
+        }
+    }
+
+    [ContextMenu("Test Manual Stats")]
+    public void TestManualStats()
+    {
+        Debug.Log("=== TESTING MANUAL STATS ===");
+        ManualStatsUpdate();
+    }
+
+    [ContextMenu("Full Diagnostic")]
+    public void FullDiagnostic()
+    {
+        Debug.Log("=== DEFEAT - FULL DIAGNOSTIC ===");
+        DebugNetworkState();
+        DebugStatsManager();
+        DebugCurrentProperties();
+
+        Debug.Log($"GameObject active: {gameObject.activeInHierarchy}");
+        Debug.Log($"Component enabled: {enabled}");
+        Debug.Log($"Is disconnecting: {isDisconnecting}");
+        Debug.Log($"Stats updated: {statsUpdated}");
     }
     #endregion
 
