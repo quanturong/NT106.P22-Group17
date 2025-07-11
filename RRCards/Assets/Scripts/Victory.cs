@@ -213,7 +213,6 @@ public class Victory : MonoBehaviourPunCallbacks
                     Debug.LogWarning("Victory: Leave room timeout, forcing disconnect");
                 PhotonNetwork.Disconnect();
 
-                // Wait for disconnect
                 timer = 0f;
                 while (PhotonNetwork.IsConnected && timer < 3f)
                 {
