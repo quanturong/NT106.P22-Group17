@@ -30,8 +30,6 @@ namespace PlayFab.PfEditor
 
             currentProgressBarState = state;
         }
-
-        //not a good way to do this right now.
         public static void UpdateProgress(float p)
         {
             progress = p;
@@ -51,11 +49,9 @@ namespace PlayFab.PfEditor
                 progressWidth = EditorGUIUtility.currentViewWidth;
                 pbarStyle = PlayFabEditorHelper.uiStyle.GetStyle("progressBarClear");
                 pbarBgStyle = PlayFabEditorHelper.uiStyle.GetStyle("progressBarClear");
-                //return;
             }
             else if (EditorWindow.focusedWindow != PlayFabEditor.window)
             {
-                // pause draw while we are in the bg
                 return;
             }
             else if (currentProgressBarState == ProgressBarStates.success)

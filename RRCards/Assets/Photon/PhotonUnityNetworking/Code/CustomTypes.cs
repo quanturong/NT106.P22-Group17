@@ -1,12 +1,3 @@
-// ----------------------------------------------------------------------------
-// <copyright file="CustomTypes.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-// Sets up support for Unity-specific types. Can be a blueprint how to register your own Custom Types for sending.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
 
 
 namespace Photon.Pun
@@ -14,14 +5,8 @@ namespace Photon.Pun
     using UnityEngine;
     using Photon.Realtime;
     using ExitGames.Client.Photon;
-
-
-    /// <summary>
-    /// Internally used class, containing de/serialization method for PUN specific classes.
-    /// </summary>
     internal static class CustomTypes
     {
-        /// <summary>Register de/serializer methods for PUN specific types. Makes the type usable in RaiseEvent, RPC and sync updates of PhotonViews.</summary>
         internal static void Register()
         {
             PhotonPeer.RegisterType(typeof(Player), (byte) 'P', SerializePhotonPlayer, DeserializePhotonPlayer);

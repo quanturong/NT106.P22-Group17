@@ -1,19 +1,10 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CountOfPlayersInRoomProperty.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine.UI;
 
 using Photon.Realtime;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// PhotonNetwork.CountOfPlayersInRooms UI property.
-    /// </summary>
     public class CountOfPlayersInRoomProperty : PropertyListenerBase
     {
         public Text Text;

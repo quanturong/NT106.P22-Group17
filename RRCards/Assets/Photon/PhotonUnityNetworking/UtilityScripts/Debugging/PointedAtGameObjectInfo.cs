@@ -1,11 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PointedAtGameObjectInfo.cs" company="Exit Games GmbH">
-// </copyright>
-// <summary>
-//  Display ViewId, OwnerActorNr, IsCeneView and IsMine when clicked using the old UI system
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 using System;
 
@@ -18,9 +10,6 @@ using Photon.Realtime;
 
 namespace Photon.Pun.UtilityScripts
 {
-    /// <summary>
-    /// Display ViewId, OwnerActorNr, IsCeneView and IsMine when clicked.
-    /// </summary>
     public class PointedAtGameObjectInfo : MonoBehaviour
     {
         public static PointedAtGameObjectInfo Instance;
@@ -48,7 +37,6 @@ namespace Photon.Pun.UtilityScripts
             if (pv != null)
             {
                 text.text = string.Format("id {0} own: {1} {2}{3}", pv.ViewID, pv.OwnerActorNr, (pv.IsRoomView) ? "scn" : "", (pv.IsMine) ? " mine" : "");
-                //GUI.Label (new Rect (Input.mousePosition.x + 5, Screen.height - Input.mousePosition.y - 15, 300, 30), );
             }
             else
             {

@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace PlayFab.PfEditor
 {
-    //[InitializeOnLoad]
     public class SubMenuComponent : UnityEditor.Editor
     {
         Dictionary<string, MenuItemContainer> items = new Dictionary<string, MenuItemContainer>();
@@ -12,8 +11,6 @@ namespace PlayFab.PfEditor
         GUIStyle defaultStyle;
         GUIStyle bgStyle;
         private static int focusIndex = 0;
-
-        //changes local
         public static void InputSubMenuStudiosHandler()
         {
             var e = Event.current;
@@ -117,7 +114,6 @@ namespace PlayFab.PfEditor
                     var styleToUse = item.Value.isSelected ? selectedStyle : defaultStyle;
                     var content = new GUIContent(item.Value.displayName);
                     var size = styleToUse.CalcSize(content);
-                    //Chnages in local
                     switch (item.Value.displayName)
                     {
                         case "PROJECT":

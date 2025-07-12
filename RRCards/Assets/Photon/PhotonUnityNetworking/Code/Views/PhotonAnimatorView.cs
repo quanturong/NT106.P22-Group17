@@ -1,29 +1,9 @@
-﻿// ----------------------------------------------------------------------------
-// <copyright file="PhotonAnimatorView.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   Component to synchronize Mecanim animations via PUN.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
-
+﻿
 
 namespace Photon.Pun
 {
     using System.Collections.Generic;
     using UnityEngine;
-
-
-    /// <summary>
-    /// This class helps you to synchronize Mecanim animations
-    /// Simply add the component to your GameObject and make sure that
-    /// the PhotonAnimatorView is added to the list of observed components
-    /// </summary>
-    /// <remarks>
-    /// When Using Trigger Parameters, make sure the component that sets the trigger is higher in the stack of Components on the GameObject than 'PhotonAnimatorView'
-    /// Triggers are raised true during one frame only.
-    /// </remarks>
     [AddComponentMenu("Photon Networking/Photon Animator View")]
     public class PhotonAnimatorView : MonoBehaviourPun, IPunObservable
     {
@@ -81,9 +61,6 @@ namespace Photon.Pun
         private Animator m_Animator;
 
         private PhotonStreamQueue m_StreamQueue = new PhotonStreamQueue(120);
-
-        //These fields are only used in the CustomEditor for this script and would trigger a
-        //"this variable is never used" warning, which I am suppressing here
         #pragma warning disable 0414
 
         [HideInInspector]
@@ -107,11 +84,6 @@ namespace Photon.Pun
         private Vector3 m_ReceiverPosition;
         private float m_LastDeserializeTime;
         private bool m_WasSynchronizeTypeChanged = true;
-
-        /// <summary>
-        /// Cached raised triggers that are set to be synchronized in discrete mode. since a Trigger only stay up for less than a frame,
-        /// We need to cache it until the next discrete serialization call.
-        /// </summary>
         List<string> m_raisedDiscreteTriggersCache = new List<string>();
 
         #endregion
@@ -153,10 +125,6 @@ namespace Photon.Pun
 
 
         #region Setup Synchronizing Methods
-
-        /// <summary>
-        /// Caches the discrete triggers values for keeping track of raised triggers, and will be reseted after the sync routine got performed
-        /// </summary>
         public void CacheDiscreteTriggers()
         {
             for (int i = 0; i < this.m_SynchronizeParameters.Count; ++i)
@@ -173,50 +141,22 @@ namespace Photon.Pun
                 }
             }
         }
-
-        /// <summary>
-        /// Check if a specific layer is configured to be synchronize
-        /// </summary>
-        /// <param name="layerIndex">Index of the layer.</param>
-        /// <returns>True if the layer is synchronized</returns>
         public bool DoesLayerSynchronizeTypeExist(int layerIndex)
         {
             return this.m_SynchronizeLayers.FindIndex(item => item.LayerIndex == layerIndex) != -1;
         }
-
-        /// <summary>
-        /// Check if the specified parameter is configured to be synchronized
-        /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        /// <returns>True if the parameter is synchronized</returns>
         public bool DoesParameterSynchronizeTypeExist(string name)
         {
             return this.m_SynchronizeParameters.FindIndex(item => item.Name == name) != -1;
         }
-
-        /// <summary>
-        /// Get a list of all synchronized layers
-        /// </summary>
-        /// <returns>List of SynchronizedLayer objects</returns>
         public List<SynchronizedLayer> GetSynchronizedLayers()
         {
             return this.m_SynchronizeLayers;
         }
-
-        /// <summary>
-        /// Get a list of all synchronized parameters
-        /// </summary>
-        /// <returns>List of SynchronizedParameter objects</returns>
         public List<SynchronizedParameter> GetSynchronizedParameters()
         {
             return this.m_SynchronizeParameters;
         }
-
-        /// <summary>
-        /// Gets the type how the layer is synchronized
-        /// </summary>
-        /// <param name="layerIndex">Index of the layer.</param>
-        /// <returns>Disabled/Discrete/Continuous</returns>
         public SynchronizeType GetLayerSynchronizeType(int layerIndex)
         {
             int index = this.m_SynchronizeLayers.FindIndex(item => item.LayerIndex == layerIndex);
@@ -228,12 +168,6 @@ namespace Photon.Pun
 
             return this.m_SynchronizeLayers[index].SynchronizeType;
         }
-
-        /// <summary>
-        /// Gets the type how the parameter is synchronized
-        /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        /// <returns>Disabled/Discrete/Continuous</returns>
         public SynchronizeType GetParameterSynchronizeType(string name)
         {
             int index = this.m_SynchronizeParameters.FindIndex(item => item.Name == name);
@@ -245,12 +179,6 @@ namespace Photon.Pun
 
             return this.m_SynchronizeParameters[index].SynchronizeType;
         }
-
-        /// <summary>
-        /// Sets the how a layer should be synchronized
-        /// </summary>
-        /// <param name="layerIndex">Index of the layer.</param>
-        /// <param name="synchronizeType">Disabled/Discrete/Continuous</param>
         public void SetLayerSynchronized(int layerIndex, SynchronizeType synchronizeType)
         {
             if (Application.isPlaying == true)
@@ -269,13 +197,6 @@ namespace Photon.Pun
                 this.m_SynchronizeLayers[index].SynchronizeType = synchronizeType;
             }
         }
-
-        /// <summary>
-        /// Sets the how a parameter should be synchronized
-        /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        /// <param name="type">The type of the parameter.</param>
-        /// <param name="synchronizeType">Disabled/Discrete/Continuous</param>
         public void SetParameterSynchronized(string name, ParameterType type, SynchronizeType synchronizeType)
         {
             if (Application.isPlaying == true)
@@ -426,14 +347,11 @@ namespace Photon.Pun
                                           "or in custom IPunObservable component instead",this);
                             
                             }
-                            // here we can't rely on the current real state of the trigger, we might have missed its raise
                             stream.SendNext(this.m_raisedDiscreteTriggersCache.Contains(parameter.Name));
                             break;
                     }
                 }
             }
-
-            // reset the cache, we've synchronized.
             this.m_raisedDiscreteTriggersCache.Clear();
         }
 

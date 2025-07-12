@@ -18,13 +18,11 @@ namespace TMPro.Examples
         void Start()
         {
             StartCoroutine(RevealCharacters(m_TextComponent));
-            //StartCoroutine(RevealWords(m_TextComponent));
         }
 
 
         void OnEnable()
         {
-            // Subscribe to event fired when text object has been regenerated.
             TMPro_EventManager.TEXT_CHANGED_EVENT.Add(ON_TEXT_CHANGED);
         }
 
@@ -32,19 +30,10 @@ namespace TMPro.Examples
         {
             TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(ON_TEXT_CHANGED);
         }
-
-
-        // Event received when the text object has changed.
         void ON_TEXT_CHANGED(Object obj)
         {
             hasTextChanged = true;
         }
-
-
-        /// <summary>
-        /// Method revealing the text one character at a time.
-        /// </summary>
-        /// <returns></returns>
         IEnumerator RevealCharacters(TMP_Text textComponent)
         {
             textComponent.ForceMeshUpdate();
@@ -75,12 +64,6 @@ namespace TMPro.Examples
                 yield return null;
             }
         }
-
-
-        /// <summary>
-        /// Method revealing the text one word at a time.
-        /// </summary>
-        /// <returns></returns>
         IEnumerator RevealWords(TMP_Text textComponent)
         {
             textComponent.ForceMeshUpdate();
@@ -94,8 +77,6 @@ namespace TMPro.Examples
             while (true)
             {
                 currentWord = counter % (totalWordCount + 1);
-
-                // Get last character index for the current word.
                 if (currentWord == 0) // Display no words.
                     visibleCount = 0;
                 else if (currentWord < totalWordCount) // Display all other words with the exception of the last one.
@@ -104,8 +85,6 @@ namespace TMPro.Examples
                     visibleCount = totalVisibleCharacters;
 
                 textComponent.maxVisibleCharacters = visibleCount; // How many characters should TextMeshPro display?
-
-                // Once the last character has been revealed, wait 1.0 second and start over.
                 if (visibleCount >= totalVisibleCharacters)
                 {
                     yield return new WaitForSeconds(1.0f);

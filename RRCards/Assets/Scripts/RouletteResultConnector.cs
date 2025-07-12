@@ -30,7 +30,6 @@ public class RouletteResultConnector : MonoBehaviour
             return;
         }
 
-        // CRITICAL: Get punished player from PlayerPrefs
         int punishedPlayer = PlayerPrefs.GetInt(PUNISHED_PLAYER_KEY, -1);
         Debug.Log($"Punished player ActorNumber: {punishedPlayer}");
 
@@ -121,14 +120,11 @@ public class RouletteResultConnector : MonoBehaviour
         Debug.Log($"Reward slot: {fortuneWheel.m_RewardNumber}");
         Debug.Log($"Result: {(died ? "DEATH" : "SAFE")}");
 
-        // CRITICAL: Lưu cả kết quả VÀ player bị phạt
         PlayerPrefs.SetInt(PUNISHMENT_RESULT_KEY, died ? 1 : 0);
 
-        // KHÔNG GHI ĐÈ punished player - giữ nguyên value từ GameManager
         int punishedPlayer = PlayerPrefs.GetInt(PUNISHED_PLAYER_KEY, -1);
         Debug.Log($"Maintaining punished player: {punishedPlayer}");
 
-        // SET FLAG để GameManager biết đã có kết quả roulette
         PlayerPrefs.SetString("RouletteCompleted", "true");
         PlayerPrefs.Save();
 
@@ -162,7 +158,6 @@ public class RouletteResultConnector : MonoBehaviour
     {
         Debug.Log("=== RETURNING TO GAME SCENE ===");
 
-        // Debug final state
         int result = PlayerPrefs.GetInt(PUNISHMENT_RESULT_KEY, -1);
         int player = PlayerPrefs.GetInt(PUNISHED_PLAYER_KEY, -1);
         Debug.Log($"Final result: {result} (0=survived, 1=died)");

@@ -18,10 +18,7 @@ public class Victory : MonoBehaviourPunCallbacks
     public bool showDebugLogs = true;
 
     private bool isDisconnecting = false;
-    private bool statsUpdated = false; // Flag để track việc update stats
-
-    // Critical properties to clean
-    private readonly string[] CRITICAL_PROPERTIES = {
+    private bool statsUpdated = false;    private readonly string[] CRITICAL_PROPERTIES = {
         "IsReady", "AvatarIndex", "PlayerRole", "IsHost",
         "TeamId", "Score", "GameState", "PlayerIndex",
         "CharacterSelected", "LoadingComplete", "GameReady",
@@ -32,13 +29,9 @@ public class Victory : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("=== VICTORY SCREEN STARTED ===");
-
-        // COMPREHENSIVE DEBUG
         Debug.Log($"=== VICTORY SCENE DEBUG ===");
         Debug.Log($"PlayFab IsClientLoggedIn: {PlayFabClientAPI.IsClientLoggedIn()}");
         Debug.Log($"PlayerStatisticsManager.Instance exists: {PlayerStatisticsManager.Instance != null}");
-
-        // Find all PlayerStatisticsManager objects
         var allStatsManagers = FindObjectsOfType<PlayerStatisticsManager>();
         Debug.Log($"Found {allStatsManagers.Length} PlayerStatisticsManager objects in scene");
 
@@ -51,21 +44,16 @@ public class Victory : MonoBehaviourPunCallbacks
 
         if (lobbyButton != null)
             lobbyButton.onClick.AddListener(OnLobbyButtonClicked);
-
-        // DELAY stats update to ensure everything is loaded
         StartCoroutine(DelayedStatsUpdate());
     }
 
     private IEnumerator DelayedStatsUpdate()
     {
-        // Wait a bit for everything to settle
         yield return new WaitForSeconds(1f);
 
         Debug.Log("=== DELAYED STATS UPDATE START ===");
         Debug.Log($"PlayerStatisticsManager.Instance exists: {PlayerStatisticsManager.Instance != null}");
         Debug.Log($"PlayFab IsClientLoggedIn: {PlayFabClientAPI.IsClientLoggedIn()}");
-
-        // Try to ensure stats manager exists
         EnsureStatsManager();
 
         if (PlayerStatisticsManager.Instance != null)
@@ -79,8 +67,6 @@ public class Victory : MonoBehaviourPunCallbacks
         else
         {
             Debug.LogError("❌ [Victory] PlayerStatisticsManager.Instance is STILL null after delay!");
-
-            // Try manual stats update as fallback
             if (PlayFabClientAPI.IsClientLoggedIn())
             {
                 Debug.Log("🔄 Attempting manual stats update as fallback...");
@@ -89,8 +75,7 @@ public class Victory : MonoBehaviourPunCallbacks
             else
             {
                 Debug.LogError("❌ PlayFab not logged in - cannot update stats");
-                statsUpdated = true; // Skip stats update
-            }
+                statsUpdated = true;            }
         }
     }
 
@@ -101,16 +86,12 @@ public class Victory : MonoBehaviourPunCallbacks
         if (PlayerStatisticsManager.Instance == null)
         {
             Debug.Log("PlayerStatisticsManager.Instance is null, trying to find or fix...");
-
-            // Try to find existing one
             var foundManager = FindObjectOfType<PlayerStatisticsManager>();
 
             if (foundManager != null)
             {
                 Debug.Log("✅ Found PlayerStatisticsManager, setting as Instance");
                 PlayerStatisticsManager.Instance = foundManager;
-
-                // Initialize if needed
                 if (!foundManager.IsInitialized() && PlayFabClientAPI.IsClientLoggedIn())
                 {
                     Debug.Log("Initializing found PlayerStatisticsManager...");
@@ -139,8 +120,6 @@ public class Victory : MonoBehaviourPunCallbacks
             statsUpdated = true;
             return;
         }
-
-        // Get current stats first
         PlayFabClientAPI.GetPlayerStatistics(new GetPlayerStatisticsRequest(), result =>
         {
             int total = 0, wins = 0, losses = 0;
@@ -153,8 +132,6 @@ public class Victory : MonoBehaviourPunCallbacks
             }
 
             Debug.Log($"📊 Current manual stats - Total: {total}, Wins: {wins}, Losses: {losses}");
-
-            // Update with win
             total++;
             wins++;
 
@@ -177,13 +154,11 @@ public class Victory : MonoBehaviourPunCallbacks
             },
             error => {
                 Debug.LogError($"❌ Manual stats update failed: {error.ErrorMessage}");
-                statsUpdated = true; // Continue anyway
-            });
+                statsUpdated = true;            });
         }, error =>
         {
             Debug.LogError($"❌ Failed to get current stats for manual update: {error.ErrorMessage}");
-            statsUpdated = true; // Continue anyway
-        });
+            statsUpdated = true;        });
     }
 
     IEnumerator PopAndShineLoop()
@@ -191,8 +166,6 @@ public class Victory : MonoBehaviourPunCallbacks
         float time = 0f;
         Vector3 startScale = Vector3.zero;
         Vector3 endScale = Vector3.one;
-
-        // Pop animation
         while (time < duration)
         {
             time += Time.deltaTime;
@@ -200,8 +173,6 @@ public class Victory : MonoBehaviourPunCallbacks
             transform.localScale = Vector3.Lerp(startScale, endScale, Mathf.SmoothStep(0f, 1f, t));
             yield return null;
         }
-
-        // Shine loop
         while (true)
         {
             float loopTime = 0f;
@@ -230,8 +201,6 @@ public class Victory : MonoBehaviourPunCallbacks
                 Debug.Log("Victory: Already disconnecting, ignoring button click");
             return;
         }
-
-        // Kiểm tra xem stats đã được update chưa
         if (!statsUpdated)
         {
             if (showDebugLogs)
@@ -251,8 +220,6 @@ public class Victory : MonoBehaviourPunCallbacks
 
         StartCoroutine(ReturnToLobbySequence());
     }
-
-    // Coroutine để đợi stats update xong rồi mới return
     private IEnumerator WaitForStatsAndReturn()
     {
         if (lobbyButton != null)
@@ -260,8 +227,6 @@ public class Victory : MonoBehaviourPunCallbacks
 
         if (showDebugLogs)
             Debug.Log("Victory: Waiting for stats to update...");
-
-        // Đợi stats update xong (tối đa 5 giây)
         float timeout = 5f;
         float timer = 0f;
         while (!statsUpdated && timer < timeout)
@@ -276,8 +241,6 @@ public class Victory : MonoBehaviourPunCallbacks
                 Debug.LogWarning("Victory: Stats update timeout, proceeding anyway");
             statsUpdated = true;
         }
-
-        // Bây giờ mới bắt đầu return to lobby
         isDisconnecting = true;
 
         if (showDebugLogs)
@@ -290,17 +253,9 @@ public class Victory : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("=== VICTORY: RETURN TO LOBBY SEQUENCE STARTED ===");
-
-        // Step 1: Complete property cleanup
         yield return StartCoroutine(CompletePropertyCleanup());
-
-        // Step 2: Wait for properties to sync
         yield return new WaitForSeconds(1f);
-
-        // Step 3: Leave room safely
         yield return StartCoroutine(SafeLeaveRoom());
-
-        // Step 4: Final wait and load lobby
         yield return new WaitForSeconds(0.5f);
         LoadLobbyScene();
     }
@@ -316,8 +271,6 @@ public class Victory : MonoBehaviourPunCallbacks
                 Debug.LogWarning("Victory: No local player found during cleanup");
             yield break;
         }
-
-        // Get all current properties
         var currentProps = PhotonNetwork.LocalPlayer.CustomProperties;
         var keysToRemove = new System.Collections.Generic.List<string>();
 
@@ -328,32 +281,20 @@ public class Victory : MonoBehaviourPunCallbacks
 
         if (showDebugLogs)
             Debug.Log($"Victory: Found {keysToRemove.Count} properties to clean");
-
-        // Create hashtable to clear all properties
         ExitGames.Client.Photon.Hashtable clearProps = new ExitGames.Client.Photon.Hashtable();
-
-        // Remove all existing properties by setting them to null
         foreach (string key in keysToRemove)
         {
             clearProps[key] = null;
         }
-
-        // Ensure critical game-related properties are definitely null
         foreach (string criticalProp in CRITICAL_PROPERTIES)
         {
             clearProps[criticalProp] = null;
         }
-
-        // Apply the property changes
         PhotonNetwork.LocalPlayer.SetCustomProperties(clearProps);
 
         if (showDebugLogs)
             Debug.Log($"Victory: Cleaned {keysToRemove.Count} existing + {CRITICAL_PROPERTIES.Length} critical properties");
-
-        // Wait for properties to sync
         yield return new WaitForSeconds(0.5f);
-
-        // Verify cleanup
         yield return StartCoroutine(VerifyPropertyCleanup());
     }
 
@@ -392,8 +333,6 @@ public class Victory : MonoBehaviourPunCallbacks
                 Debug.Log("Victory: Leaving room: " + PhotonNetwork.CurrentRoom.Name);
 
             PhotonNetwork.LeaveRoom();
-
-            // Wait for leave room confirmation or timeout
             float timeout = 5f;
             float timer = 0f;
             while (PhotonNetwork.InRoom && timer < timeout)
@@ -431,8 +370,6 @@ public class Victory : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("Victory: Successfully left room");
-
-        // Don't load scene here, let the sequence handle it
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
@@ -445,8 +382,6 @@ public class Victory : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("Victory: Disconnected with cause: " + cause);
-
-        // If we're not already in the process of returning to lobby, do it now
         if (!isDisconnecting)
         {
             LoadLobbyScene();
@@ -465,7 +400,6 @@ public class Victory : MonoBehaviourPunCallbacks
     #endregion
 
     #region Emergency Methods
-    // Force disconnect method for emergency cases
     public void ForceDisconnectAndLoadLobby()
     {
         if (showDebugLogs)
@@ -483,16 +417,10 @@ public class Victory : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("Victory: Starting force disconnect sequence");
-
-        // Clean properties first
         yield return StartCoroutine(CompletePropertyCleanup());
-
-        // Force disconnect immediately
         if (PhotonNetwork.IsConnected)
         {
             PhotonNetwork.Disconnect();
-
-            // Wait for disconnect or timeout
             float timeout = 3f;
             float timer = 0f;
             while (PhotonNetwork.IsConnected && timer < timeout)
@@ -504,8 +432,6 @@ public class Victory : MonoBehaviourPunCallbacks
 
         LoadLobbyScene();
     }
-
-    // Emergency method accessible from inspector/debug
     [ContextMenu("Emergency Return to Lobby")]
     public void EmergencyReturnToLobby()
     {
@@ -523,7 +449,6 @@ public class Victory : MonoBehaviourPunCallbacks
 
     private IEnumerator EmergencyReturnSequence()
     {
-        // Quick property cleanup
         if (PhotonNetwork.LocalPlayer != null)
         {
             ExitGames.Client.Photon.Hashtable clearProps = new ExitGames.Client.Photon.Hashtable();
@@ -535,8 +460,6 @@ public class Victory : MonoBehaviourPunCallbacks
         }
 
         yield return new WaitForSeconds(0.2f);
-
-        // Force disconnect
         if (PhotonNetwork.IsConnected)
         {
             PhotonNetwork.Disconnect();
@@ -548,7 +471,6 @@ public class Victory : MonoBehaviourPunCallbacks
     #endregion
 
     #region Debug Methods
-    // Debug method to check current properties
     [ContextMenu("Debug Current Properties")]
     public void DebugCurrentProperties()
     {
@@ -670,8 +592,6 @@ public class Victory : MonoBehaviourPunCallbacks
 
         if (lobbyButton != null)
             lobbyButton.onClick.RemoveListener(OnLobbyButtonClicked);
-
-        // Stop all coroutines to prevent errors
         StopAllCoroutines();
     }
 

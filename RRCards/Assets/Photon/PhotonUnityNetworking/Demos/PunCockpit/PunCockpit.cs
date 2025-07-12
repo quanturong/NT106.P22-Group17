@@ -1,10 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PunCockpit.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit Demo
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,9 +14,6 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// UI based work in progress to test out api and act as foundation when dealing with room, friends and player list
-    /// </summary>
     public class PunCockpit : MonoBehaviourPunCallbacks
     {
         public static PunCockpit Instance;
@@ -69,16 +60,7 @@ namespace Photon.Pun.Demo.Cockpit
         public InputField RoomCustomPropertyInputfield;
 
 		[Header("Photon Settings")]
-        /// <summary>
-        /// The game version override. This is one way to let the user define the gameversion, and set it properly right after we call connect to override the server settings
-        /// Check ConnectAndJoinRandom.cs for another example of gameversion overriding
-        /// </summary>
 		public string GameVersionOverride = String.Empty;
-
-        /// <summary>
-        /// The reset flag for best cloud ServerSettings.
-        /// This is one way to let the user define if bestcloud cache should be reseted when connecting.
-        /// </summary>
 		public bool ResetBestRegionCodeInPreferences = false;
 
         [Header("Room Options")]
@@ -89,7 +71,6 @@ namespace Photon.Pun.Demo.Cockpit
         public bool PublishUserId = true;
         public bool IsVisible = true;
         public bool IsOpen = true;
-        //public bool CheckUserOnJoin = false;
         public bool CleanupCacheOnLeave = true;
         public bool DeleteNullProperties = false;
 
@@ -102,7 +83,6 @@ namespace Photon.Pun.Demo.Cockpit
         public BoolInputField IsVisibleField;
         public BoolInputField IsOpenField;
         public BoolInputField CleanupCacheOnLeaveField;
-        //	public BoolInputField CheckUserOnJoinField;
         public BoolInputField DeleteNullPropertiesField;
 
         [Header("Friends Options")]
@@ -124,13 +104,9 @@ namespace Photon.Pun.Demo.Cockpit
 
             Instance = this;
 
-			// doc setup
-
 			DocLinks.Language = DocLinks.Languages.English;
 			DocLinks.Product = DocLinks.Products.Pun;
 			DocLinks.Version = DocLinks.Versions.V2;
-
-			//
 
 			ModalWindow.gameObject.SetActive (false);
 
@@ -159,17 +135,9 @@ namespace Photon.Pun.Demo.Cockpit
             IsVisibleField.SetValue(this.IsVisible);
             IsOpenField.SetValue(this.IsOpen);
             CleanupCacheOnLeaveField.SetValue(this.CleanupCacheOnLeave);
-            //CheckUserOnJoinField.SetValue (this.CheckUserOnJoin);
             DeleteNullPropertiesField.SetValue(this.DeleteNullProperties);
-
-
-
-            // prefill dropdown selection of users
             ConnectAsDropDown.ClearOptions();
             ConnectAsDropDown.AddOptions(FriendsList.Select(x => x.NickName).ToList());
-
-
-			// check the current network status
 
 			if (PhotonNetwork.IsConnected)
 			{
@@ -299,12 +267,6 @@ namespace Photon.Pun.Demo.Cockpit
 			if (debug)	Debug.Log("PunCockpit:IsOpen = " + this.IsOpen);
         }
 
-        //	public void SetCheckUserOnJoin(bool value)
-        //	{
-        //		this.CheckUserOnJoin = value;
-        //		Debug.Log ("CheckUserOnJoin = " + this.CheckUserOnJoin);
-        //	}
-
 		public void SetResetBestRegionCodeInPreferences(bool value)
 		{
 			this.ResetBestRegionCodeInPreferences = value;
@@ -326,10 +288,6 @@ namespace Photon.Pun.Demo.Cockpit
 		LoadBalancingClient _lbc;
 		bool _regionPingProcessActive;
 		List<Region> RegionsList;
-
-		/// <summary>
-		/// in progress, not fully working
-		/// </summary>
 		public void PingRegions()
 		{
 			ModalWindow.gameObject.SetActive (true);
@@ -401,7 +359,6 @@ namespace Photon.Pun.Demo.Cockpit
 		private void OnRegionsPinged(RegionHandler regionHandler)
 		{
 				RegionsList = regionHandler.EnabledRegions.OrderBy(x=>x.Ping).ToList();
-				// will check this on Update() to get back to the main thread.
 
 		}
 
@@ -493,9 +450,6 @@ namespace Photon.Pun.Demo.Cockpit
             this.ConnectingLabel.SetActive(true);
 
             PhotonNetwork.ConnectUsingSettings();
-			//if (GameVersionOverride != string.Empty) {
-		//		PhotonNetwork.GameVersion = "28"; // GameVersionOverride;
-		//	}
         }
 
         public void ReConnect()
@@ -617,7 +571,6 @@ namespace Photon.Pun.Demo.Cockpit
 
         IEnumerator OnDropdownConnectAs_CB()
         {
-            // wait for the dropdown to animate.
             yield return new WaitForSeconds(0.2f);
 
             this.Connect();
@@ -628,7 +581,6 @@ namespace Photon.Pun.Demo.Cockpit
 
         public void OnLobbyToolsViewTabChanged(string tabId)
         {
-            //	Debug.Log("PunCockpit:OnLobbyToolsViewTabChanged("+tabId+")");
         }
 
 

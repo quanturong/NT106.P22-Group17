@@ -1,8 +1,5 @@
 ﻿namespace PlayFab
 {
-    /// <summary>
-    /// Interface of any data serializer SDK plugin.
-    /// </summary>
     public interface ISerializerPlugin : IPlayFabPlugin
     {
         T DeserializeObject<T>(string serialized);

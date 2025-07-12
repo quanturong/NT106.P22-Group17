@@ -155,8 +155,6 @@ SubShader {
 
 		    float4 textures			: TEXCOORD5;
 		};
-
-		// Used by Unity internally to handle Texture Tiling and Offset.
 		float4 _FaceTex_ST;
 		float4 _OutlineTex_ST;
 		float _UIMaskSoftnessX;
@@ -211,12 +209,8 @@ SubShader {
 			float y = -(_UnderlayOffsetY * _ScaleRatioC) * _GradientScale / _TextureHeight;
 			float2 bOffset = float2(x, y);
 		    #endif
-
-			// Generate UV for the Masking Texture
 			float4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
 			float2 maskUV = (vert.xy - clampedRect.xy) / (clampedRect.zw - clampedRect.xy);
-
-			// Support for texture tiling and offset
 			float2 textureUV = input.texcoord1;
 			float2 faceUV = TRANSFORM_TEX(textureUV, _FaceTex);
 			float2 outlineUV = TRANSFORM_TEX(textureUV, _OutlineTex);
@@ -304,8 +298,6 @@ SubShader {
 			float4 glowColor = GetGlowColor(sd, scale);
 			faceColor.rgb += glowColor.rgb * glowColor.a;
 		    #endif
-
-		// Alternative implementation to UnityGet2DClipping with support for softness.
 		    #if UNITY_UI_CLIP_RECT
 			half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(input.mask.xy)) * input.mask.zw);
 			faceColor *= m.x * m.y;

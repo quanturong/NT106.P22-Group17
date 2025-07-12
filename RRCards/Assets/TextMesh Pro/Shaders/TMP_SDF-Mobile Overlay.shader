@@ -1,7 +1,3 @@
-// Simplified SDF shader:
-// - No Shading Option (bevel / bump / env map)
-// - No Glow Option
-// - Softness is applied on both side of the outline
 
 Shader "TextMeshPro/Mobile/Distance Field Overlay" {
 
@@ -182,12 +178,8 @@ SubShader {
 			float y = -(_UnderlayOffsetY * _ScaleRatioC) * _GradientScale / _TextureHeight;
 			float2 layerOffset = float2(x, y);
 		    #endif
-
-			// Generate UV for the Masking Texture
 			float4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
 			float2 maskUV = (vert.xy - clampedRect.xy) / (clampedRect.zw - clampedRect.xy);
-
-			// Populate structure for pixel shader
 			output.vertex = vPosition;
 			output.faceColor = faceColor;
 			output.outlineColor = outlineColor;
@@ -202,9 +194,6 @@ SubShader {
 
 			return output;
 		}
-
-
-		// PIXEL SHADER
 		fixed4 PixShader(pixel_t input) : SV_Target
 		{
 			UNITY_SETUP_INSTANCE_ID(input);
@@ -227,8 +216,6 @@ SubShader {
 			d = tex2D(_MainTex, input.texcoord1.xy).a * input.underlayParam.x;
 			c += float4(_UnderlayColor.rgb * _UnderlayColor.a, _UnderlayColor.a) * (1 - saturate(d - input.underlayParam.y)) * sd * (1 - c.a);
 		    #endif
-
-		    // Alternative implementation to UnityGet2DClipping with support for softness.
 		    #if UNITY_UI_CLIP_RECT
 			half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(input.mask.xy)) * input.mask.zw);
 			c *= m.x * m.y;

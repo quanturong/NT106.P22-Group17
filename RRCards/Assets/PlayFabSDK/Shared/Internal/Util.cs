@@ -16,22 +16,17 @@ namespace PlayFab.Internal
 
         private static string _localSettingsFileName = "playfab.local.settings.json";
         public static readonly string[] _defaultDateTimeFormats = new string[]{ // All parseable ISO 8601 formats for DateTime.[Try]ParseExact - Lets us deserialize any legacy timestamps in one of these formats
-            // These are the standard format with ISO 8601 UTC markers (T/Z)
             "yyyy-MM-ddTHH:mm:ss.FFFFFFZ",
             "yyyy-MM-ddTHH:mm:ss.FFFFZ",
             "yyyy-MM-ddTHH:mm:ss.FFFZ", // DEFAULT_UTC_OUTPUT_INDEX
             "yyyy-MM-ddTHH:mm:ss.FFZ",
             "yyyy-MM-ddTHH:mm:ssZ",
             "yyyy-MM-dd HH:mm:ssZ", // Added for Android Push Plugin
-
-            // These are the standard format without ISO 8601 UTC markers (T/Z)
             "yyyy-MM-dd HH:mm:ss.FFFFFF",
             "yyyy-MM-dd HH:mm:ss.FFFF",
             "yyyy-MM-dd HH:mm:ss.FFF",
             "yyyy-MM-dd HH:mm:ss.FF", // DEFAULT_LOCAL_OUTPUT_INDEX
             "yyyy-MM-dd HH:mm:ss",
-
-            // These are the result of an input bug, which we now have to support as long as the db has entries formatted like this
             "yyyy-MM-dd HH:mm.ss.FFFF",
             "yyyy-MM-dd HH:mm.ss.FFF",
             "yyyy-MM-dd HH:mm.ss.FF",
@@ -58,12 +53,6 @@ namespace PlayFab.Internal
 
         [ThreadStatic]
         private static StringBuilder _sb;
-        /// <summary>
-        /// A threadsafe way to block and load a text file
-        ///
-        /// Load a text file, and return the file as text.
-        /// Used for small (usually json) files.
-        /// </summary>
         public static string ReadAllFileText(string filename)
         {
             if (!File.Exists(filename))

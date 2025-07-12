@@ -1,13 +1,4 @@
-﻿// ----------------------------------------------------------------------------
-// <copyright file="PhotonRigidbodyView.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   Component to synchronize rigidbodies via PUN.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
-
+﻿
 
 namespace Photon.Pun
 {

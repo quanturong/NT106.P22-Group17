@@ -1,18 +1,9 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ToggleExpand.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit Demo
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// UI toggle to activate GameObject.
-    /// </summary>
     public class ToggleExpand : MonoBehaviour
     {
         public GameObject Content;

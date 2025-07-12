@@ -7,7 +7,6 @@ namespace PlayFab.PfEditor
     {
         public static float buttonWidth = 200;
         public static Vector2 scrollPos = Vector2.zero;
-        // chnages in local
         private static int focusIndex;
         private static bool isShiftKeyPressed = false;
         private static float scrollFactor = 20f;

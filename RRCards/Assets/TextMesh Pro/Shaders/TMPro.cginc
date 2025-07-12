@@ -29,8 +29,6 @@ float3 GetSurfaceNormal(float4 h, float bias)
 	h += bias+_BevelOffset;
 
 	float bevelWidth = max(.01, _OutlineWidth+_BevelWidth);
-
-  // Track outline
 	h -= .5;
 	h /= bevelWidth;
 	h = saturate(h+.5);
@@ -48,7 +46,6 @@ float3 GetSurfaceNormal(float4 h, float bias)
 
 float3 GetSurfaceNormal(float2 uv, float bias, float3 delta)
 {
-	// Read "height field"
   float4 h = {tex2D(_MainTex, uv - delta.xz).a,
 				tex2D(_MainTex, uv + delta.xz).a,
 				tex2D(_MainTex, uv - delta.zy).a,

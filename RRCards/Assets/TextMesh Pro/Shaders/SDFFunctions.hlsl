@@ -25,8 +25,6 @@ float3 GetSpecular(float3 n, float3 l)
 void GetSurfaceNormal_float(texture2D atlas, float textureWidth, float textureHeight, float2 uv, bool isFront, out float3 nornmal)
 {
 	float3 delta = float3(1.0 / textureWidth, 1.0 / textureHeight, 0.0);
-
-	// Read "height field"
 	float4 h = float4(
 		SAMPLE_TEXTURE2D(atlas, SamplerState_Linear_Clamp, uv - delta.xz).a,
 		SAMPLE_TEXTURE2D(atlas, SamplerState_Linear_Clamp, uv + delta.xz).a,
@@ -38,8 +36,6 @@ void GetSurfaceNormal_float(texture2D atlas, float textureWidth, float textureHe
 	h += _BevelOffset;
 
 	float bevelWidth = max(.01, _BevelWidth);
-
-	// Track outline
 	h -= .5;
 	h /= bevelWidth;
 	h = saturate(h + .5);
@@ -63,20 +59,11 @@ void EvaluateLight_float(float4 faceColor, float3 n, out float4 color)
 	float3 light = normalize(float3(sin(_LightAngle), cos(_LightAngle), 1.0));
 
 	float3 col = max(faceColor.rgb, 0) + GetSpecular(n, light)* faceColor.a;
-	//faceColor.rgb += col * faceColor.a;
 	col *= 1 - (dot(n, light) * _Diffuse);
 	col *= lerp(_Ambient, 1, n.z * n.z);
 
-	//fixed4 reflcol = texCUBE(_Cube, reflect(input.viewDir, -n));
-	//faceColor.rgb += reflcol.rgb * lerp(_ReflectFaceColor.rgb, _ReflectOutlineColor.rgb, saturate(sd + outline * 0.5)) * faceColor.a;
-
 	color = float4(col, faceColor.a);
 }
-
-// Add custom function to handle time in HDRP
-
-
-//
 void GenerateUV_float(float2 inUV, float4 transform, float2 animSpeed, out float2 outUV)
 {
 	outUV = inUV * transform.xy + transform.zw + (animSpeed * _Time.y);
@@ -93,10 +80,6 @@ void ScreenSpaceRatio2_float(float4x4 projection, float4 position, float2 object
 	pixelSize /= (objectScale * mul((float2x2)projection, float2(screenWidth, screenHeight)));
 	SSR = rsqrt(dot(pixelSize, pixelSize)*2) * fontScale;
 }
-
-// UV			: Texture coordinate of the source distance field texture
-// TextureSize	: Size of the source distance field texture
-// Filter		: Enable perspective filter (soften)
 void ScreenSpaceRatio_float(float2 UV, float TextureSize, bool Filter, out float SSR)
 {
 	if(Filter)
@@ -112,12 +95,6 @@ void ScreenSpaceRatio_float(float2 UV, float TextureSize, bool Filter, out float
 		SSR = s / TextureSize;
 	}
 }
-
-// SSR : Screen Space Ratio
-// SD  : Signed Distance (encoded : Distance / SDR + .5)
-// SDR : Signed Distance Ratio
-//
-// IsoPerimeter : Dilate / Contract the shape
 void ComputeSDF_float(float SSR, float SD, float SDR, float isoPerimeter, float softness, out float outAlpha)
 {
 	softness *= SSR * SDR;
@@ -151,15 +128,11 @@ void Composite_float(float4 overlying, float4 underlying, out float4 outColor)
 {
 	outColor = BlendARGB(overlying, underlying);
 }
-
-// Face only
 void Layer1_float(float alpha, float4 color0, out float4 outColor)
 {
 	color0.a *= alpha;
 	outColor = color0;
 }
-
-// Face + 1 Outline
 void Layer2_float(float2 alpha, float4 color0, float4 color1, out float4 outColor)
 {
 	color1.a *= alpha.y;
@@ -167,8 +140,6 @@ void Layer2_float(float2 alpha, float4 color0, float4 color1, out float4 outColo
 	outColor = lerp(color1, color0, alpha.x);
 	outColor.rgb /= outColor.a;
 }
-
-// Face + 3 Outline
 void Layer4_float(float4 alpha, float4 color0, float4 color1, float4 color2, float4 color3, out float4 outColor)
 {
 	color3.a *= alpha.w;

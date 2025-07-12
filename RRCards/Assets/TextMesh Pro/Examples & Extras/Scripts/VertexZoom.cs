@@ -100,8 +100,6 @@ namespace TMPro.Examples
 
                     for (int j = 0; j < 4; j++)
                         destinationVertices[vertexIndex + j] += offset;
-
-                    // ✅ FIX DÒNG 112: Vector4[] to Vector2[]
                     Vector4[] sourceUVs0_4D = cachedMeshInfoVertexData[materialIndex].uvs0;
                     Vector2[] sourceUVs0 = new Vector2[sourceUVs0_4D.Length];
                     for (int j = 0; j < sourceUVs0_4D.Length; j++)
@@ -131,8 +129,6 @@ namespace TMPro.Examples
                     textInfo.meshInfo[i].SortGeometry(scaleSortingOrder);
 
                     textInfo.meshInfo[i].mesh.vertices = textInfo.meshInfo[i].vertices;
-
-                    // ✅ FIX FINAL UVS CONVERSION
                     Vector4[] uvs4D = textInfo.meshInfo[i].uvs0;
                     Vector2[] uvs2D = new Vector2[uvs4D.Length];
                     for (int j = 0; j < uvs4D.Length; j++)

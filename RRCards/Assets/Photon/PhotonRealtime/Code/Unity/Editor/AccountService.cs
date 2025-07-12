@@ -1,13 +1,3 @@
-// ----------------------------------------------------------------------------
-// <copyright file="AccountService.cs" company="Exit Games GmbH">
-//   Photon Cloud Account Service - Copyright (C) 2012 Exit Games GmbH
-// </copyright>
-// <summary>
-//   Provides methods to register a new user-account for the Photon Cloud and
-//   get the resulting appId.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
 
 #if UNITY_2017_4_OR_NEWER
 #define SUPPORTED_UNITY
@@ -23,11 +13,6 @@ namespace Photon.Realtime
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
     using ExitGames.Client.Photon;
-
-
-    /// <summary>
-    /// Creates a instance of the Account Service to register Photon Cloud accounts.
-    /// </summary>
     public class AccountService
     {
         private const string ServiceUrl = "https://partner.photonengine.com/api/{0}/User/RegisterEx";
@@ -41,33 +26,9 @@ namespace Photon.Realtime
         private const string DefaultContext = "Unity";
 
         private const string DefaultToken = "VQ920wVUieLHT9c3v1ZCbytaLXpXbktUztKb3iYLCdiRKjUagcl6eg==";
-
-        /// <summary>
-        /// third parties custom context, if null, defaults to DefaultContext property value
-        /// </summary>
         public string CustomContext = null;     // "PartnerCode" on the server
-
-        /// <summary>
-        /// third parties custom token. If null, defaults to DefaultToken property value
-        /// </summary>
         public string CustomToken = null;
-
-        /// <summary>
-        /// If this AccountService instance is currently waiting for a response. While pending, RegisterByEmail is blocked.
-        /// </summary>
         public bool RequestPendingResult = false;
-
-        /// <summary>
-        /// Attempts to create a Photon Cloud Account asynchronously. Blocked while RequestPendingResult is true.
-        /// </summary>
-        /// <remarks>
-        /// Once your callback is called, check ReturnCode, Message and AppId to get the result of this attempt.
-        /// </remarks>
-        /// <param name="email">Email of the account.</param>
-        /// <param name="serviceTypes">Defines which type of Photon-service is being requested.</param>
-        /// <param name="callback">Called when the result is available.</param>
-        /// <param name="errorCallback">Called when the request failed.</param>
-        /// <param name="origin">Can be used to identify the origin of the registration (which package is being used).</param>
         public bool RegisterByEmail(string email, List<ServiceTypes> serviceTypes, Action<AccountServiceResponse> callback = null, Action<string> errorCallback = null, string origin = null)
         {
             if (this.RequestPendingResult)
@@ -103,7 +64,6 @@ namespace Photon.Realtime
                     s =>
                     {
                         this.RequestPendingResult = false;
-                        //Debug.LogWarningFormat("received response {0}", s);
                         if (string.IsNullOrEmpty(s))
                         {
                             if (errorCallback != null)
@@ -149,17 +109,11 @@ namespace Photon.Realtime
 
             return string.Format("{0}?email={1}&st={2}&uv={3}&av={4}", serviceUrl, emailEscaped, st, uv, originAv);
         }
-
-        /// <summary>
-        /// Reads the Json response and applies it to local properties.
-        /// </summary>
-        /// <param name="result"></param>
         private AccountServiceResponse ParseResult(string result)
         {
             try
             {
                 AccountServiceResponse res = JsonUtility.FromJson<AccountServiceResponse>(result);
-                // Unity's JsonUtility does not support deserializing Dictionary, we manually parse it, dirty & ugly af, better then using a 3rd party lib
                 if (res.ReturnCode == AccountServiceReturnCodes.Success)
                 {
                     string[] parts = result.Split(new[] { "\"ApplicationIds\":{" }, StringSplitOptions.RemoveEmptyEntries);
@@ -188,12 +142,6 @@ namespace Photon.Realtime
                 return null;
             }
         }
-
-        /// <summary>
-        /// Turns the list items to a comma separated string. Returns null if list is null or empty.
-        /// </summary>
-        /// <param name="appTypes">List of service types.</param>
-        /// <returns>Returns null if list is null or empty.</returns>
         private static string GetServiceTypesFromList(List<ServiceTypes> appTypes)
         {
             if (appTypes == null || appTypes.Count <= 0)
@@ -210,9 +158,6 @@ namespace Photon.Realtime
 
             return serviceTypes;
         }
-
-        // RFC2822 compliant matching 99.9% of all email addresses in actual use today
-        // according to http://www.regular-expressions.info/email.html [22.02.2012]
         private static Regex reg = new Regex("^((?>[a-zA-Z\\d!#$%&'*+\\-/=?^_{|}~]+\\x20*|\"((?=[\\x01-\\x7f])[^\"\\]|\\[\\x01-\\x7f])*\"\\x20*)*(?<angle><))?((?!\\.)(?>\\.?[a-zA-Z\\d!#$%&'*+\\-/=?^_{|}~]+)+|\"((?=[\\x01-\\x7f])[^\"\\]|\\[\\x01-\\x7f])*\")@(((?!-)[a-zA-Z\\d\\-]+(?<!-)\\.)+[a-zA-Z]{2,}|\\[(((?(?<!\\[)\\.)(25[0-5]|2[0-4]\\d|[01]?\\d?\\d)){4}|[a-zA-Z\\d\\-]*[a-zA-Z\\d]:((?=[\\x01-\\x7f])[^\\\\[\\]]|\\[\\x01-\\x7f])+)\\])(?(angle)>)$",
              RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
         public static bool IsValidEmail(string mailAddress)

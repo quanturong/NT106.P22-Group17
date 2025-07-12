@@ -1,9 +1,4 @@
-﻿// ----------------------------------------------------------------------------------------------------------------------
-// <summary>The Photon Chat Api enables clients to connect to a chat server and communicate with other clients.</summary>
-// <remarks>ChatClient is the main class of this api.</remarks>
-// <copyright company="Exit Games GmbH">Photon Chat Api - Copyright (C) 2014 Exit Games GmbH</copyright>
-// ----------------------------------------------------------------------------------------------------------------------
-
+﻿
 #if UNITY_4_7 || UNITY_5 || UNITY_5_3_OR_NEWER
 #define SUPPORTED_UNITY
 #endif
@@ -19,94 +14,28 @@ namespace Photon.Chat
     using Hashtable = ExitGames.Client.Photon.Hashtable;
     using SupportClass = ExitGames.Client.Photon.SupportClass;
     #endif
-
-
-    /// <summary>Central class of the Photon Chat API to connect, handle channels and messages.</summary>
-    /// <remarks>
-    /// This class must be instantiated with a IChatClientListener instance to get the callbacks.
-    /// Integrate it into your game loop by calling Service regularly. If the target platform supports Threads/Tasks,
-    /// set UseBackgroundWorkerForSending = true, to let the ChatClient keep the connection by sending from
-    /// an independent thread.
-    ///
-    /// Call Connect with an AppId that is setup as Photon Chat application. Note: Connect covers multiple
-    /// messages between this client and the servers. A short workflow will connect you to a chat server.
-    ///
-    /// Each ChatClient resembles a user in chat (set in Connect). Each user automatically subscribes a channel
-    /// for incoming private messages and can message any other user privately.
-    /// Before you publish messages in any non-private channel, that channel must be subscribed.
-    ///
-    /// PublicChannels is a list of subscribed channels, containing messages and senders.
-    /// PrivateChannels contains all incoming and sent private messages.
-    /// </remarks>
     public class ChatClient : IPhotonPeerListener
     {
         const int FriendRequestListMax = 1024;
-
-        /// <summary> Default maximum value possible for <see cref="ChatChannel.MaxSubscribers"/> when <see cref="ChatChannel.PublishSubscribers"/> is enabled</summary>
         public const int DefaultMaxSubscribers = 100;
 
         private const byte HttpForwardWebFlag = 0x01;
-
-        /// <summary>Enables a fallback to another protocol in case a connect to the Name Server fails.</summary>
-        /// <remarks>
-        /// When connecting to the Name Server fails for a first time, the client will select an alternative
-        /// network protocol and re-try to connect.
-        ///
-        /// The fallback will use the default Name Server port as defined by ProtocolToNameServerPort.
-        ///
-        /// The fallback for TCP is UDP. All other protocols fallback to TCP.
-        /// </remarks>
         public bool EnableProtocolFallback { get; set; }
-
-        /// <summary>The address of last connected Name Server.</summary>
         public string NameServerAddress { get; private set; }
-
-        /// <summary>The address of the actual chat server assigned from NameServer. Public for read only.</summary>
         public string FrontendAddress { get; private set; }
-
-        /// <summary>Region used to connect to. Currently all chat is done in EU. It can make sense to use only one region for the whole game.</summary>
         private string chatRegion = "EU";
-
-        /// <summary>Settable only before you connect! Defaults to "EU".</summary>
         public string ChatRegion
         {
             get { return this.chatRegion; }
             set { this.chatRegion = value; }
         }
-
-        /// <summary>
-        /// Defines a proxy URL for WebSocket connections. Can be the proxy or point to a .pac file.
-        /// </summary>
-        /// <remarks>
-        /// This URL supports various definitions:
-        ///
-        /// "user:pass@proxyaddress:port"<br/>
-        /// "proxyaddress:port"<br/>
-        /// "system:"<br/>
-        /// "pac:"<br/>
-        /// "pac:http://host/path/pacfile.pac"<br/>
-        ///
-        /// Important: Don't define a protocol, except to point to a pac file. the proxy address should not begin with http:// or https://.
-        /// </remarks>
         public string ProxyServerAddress;
-
-        /// <summary>Current state of the ChatClient. Also use CanChat.</summary>
         public ChatState State { get; private set; }
-
-        /// <summary> Disconnection cause. Check this inside <see cref="IChatClientListener.OnDisconnected"/>. </summary>
         public ChatDisconnectCause DisconnectedCause { get; private set; }
-        /// <summary>
-        /// Checks if this client is ready to send messages.
-        /// </summary>
         public bool CanChat
         {
             get { return this.State == ChatState.ConnectedToFrontEnd && this.HasPeer; }
         }
-        /// <summary>
-        /// Checks if this client is ready to publish messages inside a public channel.
-        /// </summary>
-        /// <param name="channelName">The channel to do the check with.</param>
-        /// <returns>Whether or not this client is ready to publish messages inside the public channel with the specified channelName.</returns>
         public bool CanChatInChannel(string channelName)
         {
             return this.CanChat && this.PublicChannels.ContainsKey(channelName) && !this.PublicChannelsUnsubscribing.Contains(channelName);
@@ -116,21 +45,9 @@ namespace Photon.Chat
         {
             get { return this.chatPeer != null; }
         }
-
-        /// <summary>The version of your client. A new version also creates a new "virtual app" to separate players from older client versions.</summary>
         public string AppVersion { get; private set; }
-
-        /// <summary>The AppID as assigned from the Photon Cloud.</summary>
         public string AppId { get; private set; }
-
-
-        /// <summary>Settable only before you connect!</summary>
         public AuthenticationValues AuthValues { get; set; }
-
-        /// <summary>The unique ID of a user/person, stored in AuthValues.UserId. Set it before you connect.</summary>
-        /// <remarks>
-        /// This value wraps AuthValues.UserId.
-        /// It's not a nickname and we assume users with the same userID are the same person.</remarks>
         public string UserId
         {
             get
@@ -146,37 +63,13 @@ namespace Photon.Chat
                 this.AuthValues.UserId = value;
             }
         }
-
-        /// <summary>If greater than 0, new channels will limit the number of messages they cache locally.</summary>
-        /// <remarks>
-        /// This can be useful to limit the amount of memory used by chats.
-        /// You can set a MessageLimit per channel but this value gets applied to new ones.
-        ///
-        /// Note:
-        /// Changing this value, does not affect ChatChannels that are already in use!
-        /// </remarks>
         public int MessageLimit;
-
-        /// <summary>Limits the number of messages from private channel histories.</summary>
-        /// <remarks>
-        /// This is applied to all private channels on reconnect, as there is no explicit re-joining private channels.<br/>
-        /// Default is -1, which gets available messages up to a maximum set by the server.<br/>
-        /// A value of 0 gets you zero messages.<br/>
-        /// The server's limit of messages may be lower. If so, the server's value will overrule this.<br/>
-        /// </remarks>
         public int PrivateChatHistoryLength = -1;
-
-        /// <summary> Public channels this client is subscribed to. </summary>
         public readonly Dictionary<string, ChatChannel> PublicChannels;
-        /// <summary> Private channels in which this client has exchanged messages. </summary>
         public readonly Dictionary<string, ChatChannel> PrivateChannels;
-
-        // channels being in unsubscribing process
-        // items will be removed on successful unsubscription or subscription (the latter required after attempt to unsubscribe from not existing channel)
         private readonly HashSet<string> PublicChannelsUnsubscribing;
 
         private readonly IChatClientListener listener = null;
-        /// <summary> The Chat Peer used by this client. </summary>
         public ChatPeer chatPeer = null;
         private const string ChatAppName = "chat";
         private bool didAuthenticate;
@@ -186,20 +79,7 @@ namespace Photon.Chat
 
         private int msDeltaForServiceCalls = 50;
         private int msTimestampOfLastServiceCall;
-
-        /// <summary>Defines if a background thread will call SendOutgoingCommands, while your code calls Service to dispatch received messages.</summary>
-        /// <remarks>
-        /// The benefit of using a background thread to call SendOutgoingCommands is this:
-        ///
-        /// Even if your game logic is being paused, the background thread will keep the connection to the server up.
-        /// On a lower level, acknowledgements and pings will prevent a server-side timeout while (e.g.) Unity loads assets.
-        ///
-        /// Your game logic still has to call Service regularly, or else incoming messages are not dispatched.
-        /// As this typically triggers UI updates, it's easier to call Service from the main/UI thread.
-        /// </remarks>
         public bool UseBackgroundWorkerForSending { get; set; }
-
-        /// <summary>Exposes the TransportProtocol of the used PhotonPeer. Settable while not connected.</summary>
         public ConnectionProtocol TransportProtocol
         {
             get { return this.chatPeer.TransportProtocol; }
@@ -213,26 +93,10 @@ namespace Photon.Chat
                 this.chatPeer.TransportProtocol = value;
             }
         }
-
-        /// <summary>Defines which IPhotonSocket class to use per ConnectionProtocol.</summary>
-        /// <remarks>
-        /// Several platforms have special Socket implementations and slightly different APIs.
-        /// To accomodate this, switching the socket implementation for a network protocol was made available.
-        /// By default, UDP and TCP have socket implementations assigned.
-        ///
-        /// You only need to set the SocketImplementationConfig once, after creating a PhotonPeer
-        /// and before connecting. If you switch the TransportProtocol, the correct implementation is being used.
-        /// </remarks>
         public Dictionary<ConnectionProtocol, Type> SocketImplementationConfig
         {
             get { return this.chatPeer.SocketImplementationConfig; }
         }
-
-        /// <summary>
-        /// Chat client constructor.
-        /// </summary>
-        /// <param name="listener">The chat listener implementation.</param>
-        /// <param name="protocol">Connection protocol to be used by this client. Default is <see cref="ConnectionProtocol.Udp"/>.</param>
         public ChatClient(IChatClientListener listener, ConnectionProtocol protocol = ConnectionProtocol.Udp)
         {
             this.listener = listener;
@@ -276,17 +140,6 @@ namespace Photon.Chat
 
             return this.Connect(appSettings.AppIdChat, appSettings.AppVersion, this.AuthValues);
         }
-
-        /// <summary>
-        /// Connects this client to the Photon Chat Cloud service, which will also authenticate the user (and set a UserId).
-        /// </summary>
-        /// <remarks>
-        /// The ProxyServerAddress is used to connect. Set it before calling this method or use ConnectUsingSettings.
-        /// </remarks>
-        /// <param name="appId">Get your Photon Chat AppId from the <a href="https://dashboard.photonengine.com">Dashboard</a>.</param>
-        /// <param name="appVersion">Any version string you make up. Used to separate users and variants of your clients, which might be incompatible.</param>
-        /// <param name="authValues">Values for authentication. You can leave this null, if you set a UserId before. If you set authValues, they will override any UserId set before.</param>
-        /// <returns></returns>
         public bool Connect(string appId, string appVersion, AuthenticationValues authValues)
         {
             this.chatPeer.TimePingInterval = 3000;
@@ -302,8 +155,6 @@ namespace Photon.Chat
             this.didAuthenticate = false;
             this.chatPeer.QuickResendAttempts = 2;
             this.chatPeer.SentCountAllowance = 7;
-
-            // clean all channels
             this.PublicChannels.Clear();
             this.PrivateChannels.Clear();
             this.PublicChannelsUnsubscribing.Clear();
@@ -335,18 +186,6 @@ namespace Photon.Chat
 
             return isConnecting;
         }
-
-        /// <summary>
-        /// Connects this client to the Photon Chat Cloud service, which will also authenticate the user (and set a UserId).
-        /// This also sets an online status once connected. By default it will set user status to <see cref="ChatUserStatus.Online"/>.
-        /// See <see cref="SetOnlineStatus(int,object)"/> for more information.
-        /// </summary>
-        /// <param name="appId">Get your Photon Chat AppId from the <a href="https://dashboard.photonengine.com">Dashboard</a>.</param>
-        /// <param name="appVersion">Any version string you make up. Used to separate users and variants of your clients, which might be incompatible.</param>
-        /// <param name="authValues">Values for authentication. You can leave this null, if you set a UserId before. If you set authValues, they will override any UserId set before.</param>
-        /// <param name="status">User status to set when connected. Predefined states are in class <see cref="ChatUserStatus"/>. Other values can be used at will.</param>
-        /// <param name="message">Optional status Also sets a status-message which your friends can get.</param>
-        /// <returns>If the connection attempt could be sent at all.</returns>
         public bool ConnectAndSetStatus(string appId, string appVersion, AuthenticationValues authValues,
             int status = ChatUserStatus.Online, object message = null)
         {
@@ -354,22 +193,11 @@ namespace Photon.Chat
             messageToSetWhenConnected = message;
             return Connect(appId, appVersion, authValues);
         }
-
-        /// <summary>
-        /// Must be called regularly to keep connection between client and server alive and to process incoming messages.
-        /// </summary>
-        /// <remarks>
-        /// This method limits the effort it does automatically using the private variable msDeltaForServiceCalls.
-        /// That value is lower for connect and multiplied by 4 when chat-server connection is ready.
-        /// </remarks>
         public void Service()
         {
-            // Dispatch until every already-received message got dispatched
             while (this.HasPeer && this.chatPeer.DispatchIncomingCommands())
             {
             }
-
-            // if there is no background thread for sending, Service() will do that as well, in intervals
             if (!this.UseBackgroundWorkerForSending)
             {
                 if (Environment.TickCount - this.msTimestampOfLastServiceCall > this.msDeltaForServiceCalls || this.msTimestampOfLastServiceCall == 0)
@@ -382,11 +210,6 @@ namespace Photon.Chat
                 }
             }
         }
-
-        /// <summary>
-        /// Called by a separate thread, this sends outgoing commands of this peer, as long as it's connected.
-        /// </summary>
-        /// <returns>True as long as the client is not disconnected.</returns>
         private bool SendOutgoingInBackground()
         {
             while (this.HasPeer && this.chatPeer.SendOutgoingCommands())
@@ -395,18 +218,11 @@ namespace Photon.Chat
 
             return this.State != ChatState.Disconnected;
         }
-
-        /// <summary> Obsolete: Better use UseBackgroundWorkerForSending and Service(). </summary>
         [Obsolete("Better use UseBackgroundWorkerForSending and Service().")]
         public void SendAcksOnly()
         {
             if (this.HasPeer) this.chatPeer.SendAcksOnly();
         }
-
-
-        /// <summary>
-        /// Disconnects from the Chat Server by sending a "disconnect command", which prevents a timeout server-side.
-        /// </summary>
         public void Disconnect(ChatDisconnectCause cause = ChatDisconnectCause.DisconnectByClientLogic)
         {
             if (this.HasPeer && this.chatPeer.PeerState != PeerStateValue.Disconnected)
@@ -416,10 +232,6 @@ namespace Photon.Chat
                 this.chatPeer.Disconnect();
             }
         }
-
-        /// <summary>
-        /// Locally shuts down the connection to the Chat Server. This resets states locally but the server will have to timeout this peer.
-        /// </summary>
         public void StopThread()
         {
             if (this.HasPeer)
@@ -427,23 +239,10 @@ namespace Photon.Chat
                 this.chatPeer.StopThread();
             }
         }
-
-        /// <summary>Sends operation to subscribe to a list of channels by name.</summary>
-        /// <remarks>ChatClient.PublicChannels keeps track of the currently subscribed ChatChannels. Optionally, they can list the subscribers.</remarks>
-        /// <param name="channels">List of channels to subscribe to. Avoid null or empty values.</param>
-        /// <returns>If the operation could be sent at all (Example: Fails if not connected to Chat Server).</returns>
         public bool Subscribe(string[] channels)
         {
             return this.Subscribe(channels, 0);
         }
-
-        /// <summary>
-        /// Sends operation to subscribe to a list of channels by name and possibly retrieve messages we did not receive while unsubscribed.
-        /// </summary>
-        /// <remarks>ChatClient.PublicChannels keeps track of the currently subscribed ChatChannels. Optionally, they can list the subscribers.</remarks>
-        /// <param name="channels">List of channels to subscribe to. Avoid null or empty values.</param>
-        /// <param name="lastMsgIds">ID of last message received per channel. Useful when re subscribing to receive only messages we missed.</param>
-        /// <returns>If the operation could be sent at all (Example: Fails if not connected to Chat Server).</returns>
         public bool Subscribe(string[] channels, int[] lastMsgIds)
         {
             if (!this.CanChat)
@@ -494,19 +293,6 @@ namespace Photon.Chat
 
             return this.chatPeer.SendOperation(ChatOperationCode.Subscribe, opParameters, SendOptions.SendReliable);
         }
-
-        /// <summary>
-        /// Sends operation to subscribe client to channels, optionally fetching a number of messages from the cache.
-        /// </summary>
-        /// <remarks>
-        /// Subscribes channels will forward new messages to this user. Use PublishMessage to do so.
-        /// The messages cache is limited but can be useful to get into ongoing conversations, if that's needed.
-        ///
-        /// ChatClient.PublicChannels keeps track of the currently subscribed ChatChannels. Optionally, they can list the subscribers.
-        /// </remarks>
-        /// <param name="channels">List of channels to subscribe to. Avoid null or empty values.</param>
-        /// <param name="messagesFromHistory">0: no history. 1 and higher: number of messages in history. -1: all available history.</param>
-        /// <returns>If the operation could be sent at all (Example: Fails if not connected to Chat Server).</returns>
         public bool Subscribe(string[] channels, int messagesFromHistory)
         {
             if (!this.CanChat)
@@ -529,18 +315,6 @@ namespace Photon.Chat
 
             return this.SendChannelOperation(channels, (byte)ChatOperationCode.Subscribe, messagesFromHistory);
         }
-
-        /// <summary>Unsubscribes from a list of channels, which stops getting messages from those.</summary>
-        /// <remarks>
-        /// The client will remove these channels from the PublicChannels dictionary once the server sent a response to this request.
-        ///
-        /// The request will be sent to the server and IChatClientListener.OnUnsubscribed gets called when the server
-        /// actually removed the channel subscriptions.
-        ///
-        /// Unsubscribe will fail if you include null or empty channel names.
-        /// </remarks>
-        /// <param name="channels">Names of channels to unsubscribe.</param>
-        /// <returns>False, if not connected to a chat server.</returns>
         public bool Unsubscribe(string[] channels)
         {
             if (!this.CanChat)
@@ -567,16 +341,6 @@ namespace Photon.Chat
             }
             return this.SendChannelOperation(channels, ChatOperationCode.Unsubscribe, 0);
         }
-
-        /// <summary>Sends a message to a public channel which this client subscribed to.</summary>
-        /// <remarks>
-        /// Before you publish to a channel, you have to subscribe it.
-        /// Everyone in that channel will get the message.
-        /// </remarks>
-        /// <param name="channelName">Name of the channel to publish to.</param>
-        /// <param name="message">Your message (string or any serializable data).</param>
-        /// <param name="forwardAsWebhook">Optionally, public messages can be forwarded as webhooks. Configure webhooks for your Chat app to use this.</param>
-        /// <returns>False if the client is not yet ready to send messages.</returns>
         public bool PublishMessage(string channelName, object message, bool forwardAsWebhook = false)
         {
             return this.publishMessage(channelName, message, true, forwardAsWebhook);
@@ -619,27 +383,10 @@ namespace Photon.Chat
 
             return this.chatPeer.SendOperation(ChatOperationCode.Publish, parameters, new SendOptions() { Reliability = reliable });
         }
-
-        /// <summary>
-        /// Sends a private message to a single target user. Calls OnPrivateMessage on the receiving client.
-        /// </summary>
-        /// <param name="target">Username to send this message to.</param>
-        /// <param name="message">The message you want to send. Can be a simple string or anything serializable.</param>
-        /// <param name="forwardAsWebhook">Optionally, private messages can be forwarded as webhooks. Configure webhooks for your Chat app to use this.</param>
-        /// <returns>True if this clients can send the message to the server.</returns>
         public bool SendPrivateMessage(string target, object message, bool forwardAsWebhook = false)
         {
             return this.SendPrivateMessage(target, message, false, forwardAsWebhook);
         }
-
-        /// <summary>
-        /// Sends a private message to a single target user. Calls OnPrivateMessage on the receiving client.
-        /// </summary>
-        /// <param name="target">Username to send this message to.</param>
-        /// <param name="message">The message you want to send. Can be a simple string or anything serializable.</param>
-        /// <param name="encrypt">Optionally, private messages can be encrypted. Encryption is not end-to-end as the server decrypts the message.</param>
-        /// <param name="forwardAsWebhook">Optionally, private messages can be forwarded as webhooks. Configure webhooks for your Chat app to use this.</param>
-        /// <returns>True if this clients can send the message to the server.</returns>
         public bool SendPrivateMessage(string target, object message, bool encrypt, bool forwardAsWebhook)
         {
             return this.sendPrivateMessage(target, message, encrypt, true, forwardAsWebhook);
@@ -682,22 +429,6 @@ namespace Photon.Chat
 
             return this.chatPeer.SendOperation(ChatOperationCode.SendPrivate, parameters, new SendOptions() { Reliability = reliable, Encrypt = encrypt });
         }
-
-        /// <summary>Sets the user's status (pre-defined or custom) and an optional message.</summary>
-        /// <remarks>
-        /// The predefined status values can be found in class ChatUserStatus.
-        /// State ChatUserStatus.Invisible will make you offline for everyone and send no message.
-        ///
-        /// You can set custom values in the status integer. Aside from the pre-configured ones,
-        /// all states will be considered visible and online. Else, no one would see the custom state.
-        ///
-        /// The message object can be anything that Photon can serialize, including (but not limited to)
-        /// Hashtable, object[] and string. This value is defined by your own conventions.
-        /// </remarks>
-        /// <param name="status">Predefined states are in class ChatUserStatus. Other values can be used at will.</param>
-        /// <param name="message">Optional string message or null.</param>
-        /// <param name="skipMessage">If true, the message gets ignored. It can be null but won't replace any current message.</param>
-        /// <returns>True if the operation gets called on the server.</returns>
         private bool SetOnlineStatus(int status, object message, bool skipMessage)
         {
             if (!this.CanChat)
@@ -725,67 +456,14 @@ namespace Photon.Chat
 
             return this.chatPeer.SendOperation(ChatOperationCode.UpdateStatus, parameters, SendOptions.SendReliable);
         }
-
-        /// <summary>Sets the user's status without changing your status-message.</summary>
-        /// <remarks>
-        /// The predefined status values can be found in class ChatUserStatus.
-        /// State ChatUserStatus.Invisible will make you offline for everyone and send no message.
-        ///
-        /// You can set custom values in the status integer. Aside from the pre-configured ones,
-        /// all states will be considered visible and online. Else, no one would see the custom state.
-        ///
-        /// This overload does not change the set message.
-        /// </remarks>
-        /// <param name="status">Predefined states are in class ChatUserStatus. Other values can be used at will.</param>
-        /// <returns>True if the operation gets called on the server.</returns>
         public bool SetOnlineStatus(int status)
         {
             return this.SetOnlineStatus(status, null, true);
         }
-
-        /// <summary>Sets the user's status without changing your status-message.</summary>
-        /// <remarks>
-        /// The predefined status values can be found in class ChatUserStatus.
-        /// State ChatUserStatus.Invisible will make you offline for everyone and send no message.
-        ///
-        /// You can set custom values in the status integer. Aside from the pre-configured ones,
-        /// all states will be considered visible and online. Else, no one would see the custom state.
-        ///
-        /// The message object can be anything that Photon can serialize, including (but not limited to)
-        /// Hashtable, object[] and string. This value is defined by your own conventions.
-        /// </remarks>
-        /// <param name="status">Predefined states are in class ChatUserStatus. Other values can be used at will.</param>
-        /// <param name="message">Also sets a status-message which your friends can get.</param>
-        /// <returns>True if the operation gets called on the server.</returns>
         public bool SetOnlineStatus(int status, object message)
         {
             return this.SetOnlineStatus(status, message, false);
         }
-
-        /// <summary>
-        /// Adds friends to a list on the Chat Server which will send you status updates for those.
-        /// </summary>
-        /// <remarks>
-        /// AddFriends and RemoveFriends enable clients to handle their friend list
-        /// in the Photon Chat server. Having users on your friends list gives you access
-        /// to their current online status (and whatever info your client sets in it).
-        ///
-        /// Each user can set an online status consisting of an integer and an arbitrary
-        /// (serializable) object. The object can be null, Hashtable, object[] or anything
-        /// else Photon can serialize.
-        ///
-        /// The status is published automatically to friends (anyone who set your user ID
-        /// with AddFriends).
-        ///
-        /// Photon flushes friends-list when a chat client disconnects, so it has to be
-        /// set each time. If your community API gives you access to online status already,
-        /// you could filter and set online friends in AddFriends.
-        ///
-        /// Actual friend relations are not persistent and have to be stored outside
-        /// of Photon.
-        /// </remarks>
-        /// <param name="friends">Array of friend userIds.</param>
-        /// <returns>If the operation could be sent.</returns>
         public bool AddFriends(string[] friends)
         {
             if (!this.CanChat)
@@ -821,49 +499,6 @@ namespace Photon.Chat
 
             return this.chatPeer.SendOperation(ChatOperationCode.AddFriends, parameters, SendOptions.SendReliable);
         }
-
-        /// <summary>
-        /// Removes the provided entries from the list on the Chat Server and stops their status updates.
-        /// </summary>
-        /// <remarks>
-        /// Photon flushes friends-list when a chat client disconnects. Unless you want to
-        /// remove individual entries, you don't have to RemoveFriends.
-        ///
-        /// AddFriends and RemoveFriends enable clients to handle their friend list
-        /// in the Photon Chat server. Having users on your friends list gives you access
-        /// to their current online status (and whatever info your client sets in it).
-        ///
-        /// Each user can set an online status consisting of an integer and an arbitratry
-        /// (serializable) object. The object can be null, Hashtable, object[] or anything
-        /// else Photon can serialize.
-        ///
-        /// The status is published automatically to friends (anyone who set your user ID
-        /// with AddFriends).
-        ///
-        /// Photon flushes friends-list when a chat client disconnects, so it has to be
-        /// set each time. If your community API gives you access to online status already,
-        /// you could filter and set online friends in AddFriends.
-        ///
-        /// Actual friend relations are not persistent and have to be stored outside
-        /// of Photon.
-        ///
-        /// AddFriends and RemoveFriends enable clients to handle their friend list
-        /// in the Photon Chat server. Having users on your friends list gives you access
-        /// to their current online status (and whatever info your client sets in it).
-        ///
-        /// Each user can set an online status consisting of an integer and an arbitratry
-        /// (serializable) object. The object can be null, Hashtable, object[] or anything
-        /// else Photon can serialize.
-        ///
-        /// The status is published automatically to friends (anyone who set your user ID
-        /// with AddFriends).
-        ///
-        ///
-        /// Actual friend relations are not persistent and have to be stored outside
-        /// of Photon.
-        /// </remarks>
-        /// <param name="friends">Array of friend userIds.</param>
-        /// <returns>If the operation could be sent.</returns>
         public bool RemoveFriends(string[] friends)
         {
             if (!this.CanChat)
@@ -899,29 +534,10 @@ namespace Photon.Chat
 
             return this.chatPeer.SendOperation(ChatOperationCode.RemoveFriends, parameters, SendOptions.SendReliable);
         }
-
-        /// <summary>
-        /// Get you the (locally used) channel name for the chat between this client and another user.
-        /// </summary>
-        /// <param name="userName">Remote user's name or UserId.</param>
-        /// <returns>The (locally used) channel name for a private channel.</returns>
-        /// <remarks>Do not subscribe to this channel.
-        /// Private channels do not need to be explicitly subscribed to.
-        /// Use this for debugging purposes mainly.</remarks>
         public string GetPrivateChannelNameByUser(string userName)
         {
             return string.Format("{0}:{1}", this.UserId, userName);
         }
-
-        /// <summary>
-        /// Simplified access to either private or public channels by name.
-        /// </summary>
-        /// <param name="channelName">Name of the channel to get. For private channels, the channel-name is composed of both user's names.</param>
-        /// <param name="isPrivate">Define if you expect a private or public channel.</param>
-        /// <param name="channel">Out parameter gives you the found channel, if any.</param>
-        /// <returns>True if the channel was found.</returns>
-        /// <remarks>Public channels exist only when subscribed to them.
-        /// Private channels exist only when at least one message is exchanged with the target user privately.</remarks>
         public bool TryGetChannel(string channelName, bool isPrivate, out ChatChannel channel)
         {
             if (!isPrivate)
@@ -933,15 +549,6 @@ namespace Photon.Chat
                 return this.PrivateChannels.TryGetValue(channelName, out channel);
             }
         }
-
-        /// <summary>
-        /// Simplified access to all channels by name. Checks public channels first, then private ones.
-        /// </summary>
-        /// <param name="channelName">Name of the channel to get.</param>
-        /// <param name="channel">Out parameter gives you the found channel, if any.</param>
-        /// <returns>True if the channel was found.</returns>
-        /// <remarks>Public channels exist only when subscribed to them.
-        /// Private channels exist only when at least one message is exchanged with the target user privately.</remarks>
         public bool TryGetChannel(string channelName, out ChatChannel channel)
         {
             bool found = false;
@@ -951,13 +558,6 @@ namespace Photon.Chat
             found = this.PrivateChannels.TryGetValue(channelName, out channel);
             return found;
         }
-
-        /// <summary>
-        /// Simplified access to private channels by target user.
-        /// </summary>
-        /// <param name="userId">UserId of the target user in the private channel.</param>
-        /// <param name="channel">Out parameter gives you the found channel, if any.</param>
-        /// <returns>True if the channel was found.</returns>
         public bool TryGetPrivateChannelByUser(string userId, out ChatChannel channel)
         {
             channel = null;
@@ -968,14 +568,6 @@ namespace Photon.Chat
             string channelName = this.GetPrivateChannelNameByUser(userId);
             return this.TryGetChannel(channelName, true, out channel);
         }
-
-        /// <summary>
-        /// Sets the level (and amount) of debug output provided by the library.
-        /// </summary>
-        /// <remarks>
-        /// This affects the callbacks to IChatClientListener.DebugReturn.
-        /// Default Level: Error.
-        /// </remarks>
         public DebugLevel DebugOut
         {
             set { this.chatPeer.DebugOut = value; }
@@ -1034,8 +626,6 @@ namespace Photon.Chat
                 case (byte)ChatOperationCode.Authenticate:
                     this.HandleAuthResponse(operationResponse);
                     break;
-
-                // the following operations usually don't return useful data and no error.
                 case (byte)ChatOperationCode.Subscribe:
                 case (byte)ChatOperationCode.Unsubscribe:
                 case (byte)ChatOperationCode.Publish:
@@ -1093,7 +683,6 @@ namespace Photon.Chat
                     }
                     break;
                 case StatusCode.EncryptionEstablished:
-                    // once encryption is available, the client should send one (secure) authenticate. it includes the AppId (which identifies your app on the Photon Cloud)
                     this.TryAuthenticateOnNameServer();
                     break;
                 case StatusCode.Disconnect:
@@ -1104,20 +693,14 @@ namespace Photon.Chat
                             this.chatPeer.NameServerPortOverride = 0;   // resets a value in the peer only (as we change the protocol, the port has to change, too)
                             this.chatPeer.TransportProtocol = (this.chatPeer.TransportProtocol == ConnectionProtocol.Tcp) ? ConnectionProtocol.Udp : ConnectionProtocol.Tcp;
                             this.Connect(this.AppId, this.AppVersion, null);
-
-                            // the client now has to return, instead of break, to avoid further processing of the disconnect call
                             return;
 
                         case ChatState.Authenticated:
                             this.ConnectToFrontEnd();
-                            // client disconnected from nameserver after authentication
-                            // to switch to frontend
                             return;
                         case ChatState.Disconnecting:
-                            // expected disconnect
                             break;
                         default:
-                            // unexpected disconnect, we log warning and stacktrace
                             string stacktrace = string.Empty;
                             #if DEBUG && !NETFX_CORE
                             stacktrace = new System.Diagnostics.StackTrace(true).ToString();
@@ -1141,8 +724,6 @@ namespace Photon.Chat
                 case StatusCode.SecurityExceptionOnConnect:
                 case StatusCode.EncryptionFailedToEstablish:
                     this.DisconnectedCause = ChatDisconnectCause.ExceptionOnConnect;
-
-                    // if enabled, the client can attempt to connect with another networking-protocol to check if that connects
                     if (this.EnableProtocolFallback && this.State == ChatState.ConnectingToNameServer)
                     {
                         this.State = ChatState.ConnectWithFallbackProtocol;
@@ -1168,8 +749,6 @@ namespace Photon.Chat
                     break;
                 case StatusCode.TimeoutDisconnect:
                     this.DisconnectedCause = ChatDisconnectCause.ClientTimeout;
-
-                    // if enabled, the client can attempt to connect with another networking-protocol to check if that connects
                     if (this.EnableProtocolFallback && this.State == ChatState.ConnectingToNameServer)
                     {
                         this.State = ChatState.ConnectWithFallbackProtocol;
@@ -1244,7 +823,6 @@ namespace Photon.Chat
 
         private void HandlePrivateMessageEvent(EventData eventData)
         {
-            //Console.WriteLine(SupportClass.DictionaryToString(eventData.Parameters));
 
             object message = (object)eventData.Parameters[(byte)ChatParameterCode.Message];
             string sender = (string)eventData.Parameters[(byte)ChatParameterCode.Sender];
@@ -1329,7 +907,6 @@ namespace Photon.Chat
                     #if CHAT_EXTENDED
                     if (eventData.Parameters.TryGetValue(ChatParameterCode.UserProperties, out temp))
                     {
-                        //UnityEngine.Debug.LogFormat("temp = {0}", temp);
                         Dictionary<string, object> userProperties = temp as Dictionary<string, object>;
                         foreach (var pair in userProperties)
                         {
@@ -1380,8 +957,6 @@ namespace Photon.Chat
                         this.AuthValues.Token = operationResponse[ParameterCode.Secret];
 
                         this.FrontendAddress = (string)operationResponse[ParameterCode.Address];
-
-                        // we disconnect and status handler starts to connect to front end
                         this.chatPeer.Disconnect();
                     }
                     else
@@ -1415,7 +990,6 @@ namespace Photon.Chat
             }
             else
             {
-                //this.listener.DebugReturn(DebugLevel.INFO, operationResponse.ToStringFull() + " NS: " + this.NameServerAddress + " FrontEnd: " + this.frontEndAddress);
 
                 switch (operationResponse.ReturnCode)
                 {
@@ -1606,15 +1180,6 @@ namespace Photon.Chat
         }
 
         #endregion
-
-        /// <summary>
-        /// Subscribe to a single channel and optionally sets its well-know channel properties in case the channel is created.
-        /// </summary>
-        /// <param name="channel">name of the channel to subscribe to</param>
-        /// <param name="lastMsgId">ID of the last received message from this channel when re subscribing to receive only missed messages, default is 0</param>
-        /// <param name="messagesFromHistory">how many missed messages to receive from history, default is -1 (available history). 0 will get you no items. Positive values are capped by a server side limit.</param>
-        /// <param name="creationOptions">options to be used in case the channel to subscribe to will be created.</param>
-        /// <returns></returns>
         public bool Subscribe(string channel, int lastMsgId = 0, int messagesFromHistory = -1, ChannelCreationOptions creationOptions = null)
         {
             if (creationOptions == null)

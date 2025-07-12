@@ -1,13 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DemoHubManager.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Demos
-// </copyright>
-// <summary>
-//  Used as starting point to let developer choose amongst all demos available.
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -41,8 +32,6 @@ namespace Photon.Pun.Demo.Hub
 		Dictionary<string,DemoData> _data = new Dictionary<string, DemoData>();
 
 		string currentSelection;
-
-		// Use this for initialization
 		void Awake () {
 
 			PunCockpit.Embedded = false;
@@ -51,8 +40,6 @@ namespace Photon.Pun.Demo.Hub
 			
 			OpenTutorialLinkButton.SetActive(false);
 			OpenDocLinkButton.SetActive(false);
-
-			// Setup data
 
 			_data.Add(
 				"BasicTutorial", 

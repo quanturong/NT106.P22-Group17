@@ -1,25 +1,9 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="OnClickInstantiate.cs" company="Exit Games GmbH">
-// Part of: Photon Unity Utilities
-// </copyright>
-// <summary>A compact script for prototyping.</summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 
 namespace Photon.Pun.UtilityScripts
 {
     using UnityEngine;
     using UnityEngine.EventSystems;
-
-
-    /// <summary>
-    /// Instantiates a networked GameObject on click.
-    /// </summary>
-    /// <remarks>
-    /// Gets OnClick() calls by Unity's IPointerClickHandler. Needs a PhysicsRaycaster on the camera.
-    /// See: https://docs.unity3d.com/ScriptReference/EventSystems.IPointerClickHandler.html
-    /// </remarks>
     public class OnClickInstantiate : MonoBehaviour, IPointerClickHandler
     {
         public enum InstantiateOption { Mine, Scene }

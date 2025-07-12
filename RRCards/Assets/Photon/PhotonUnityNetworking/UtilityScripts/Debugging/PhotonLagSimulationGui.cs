@@ -1,14 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PhotonLagSimulationGui.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities,
-// </copyright>
-// <summary>
-// This MonoBehaviour is a basic GUI for the Photon client's network-simulation feature.
-// It can modify lag (fixed delay), jitter (random lag) and packet loss.
-// Part of the [Optional GUI](@ref optionalGui).
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 
 using UnityEngine;
@@ -19,23 +8,11 @@ using ExitGames.Client.Photon;
 
 namespace Photon.Pun.UtilityScripts
 {
-    /// <summary>
-    /// This MonoBehaviour is a basic GUI for the Photon client's network-simulation feature.
-    /// It can modify lag (fixed delay), jitter (random lag) and packet loss.
-    /// </summary>
-    /// \ingroup optionalGui
     public class PhotonLagSimulationGui : MonoBehaviour
     {
-        /// <summary>Positioning rect for window.</summary>
         public Rect WindowRect = new Rect(0, 100, 120, 100);
-
-        /// <summary>Unity GUI Window ID (must be unique or will cause issues).</summary>
         public int WindowId = 101;
-
-        /// <summary>Shows or hides GUI (does not affect settings).</summary>
         public bool Visible = true;
-
-        /// <summary>The peer currently in use (to set the network simulation).</summary>
         public PhotonPeer Peer { get; set; }
 
         public void Start()
@@ -96,8 +73,6 @@ namespace Photon.Pun.UtilityScripts
 
             this.Peer.NetworkSimulationSettings.IncomingLossPercentage = (int)loss;
             this.Peer.NetworkSimulationSettings.OutgoingLossPercentage = (int)loss;
-
-            // if anything was clicked, the height of this window is likely changed. reduce it to be layouted again next frame
             if (GUI.changed)
             {
                 this.WindowRect.height = 100;

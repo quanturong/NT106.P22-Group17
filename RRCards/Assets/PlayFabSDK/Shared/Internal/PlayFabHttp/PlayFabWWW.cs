@@ -97,15 +97,11 @@ namespace PlayFab.Internal
         {
             CallRequestContainer reqContainer = (CallRequestContainer)reqContainerObj;
             reqContainer.RequestHeaders["Content-Type"] = "application/json";
-
-            //Debug.LogFormat("Posting {0} to Url: {1}", req.Trim(), url);
             var www = new WWW(reqContainer.FullUrl, reqContainer.Payload, reqContainer.RequestHeaders);
 
 #if PLAYFAB_REQUEST_TIMING
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 #endif
-
-            // Start the www corouting to Post, and get a response or error which is then passed to the callbacks.
             Action<string> wwwSuccessCallback = (response) =>
             {
                 try
@@ -118,7 +114,6 @@ namespace PlayFab.Internal
 
                     if (httpResult.code == 200)
                     {
-                        // We have a good response from the server
                         reqContainer.JsonResponse = serializer.SerializeObject(httpResult.data);
                         reqContainer.DeserializeResultJson();
                         reqContainer.ApiResult.Request = reqContainer.ApiRequest;

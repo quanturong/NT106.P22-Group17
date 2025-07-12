@@ -2722,7 +2722,6 @@
             <summary>Inserts the given callback at the same time position of the last tween, callback or interval added to the Sequence.
             Note that, in case of a Join after an interval, the insertion time will be the time where the interval starts, not where it finishes.
             Has no effect if the Sequence has already started</summary>
-            /// &lt;param name="callback"&gt;The callback to prepend&lt;/param&gt;
         </member>
         <member name="M:DG.Tweening.TweenSettingsExtensions.InsertCallback(DG.Tweening.Sequence,System.Single,DG.Tweening.TweenCallback)">
             <summary>Inserts the given callback at the given time position in the Sequence,

@@ -1,13 +1,4 @@
-﻿// ----------------------------------------------------------------------------
-// <copyright file="PhotonEditorUtils.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   Unity Editor Utils
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
-
+﻿
 #pragma warning disable 618 // Deprecation warnings
 
 
@@ -38,8 +29,6 @@ namespace Photon.Realtime
     [InitializeOnLoad]
     public static class PhotonEditorUtils
     {
-        /// <summary>Stores a flag which tells Editor scripts if the PhotonEditor.OnProjectChanged got called since initialization.</summary>
-        /// <remarks>If not, the AssetDatabase is likely not usable yet and instances of ScriptableObject can't be loaded.</remarks>
         [Obsolete("Directly check EditorApplication.isUpdating to figure out if assets are being imported at the given time.")]
         public static bool ProjectChangedWasCalled 
         {
@@ -48,21 +37,10 @@ namespace Photon.Realtime
                 return UnityEditor.EditorApplication.isUpdating;
             }
         } 
-
-
-        /// <summary>True if the ChatClient of the Photon Chat API is available. If so, the editor may (e.g.) show additional options in settings.</summary>
         public static bool HasChat;
-
-        /// <summary>True if the VoiceClient of the Photon Voice API is available. If so, the editor may (e.g.) show additional options in settings.</summary>
         public static bool HasVoice;
-
-        /// <summary>True if PUN is in the project.</summary>
         public static bool HasPun;
-
-        /// <summary>True if Photon Fusion is available in the project (and enabled).</summary>
         public static bool HasFusion;
-
-        /// <summary>True if the PhotonEditorUtils checked the available products / APIs. If so, the editor may (e.g.) show additional options in settings.</summary>
         public static bool HasCheckedProducts;
 
         static PhotonEditorUtils()
@@ -82,7 +60,6 @@ namespace Photon.Realtime
 
             if (HasPun)
             {
-                // MOUNTING SYMBOLS
                 #if !PHOTON_UNITY_NETWORKING
                 AddScriptingDefineSymbolToAllBuildTargetGroups("PHOTON_UNITY_NETWORKING");
                 #endif
@@ -100,12 +77,6 @@ namespace Photon.Realtime
                 #endif
             }
         }
-
-        /// <summary>
-        /// Adds a given scripting define symbol to all build target groups
-        /// You can see all scripting define symbols ( not the internal ones, only the one for this project), in the PlayerSettings inspector
-        /// </summary>
-        /// <param name="defineSymbol">Define symbol.</param>
         public static void AddScriptingDefineSymbolToAllBuildTargetGroups(string defineSymbol)
         {
             foreach (BuildTarget target in Enum.GetValues(typeof(BuildTarget)))
@@ -160,10 +131,6 @@ namespace Photon.Realtime
             PlayerSettings.SetScriptingDefineSymbolsForGroup(group, defines);
             #endif
         }
-
-        /// <summary>
-        /// Removes PUN2's Script Define Symbols from project
-        /// </summary>
         public static void CleanUpPunDefineSymbols()
         {
             foreach (BuildTarget target in Enum.GetValues(typeof(BuildTarget)))
@@ -200,14 +167,6 @@ namespace Photon.Realtime
                 }
             }
         }
-
-
-        /// <summary>
-        /// Gets the parent directory of a path. Recursive Function, will return null if parentName not found
-        /// </summary>
-        /// <returns>The parent directory</returns>
-        /// <param name="path">Path.</param>
-        /// <param name="parentName">Parent name.</param>
         public static string GetParent(string path, string parentName)
         {
             var dir = new DirectoryInfo(path);
@@ -229,12 +188,6 @@ namespace Photon.Realtime
 
             return GetParent(dir.Parent.FullName, parentName);
         }
-
-		/// <summary>
-		/// Check if a GameObject is a prefab asset or part of a prefab asset, as opposed to an instance in the scene hierarchy
-		/// </summary>
-		/// <returns><c>true</c>, if a prefab asset or part of it, <c>false</c> otherwise.</returns>
-		/// <param name="go">The GameObject to check</param>
 		public static bool IsPrefab(GameObject go)
 		{
             #if UNITY_2021_2_OR_NEWER
@@ -245,8 +198,6 @@ namespace Photon.Realtime
             return EditorUtility.IsPersistent(go);
 			#endif
 		}
-
-        //https://forum.unity.com/threads/using-unitywebrequest-in-editor-tools.397466/#post-4485181
         public static void StartCoroutine(System.Collections.IEnumerator update)
         {
             EditorApplication.CallbackFunction closureCallback = null;
@@ -316,12 +267,6 @@ namespace Photon.Realtime
                 }
             }
         }
-        /// <summary>
-        /// Creates a Foldout using a toggle with (GUIStyle)"Foldout") and a separate label. This is a workaround for 2019.3 foldout arrows not working.
-        /// </summary>
-        /// <param name="isExpanded"></param>
-        /// <param name="label"></param>
-        /// <returns>Returns the new isExpanded value.</returns>
         public static bool Foldout(this SerializedProperty isExpanded, GUIContent label)
         {
             var rect = EditorGUILayout.GetControlRect();
@@ -334,13 +279,6 @@ namespace Photon.Realtime
             }
             return newvalue;
         }
-
-        /// <summary>
-        /// Creates a Foldout using a toggle with (GUIStyle)"Foldout") and a separate label. This is a workaround for 2019.3 foldout arrows not working.
-        /// </summary>
-        /// <param name="isExpanded"></param>
-        /// <param name="label"></param>
-        /// <returns>Returns the new isExpanded value.</returns>
         public static bool Foldout(this bool isExpanded, GUIContent label)
         {
             var rect = EditorGUILayout.GetControlRect();

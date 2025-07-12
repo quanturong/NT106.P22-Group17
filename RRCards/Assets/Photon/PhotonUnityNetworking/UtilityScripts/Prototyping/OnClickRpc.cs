@@ -1,10 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="OnClickInstantiate.cs" company="Exit Games GmbH">
-// Part of: Photon Unity Utilities
-// </copyright>
-// <summary>A compact script for prototyping.</summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 
 using System.Collections;
@@ -14,12 +7,6 @@ namespace Photon.Pun.UtilityScripts
 {
     using UnityEngine;
     using UnityEngine.EventSystems;
-
-
-    /// <summary>
-    /// This component will instantiate a network GameObject when in a room and the user click on that component's GameObject.
-    /// Uses PhysicsRaycaster for positioning.
-    /// </summary>
     public class OnClickRpc : MonoBehaviourPun, IPointerClickHandler
     {
         public PointerEventData.InputButton Button;
@@ -47,7 +34,6 @@ namespace Photon.Pun.UtilityScripts
         [PunRPC]
         public void ClickRpc()
         {
-            //Debug.Log("ClickRpc Called");
             this.StartCoroutine(this.ClickFlash());
         }
         

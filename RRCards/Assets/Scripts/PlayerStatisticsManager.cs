@@ -45,7 +45,6 @@ public class PlayerStatisticsManager : MonoBehaviour
 
         if (autoInitializeOnStart)
         {
-            // Wait a bit for PlayFab login to complete
             StartCoroutine(DelayedInitialization());
         }
     }
@@ -53,22 +52,18 @@ public class PlayerStatisticsManager : MonoBehaviour
     private IEnumerator DelayedInitialization()
     {
         DebugLog("Waiting for PlayFab login to complete...");
-
-        // Wait up to 15 seconds for PlayFab login
         float timeout = 15f;
         float timer = 0f;
 
         while (!PlayFabClientAPI.IsClientLoggedIn() && timer < timeout)
         {
             timer += Time.deltaTime;
-            yield return new WaitForSeconds(0.5f); // Check every 0.5 seconds
-        }
+            yield return new WaitForSeconds(0.5f);        }
 
         if (PlayFabClientAPI.IsClientLoggedIn())
         {
             DebugLog("✅ PlayFab login detected, initializing statistics...");
-            yield return new WaitForSeconds(1f); // Extra delay to ensure everything is ready
-            InitializeStatisticsIfNeeded();
+            yield return new WaitForSeconds(1f);            InitializeStatisticsIfNeeded();
         }
         else
         {
@@ -128,8 +123,6 @@ public class PlayerStatisticsManager : MonoBehaviour
         {
             DebugLog($"❌ Failed to get existing statistics: {error.ErrorMessage}");
             DebugLog($"Error details: {error.GenerateErrorReport()}");
-
-            // Try to create statistics anyway
             DebugLog("Attempting to auto-create statistics despite error...");
             AutoCreateMissingStatistics();
         });
@@ -158,8 +151,6 @@ public class PlayerStatisticsManager : MonoBehaviour
             DebugLog("All required statistics (TotalGames, Wins, Losses) are now available");
 
             isInitialized = true;
-
-            // Wait a moment then load stats to verify
             StartCoroutine(DelayedLoadStats(2f));
         }, error =>
         {
@@ -218,8 +209,6 @@ public class PlayerStatisticsManager : MonoBehaviour
             int losses = result.Statistics.FirstOrDefault(s => s.StatisticName == "Losses")?.Value ?? 0;
 
             DebugLog($"📊 Current stats - Total: {total}, Wins: {wins}, Losses: {losses}");
-
-            // Update values
             total++;
             if (isWin)
             {
@@ -298,8 +287,6 @@ public class PlayerStatisticsManager : MonoBehaviour
             }
 
             DebugLog($"📊 Final display values - Total: {total}, Wins: {wins}, Losses: {losses}");
-
-            // Update UI
             UpdateUI(total, wins, losses);
 
         }, error =>
@@ -311,7 +298,6 @@ public class PlayerStatisticsManager : MonoBehaviour
 
     private void UpdateUI(int total, int wins, int losses)
     {
-        // Update UI on main thread
         if (totalGamesText != null)
         {
             totalGamesText.text = $"TOTAL GAMES: {total}";
@@ -347,21 +333,16 @@ public class PlayerStatisticsManager : MonoBehaviour
     #endregion
 
     #region Public API Methods
-    // Call this after successful PlayFab login if auto-initialize is disabled
     public void ManualInitialize()
     {
         DebugLog("Manual initialization requested");
         InitializeStatisticsIfNeeded();
     }
-
-    // Force refresh the display
     public void RefreshDisplay()
     {
         DebugLog("Manual refresh requested");
         LoadAndDisplayStats();
     }
-
-    // Reset all statistics (use carefully!)
     public void ResetAllStatistics()
     {
         DebugLog("=== RESETTING ALL STATISTICS ===");
@@ -541,8 +522,6 @@ public class PlayerStatisticsManager : MonoBehaviour
             Debug.Log($"[PlayerStatisticsManager] {message}");
         }
     }
-
-    // Get current statistics without updating UI (for external use)
     public void GetCurrentStats(System.Action<int, int, int> onComplete)
     {
         if (!PlayFabClientAPI.IsClientLoggedIn())
@@ -565,8 +544,6 @@ public class PlayerStatisticsManager : MonoBehaviour
             onComplete?.Invoke(0, 0, 0);
         });
     }
-
-    // Check if statistics are properly initialized
     public bool IsInitialized()
     {
         return isInitialized && PlayFabClientAPI.IsClientLoggedIn();

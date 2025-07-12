@@ -1,17 +1,8 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="OfflineModeProperty.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine.UI;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-	/// PhotonNetwork.OfflineMode UI property
-    /// </summary>
 	public class OfflineModeProperty : PropertyListenerBase
     {
 

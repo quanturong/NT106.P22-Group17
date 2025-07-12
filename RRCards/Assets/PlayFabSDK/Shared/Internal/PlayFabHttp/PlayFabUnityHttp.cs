@@ -122,8 +122,6 @@ namespace PlayFab.Internal
         {
             CallRequestContainer reqContainer = (CallRequestContainer)reqContainerObj;
             reqContainer.RequestHeaders["Content-Type"] = "application/json";
-
-            // Start the www corouting to Post, and get a response or error which is then passed to the callbacks.
             PlayFabHttp.instance.StartCoroutine(Post(reqContainer));
         }
 
@@ -220,7 +218,6 @@ namespace PlayFab.Internal
 
                 if (httpResult.code == 200)
                 {
-                    // We have a good response from the server
                     reqContainer.JsonResponse = serializer.SerializeObject(httpResult.data);
                     reqContainer.DeserializeResultJson();
                     reqContainer.ApiResult.Request = reqContainer.ApiRequest;

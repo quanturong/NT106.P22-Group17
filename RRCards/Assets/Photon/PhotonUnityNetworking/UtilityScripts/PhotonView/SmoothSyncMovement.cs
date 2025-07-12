@@ -1,12 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SmoothSyncMovement.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities, 
-// </copyright>
-// <summary>
-//  Smoothed out movement for network gameobjects
-// </summary>                                                                                             
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 using UnityEngine;
 
@@ -15,9 +6,6 @@ using Photon.Realtime;
 
 namespace Photon.Pun.UtilityScripts
 {
-    /// <summary>
-    /// Smoothed out movement for network gameobjects
-    /// </summary>
     [RequireComponent(typeof(PhotonView))]
     public class SmoothSyncMovement : Photon.Pun.MonoBehaviourPun, IPunObservable
     {
@@ -43,13 +31,11 @@ namespace Photon.Pun.UtilityScripts
         {
             if (stream.IsWriting)
             {
-                //We own this player: send the others our data
                 stream.SendNext(transform.position);
                 stream.SendNext(transform.rotation);
             }
             else
             {
-                //Network player, receive data
                 correctPlayerPos = (Vector3)stream.ReceiveNext();
                 correctPlayerRot = (Quaternion)stream.ReceiveNext();
             }
@@ -62,7 +48,6 @@ namespace Photon.Pun.UtilityScripts
         {
             if (!photonView.IsMine)
             {
-                //Update remote player (smooth this, this looks good, at the cost of some accuracy)
                 transform.position = Vector3.Lerp(transform.position, correctPlayerPos, Time.deltaTime * this.SmoothingDelay);
                 transform.rotation = Quaternion.Lerp(transform.rotation, correctPlayerRot, Time.deltaTime * this.SmoothingDelay);
             }

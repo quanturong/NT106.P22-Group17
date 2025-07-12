@@ -1,19 +1,10 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CrcCheckToggle.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit Demo
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// Int UI InputField.
-    /// </summary>
     public class IntInputField : MonoBehaviour
     {
         public InputField PropertyValueInput;

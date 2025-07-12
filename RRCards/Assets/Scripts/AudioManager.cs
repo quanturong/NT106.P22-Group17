@@ -20,7 +20,6 @@ public class AudioManager : MonoBehaviour
         }
 
         Instance = this;
-        // Không giữ giữa scene
 
         float musicVolume = PlayerPrefs.GetFloat("musicVolume", 1f);
         float sfxVolume = PlayerPrefs.GetFloat("sfxVolume", 1f);

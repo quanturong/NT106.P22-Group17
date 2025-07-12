@@ -1,10 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="RoomListView.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System.Collections.Generic;
 
 using UnityEngine;
@@ -13,9 +7,6 @@ using Photon.Realtime;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// Region list UI View.
-    /// </summary>
 	public class RegionListView : MonoBehaviour
     {
 
@@ -36,7 +27,6 @@ namespace Photon.Pun.Demo.Cockpit
 			int i = 0;
 			foreach (Region entry in regionList)
             {
-                // we create the cell
 				regionCellList[entry.Code] = Instantiate(CellPrototype);
 				regionCellList[entry.Code].gameObject.SetActive(true);
 				regionCellList[entry.Code].transform.SetParent(CellPrototype.transform.parent, false);

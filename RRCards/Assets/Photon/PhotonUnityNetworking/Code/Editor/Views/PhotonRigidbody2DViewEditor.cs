@@ -1,13 +1,4 @@
-﻿// ----------------------------------------------------------------------------
-// <copyright file="PhotonRigidbody2DViewEditor.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   This is a custom editor for the PhotonRigidbody2DView component.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
-
+﻿
 
 namespace Photon.Pun
 {

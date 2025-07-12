@@ -1,18 +1,9 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="IsConnectedProperty.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine.UI;
 using Photon.Realtime;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-	/// PhotonNetwork.Server UI property
-    /// </summary>
 	public class ServerProperty : PropertyListenerBase
     {
 

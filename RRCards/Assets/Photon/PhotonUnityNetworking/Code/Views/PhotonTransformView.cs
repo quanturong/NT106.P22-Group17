@@ -1,13 +1,4 @@
-﻿// ----------------------------------------------------------------------------
-// <copyright file="PhotonTransformView.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   Component to synchronize Transforms via PUN PhotonView.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
-
+﻿
 
 namespace Photon.Pun
 {
@@ -45,7 +36,6 @@ namespace Photon.Pun
 
         private void Reset()
         {
-            // Only default to true with new instances. useLocal will remain false for old projects that are updating PUN.
             m_UseLocal = true;
         }
 
@@ -77,8 +67,6 @@ namespace Photon.Pun
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
             var tr = transform;
-
-            // Write
             if (stream.IsWriting)
             {
                 if (this.m_SynchronizePosition)
@@ -116,7 +104,6 @@ namespace Photon.Pun
                     stream.SendNext(tr.localScale);
                 }
             }
-            // Read
             else
             {
                 if (this.m_SynchronizePosition)

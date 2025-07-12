@@ -1,10 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="RoomListView.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System.Collections;
 using System.Collections.Generic;
 
@@ -16,9 +10,6 @@ using Photon.Realtime;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// Room list UI View.
-    /// </summary>
     public class RoomListView : MonoBehaviourPunCallbacks
     {
         [System.Serializable]
@@ -71,13 +62,11 @@ namespace Photon.Pun.Demo.Cockpit
                 {
                     if (entry.RemovedFromList)
                     {
-                        // we delete the cell
                         roomCellList[entry.Name].RemoveFromList();
                         roomCellList.Remove(entry.Name);
                     }
                     else
                     {
-                        // we update the cell
                         roomCellList[entry.Name].RefreshInfo(entry);
                     }
 
@@ -86,7 +75,6 @@ namespace Photon.Pun.Demo.Cockpit
                 {
                     if (!entry.RemovedFromList)
                     {
-                        // we create the cell
                         roomCellList[entry.Name] = Instantiate(CellPrototype);
                         roomCellList[entry.Name].gameObject.SetActive(true);
                         roomCellList[entry.Name].transform.SetParent(CellPrototype.transform.parent, false);

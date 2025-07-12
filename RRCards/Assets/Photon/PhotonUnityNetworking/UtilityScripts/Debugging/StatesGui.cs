@@ -1,20 +1,9 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="TabViewManager.cs" company="Exit Games GmbH">
-// </copyright>
-// <summary>
-//  Output detailed information about Pun Current states, using the old Unity UI framework.
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using Photon.Realtime;
 
 namespace Photon.Pun.UtilityScripts
 {
-    /// <summary>
-    /// Output detailed information about Pun Current states, using the old Unity UI framework.
-    /// </summary>
     public class StatesGui : MonoBehaviour
     {
         public Rect GuiOffset = new Rect(250, 0, 300, 300);
@@ -72,8 +61,6 @@ namespace Photon.Pun.UtilityScripts
             {
                 return;
             }
-
-            //set up scaling
             float rx = Screen.width / native_width;
             float ry = Screen.height / native_height;
             GUI.matrix = Matrix4x4.TRS (new Vector3(0, 0, 0), Quaternion.identity, new Vector3 (rx, ry, 1));

@@ -28,7 +28,7 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     private const string HAND_DATA_PREFIX = "HandData_";
     private const string LAST_ROOM_KEY = "LastGameRoom";
 
-    private readonly string[] CARD_NAMES = { "K", "Q", "J", "A" }; // Bỏ "Joker" khỏi target selection
+    private readonly string[] CARD_NAMES = { "K", "Q", "J", "A" }; 
     #endregion
 
     #region Game State Variables
@@ -72,7 +72,7 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     public List<PlayerData> players = new List<PlayerData>();
     public LiarBarHandManager localHandManager;
     public LifeManager lifeManager;
-    public OpponentCardCounter opponentCardCounter; // NEW: Đếm bài đối thủ
+    public OpponentCardCounter opponentCardCounter;
     #endregion
 
     #region Timer Settings
@@ -109,11 +109,9 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         LogDebug($"Start() called on GameObject: {gameObject.name}, Instance ID: {GetInstanceID()}");
         LogDebug($"currentRound at very beginning of Start(): {currentRound}");
 
-        // FORCE RESET currentRound to 0 at the very beginning
         currentRound = 0;
         LogDebug($"FORCED currentRound to 0 in Start()");
 
-        // BLOCK UI updates during initialization to prevent flicker
         bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
         if (isAfterRoulette)
         {
@@ -141,7 +139,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             ClearAllGameData();
         }
 
-        // ✅ Gọi xử lý nếu thoát giữa trận
         HandlePlayerQuitMidGame();
     }
     #endregion
@@ -168,7 +165,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         {
             LogDebug("NEW GAME SESSION DETECTED - Clearing all persistent data");
             ClearAllGameData();
-            // FORCE RESET currentRound for new session
             currentRound = 0;
             LogDebug($"FORCED currentRound = {currentRound} for new session");
         }
@@ -214,16 +210,13 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         LogDebug("Clearing ALL persistent game data");
 
-        // Clear game state
         PlayerPrefs.DeleteKey("GameState_CurrentRound");
         PlayerPrefs.DeleteKey("GameState_TargetCard");
         PlayerPrefs.DeleteKey("GameState_PlayerIndex");
 
-        // Clear roulette data
         PlayerPrefs.DeleteKey(PUNISHMENT_RESULT_KEY);
         PlayerPrefs.DeleteKey(PUNISHED_PLAYER_KEY);
 
-        // Clear hand data for all possible players
         for (int actorNumber = 1; actorNumber <= 10; actorNumber++)
         {
             PlayerPrefs.DeleteKey(HAND_COUNT_PREFIX + actorNumber);
@@ -325,7 +318,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         bool anyLivesRestored = false;
 
-        // KIỂM TRA VÀ RESTORE LIVES CHO TỪNG PLAYER
         foreach (var player in players)
         {
             string livesKey = "GameState_Lives_" + player.photonPlayer.ActorNumber;
@@ -425,7 +417,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             return;
         }
 
-        // CRITICAL: OVERRIDE bất kỳ reset nào từ LifeManager.Start()
         LogDebug("🔥 OVERRIDING any LifeManager resets that may have occurred...");
 
         StartCoroutine(OverrideLifeManagerCoroutine());
@@ -435,13 +426,11 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         LogDebug("=== OverrideLifeManagerCoroutine START ===");
 
-        // STEP 1: Set all internal values without UI updates
         foreach (var player in players)
         {
             bool isLocalPlayer = (player.photonPlayer.ActorNumber == PhotonNetwork.LocalPlayer.ActorNumber);
             LogDebug($"🎯 SETTING INTERNAL: {player.photonPlayer.NickName}: {player.lives} lives, isLocal: {isLocalPlayer}");
 
-            // Validate lives
             if (player.lives <= 0)
             {
                 Debug.LogWarning($"⚠️ Player {player.photonPlayer.NickName} has {player.lives} lives - fixing...");
@@ -461,7 +450,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
                 }
             }
 
-            // Set internal values (UI blocked)
             if (isLocalPlayer)
             {
                 lifeManager.SetPlayerLives(player.lives);
@@ -472,14 +460,11 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             }
         }
 
-        // STEP 2: Wait a moment
         yield return new WaitForSeconds(0.5f);
 
-        // STEP 3: Unblock and force update UI all at once
         LogDebug("🔓 UNBLOCKING LifeManager and forcing UI update...");
         lifeManager.UnblockAndForceUpdateAll();
 
-        // STEP 4: Cleanup
         lifeManager.enableDebugLogs = true;
         PlayerPrefs.DeleteKey("AfterRoulette");
         PlayerPrefs.DeleteKey("BypassLifeManagerReset");
@@ -499,7 +484,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         LogDebug("🔄 BroadcastCurrentLives - Final sync step");
 
-        // FINAL CHECK: Đảm bảo đây là broadcast cuối cùng
         bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
         if (isAfterRoulette)
         {
@@ -510,7 +494,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         {
             LogDebug($"📡 Final broadcast: {player.photonPlayer.NickName}: {player.lives} lives");
 
-            // GỬI VỚI FLAG ĐẶC BIỆT để SyncLifeUI biết đây là final sync
             photonView.RPC("FinalSyncLifeUI", RpcTarget.All, player.photonPlayer.ActorNumber, player.lives);
         }
     }
@@ -520,7 +503,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         LogDebug($"🎯 FinalSyncLifeUI: Player {playerActorNumber} to {newLives} lives");
 
-        // CẬP NHẬT DATA
         var player = GetPlayerByActorNumber(playerActorNumber);
         if (player != null)
         {
@@ -533,7 +515,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         if (lifeManager == null) return;
 
-        // SET UI FINAL
         bool isTargetPlayerLocal = (playerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber);
 
         if (isTargetPlayerLocal)
@@ -574,13 +555,11 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            // DEBUG: Log giá trị currentRound trước khi xử lý
             LogDebug($"StartGameFlow: currentRound BEFORE processing = {currentRound}");
 
             if (currentRound == 0)
             {
                 LogDebug("Fresh game - FORCING Round 1 start");
-                // FORCE SET về 0 và bắt đầu round đầu tiên
                 currentRound = 0;
                 StartFirstRoundExplicitly();
             }
@@ -604,7 +583,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         LogDebug("StartFirstRoundExplicitly() called! FORCING Round 1");
 
-        // FORCE SET round = 1 (không increment)
         currentRound = 1;
         middlePile.Clear();
         playedCardsThisTurn.Clear();
@@ -626,7 +604,7 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         if (string.IsNullOrEmpty(currentTargetCard))
         {
             Debug.LogWarning("No target card found, starting new round");
-            StartNewRound(); // Chỉ gọi StartNewRound khi cần thiết
+            StartNewRound();
         }
         else
         {
@@ -845,7 +823,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         LogDebug($"Comparing: '{cardName}' -> '{normalizedCard}' vs '{targetCard}' -> '{normalizedTarget}'");
 
-        // JOKER LOGIC: Joker đúng với mọi target
         if (normalizedCard.Equals("JOKER", System.StringComparison.OrdinalIgnoreCase))
         {
             LogDebug($"🃏 JOKER detected! '{cardName}' matches ANY target (including '{targetCard}')");
@@ -953,7 +930,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         LogDebug($"NewRoundStarted RPC - Round: {roundNumber}, Target: {targetCard}, Start Player: {startPlayerIndex}");
         LogDebug($"BEFORE setting: currentRound was {currentRound}");
 
-        // DEBUG: Log lives BEFORE any changes
         LogDebug("=== LIVES BEFORE NewRoundStarted ===");
         foreach (var player in players)
         {
@@ -968,11 +944,9 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         LogDebug($"AFTER setting: currentRound is now {currentRound}");
 
-        // QUAN TRỌNG: LUÔN TẠO HAND MỚI CHO ROUND MỚI
         LogDebug("Creating NEW HAND for NEW ROUND");
         CreateNewHandForNewRound();
 
-        // DEBUG: Log lives AFTER any changes
         LogDebug("=== LIVES AFTER NewRoundStarted ===");
         foreach (var player in players)
         {
@@ -1010,13 +984,11 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             player.handCount -= cardCount;
             LogDebug($"Updated hand count for player {playerActorNumber}: {oldHandCount} → {player.handCount} cards remaining");
 
-            // UPDATE OPPONENT CARD COUNTER nếu không phải local player
             if (playerActorNumber != PhotonNetwork.LocalPlayer.ActorNumber && opponentCardCounter != null)
             {
                 opponentCardCounter.SetCardCount(player.handCount);
                 LogDebug($"Updated OpponentCardCounter after card play: {player.handCount} cards");
 
-                // CHECK if opponent is running low on cards
                 if (opponentCardCounter.IsCriticallyLowOnCards())
                 {
                     LogDebug("⚠️ Opponent is critically low on cards!");
@@ -1149,7 +1121,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             player.handCount = handCount;
             LogDebug($"Synced hand count: Player {playerActorNumber} has {handCount} cards");
 
-            // UPDATE OPPONENT CARD COUNTER
             if (playerActorNumber != PhotonNetwork.LocalPlayer.ActorNumber && opponentCardCounter != null)
             {
                 opponentCardCounter.SetCardCount(handCount);
@@ -1225,10 +1196,8 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         LogDebug($"Player {playerActorNumber} hit special slot (DIED) - lives: {oldLives} → {player.lives}");
 
-        // SYNC NGAY LẬP TỨC VỚI TẤT CẢ PLAYERS
         photonView.RPC("SyncLifeUI", RpcTarget.All, playerActorNumber, player.lives);
 
-        // DELAY 1 CHÚT RỒI SYNC LẠI ĐỂ ĐẢM BẢO
         StartCoroutine(DelaySyncLife(playerActorNumber, player.lives));
 
         PlaySound(loseLifeSound);
@@ -1254,7 +1223,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         LogDebug($"DelaySyncLife: Re-syncing player {playerActorNumber} to {lives} lives");
         photonView.RPC("SyncLifeUI", RpcTarget.All, playerActorNumber, lives);
 
-        // DOUBLE CHECK: Sync tất cả players
         yield return new WaitForSeconds(0.5f);
         if (PhotonNetwork.IsMasterClient)
         {
@@ -1285,7 +1253,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         if (gameStatusText)
             gameStatusText.text = $"{player.photonPlayer.NickName} survived! Starting new round...";
 
-        // ✅ THAY ĐỔI CHÍNH: LUÔN CHUYỂN SANG ROUND MỚI SAU KHI QUAY ROULETTE
         if (PhotonNetwork.IsMasterClient)
         {
             LogDebug("🎯 MAJOR CHANGE: Always start new round after roulette (regardless of result)");
@@ -1300,7 +1267,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         LogDebug($"Target Player ActorNumber: {playerActorNumber}, New Lives: {newLives}");
         LogDebug($"My ActorNumber: {PhotonNetwork.LocalPlayer.ActorNumber}");
 
-        // CHECK: Nếu đang trong quá trình restore sau roulette, SKIP để tránh flicker
         bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
         if (isAfterRoulette)
         {
@@ -1308,7 +1274,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             return;
         }
 
-        // CẬP NHẬT DATA TRƯỚC
         var player = GetPlayerByActorNumber(playerActorNumber);
         if (player != null)
         {
@@ -1332,20 +1297,17 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             return;
         }
 
-        // XÁC ĐỊNH AI LÀ LOCAL PLAYER VÀ AI LÀ ENEMY
         bool isTargetPlayerLocal = (playerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber);
 
         LogDebug($"Is Target Player Local: {isTargetPlayerLocal}");
 
         if (isTargetPlayerLocal)
         {
-            // CẬP NHẬT LIVES CỦA CHÍNH MÌNH (Ở DƯỚI)
             lifeManager.SetPlayerLives(newLives);
             LogDebug($"✅ Updated LOCAL PLAYER (bottom) hearts to {newLives}");
         }
         else
         {
-            // CẬP NHẬT LIVES CỦA ĐỐI THỦ (Ở TRÊN)  
             lifeManager.SetEnemyLives(newLives);
             LogDebug($"✅ Updated ENEMY (top) hearts to {newLives}");
         }
@@ -1377,7 +1339,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             PlaySound(victorySound);
             if (confettiEffect) confettiEffect.Play();
 
-            // Cập nhật stats cho thắng
             if (PlayerStatisticsManager.Instance != null)
             {
                 PlayerStatisticsManager.Instance.UpdateMatchResult(true, () =>
@@ -1395,7 +1356,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         {
             PlaySound(defeatSound);
 
-            // Cập nhật stats cho thua
             if (PlayerStatisticsManager.Instance != null)
             {
                 PlayerStatisticsManager.Instance.UpdateMatchResult(false, () =>
@@ -1428,17 +1388,15 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     #endregion
 
     #region Simple Stats Integration
-    // Cập nhật OnPlayerLeftRoom method
+
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         Debug.Log($"[LiarBarGameManager] Player {otherPlayer.NickName} has left the room.");
 
-        // Chỉ xử lý nếu đang giữa trận
         if (currentState != GameState.GameOver && PhotonNetwork.CurrentRoom.PlayerCount == 1)
         {
             Debug.Log("[LiarBarGameManager] Opponent left mid-game → local player wins");
 
-            // Cập nhật stats
             if (PlayerStatisticsManager.Instance != null)
             {
                 PlayerStatisticsManager.Instance.UpdateMatchResult(true, () =>
@@ -1455,10 +1413,8 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    // Cập nhật HandlePlayerQuitMidGame method
     private void HandlePlayerQuitMidGame()
     {
-        // Chỉ tính thua nếu đang trong trận và còn đủ 2 người chơi
         if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.PlayerCount == 2 && currentState != GameState.GameOver)
         {
             Debug.Log("[LiarBarGameManager] You quit mid-game → Counted as LOSS");
@@ -1469,7 +1425,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    // Thêm method helper
     private System.Collections.IEnumerator LoadSceneAfterDelay(string sceneName, float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -1511,20 +1466,16 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     private void RestoreHandDataAfterRoulette()
     {
-        // ✅ THAY ĐỔI: KHÔNG CẦN RESTORE HAND NỮA VÌ SẼ TẠO HAND MỚI
         LogDebug("🎯 MAJOR CHANGE: Skipping hand restoration - will create new hand for new round");
 
-        // Clear any saved hand data since we won't need it
         string handCountKey = HAND_COUNT_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber;
         if (PlayerPrefs.HasKey(handCountKey))
         {
             int savedHandCount = PlayerPrefs.GetInt(handCountKey);
             LogDebug($"Clearing saved hand data for {savedHandCount} cards");
 
-            // Clear hand count
             PlayerPrefs.DeleteKey(handCountKey);
 
-            // Clear individual card data
             for (int i = 0; i < savedHandCount; i++)
             {
                 string cardKey = HAND_DATA_PREFIX + PhotonNetwork.LocalPlayer.ActorNumber + "_" + i;
@@ -1724,7 +1675,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         LogDebug($"Challenger: {challenger.photonPlayer.NickName}");
         LogDebug($"All cards match target: {allCardsAreTarget}");
 
-        // DEBUG: Show card breakdown
         if (enableDebugLogs && playedCardsThisTurn.Count > 0)
         {
             LogDebug($"=== PLAYED CARDS BREAKDOWN ===");
@@ -1756,7 +1706,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             LogDebug($"Player was honest: {allCardsAreTarget}");
         }
 
-        // ✅ THAY ĐỔI: ĐƠN GIẢN HÓA LOGIC - CHỈ CẦN XÁC ĐỊNH AI BỊ PHẠT
         ProcessSimplifiedChallenge(allCardsAreTarget, currentPlayer, challenger);
     }
 
@@ -1766,7 +1715,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         if (allCardsAreTarget)
         {
-            // Người chơi hiện tại nói thật → Challenger bị phạt
             LogDebug($"RESULT: {currentPlayer.photonPlayer.NickName} was HONEST! {challenger.photonPlayer.NickName} gets punished!");
 
             if (gameStatusText)
@@ -1776,7 +1724,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
         else
         {
-            // Người chơi hiện tại nói dối → Current player bị phạt
             LogDebug($"RESULT: {currentPlayer.photonPlayer.NickName} was LYING! They get punished!");
 
             if (gameStatusText)
@@ -1891,7 +1838,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         LogDebug("=== CreateNewHandCoroutine START ===");
 
-        // DEBUG: Log lives trước khi tạo hand
         LogDebug("Lives BEFORE creating new hand:");
         foreach (var player in players)
         {
@@ -1915,12 +1861,10 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         var localPlayer = GetPlayerByActorNumber(PhotonNetwork.LocalPlayer.ActorNumber);
         if (localPlayer != null)
         {
-            // QUAN TRỌNG: CHỈ UPDATE HAND COUNT, KHÔNG TOUCH LIVES
             int oldLives = localPlayer.lives;
             localPlayer.handCount = 6;
             LogDebug($"Updated local player hand count to 6 (NEW ROUND) - Lives unchanged: {oldLives}");
 
-            // DEBUG: Verify lives không thay đổi
             if (localPlayer.lives != oldLives)
             {
                 Debug.LogError($"LIVES CHANGED UNEXPECTEDLY! Was {oldLives}, now {localPlayer.lives}");
@@ -1935,7 +1879,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             LogDebug($"Hand creation completed. Hand count: {currentHand.Count}");
         }
 
-        // DEBUG: Log lives sau khi tạo hand
         LogDebug("Lives AFTER creating new hand:");
         foreach (var player in players)
         {
@@ -1968,7 +1911,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     private void UpdatePopupContent()
     {
-        // DEBUG: Log giá trị currentRound khi popup được hiển thị
         LogDebug($"UpdatePopupContent: currentRound = {currentRound}");
 
         if (popupRoundInfo != null)
@@ -2034,10 +1976,9 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         {
             LogDebug("🎰 Roulette result detected - processing...");
 
-            // BLOCK UI ngay lập tức để tránh flicker
             if (lifeManager != null)
             {
-                lifeManager.TemporaryBlock(3f); // Block 3 giây
+                lifeManager.TemporaryBlock(3f); 
                 LogDebug("🚫 Blocked LifeManager UI for 3 seconds during roulette processing");
             }
 
@@ -2075,36 +2016,31 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         LogDebug($"Punished player: {punishedPlayer}");
         LogDebug($"My ActorNumber: {PhotonNetwork.LocalPlayer.ActorNumber}");
 
-        // VERIFY data integrity
         if (punishedPlayer == -1)
         {
             Debug.LogError("🚨 CRITICAL: No punished player found! Roulette data corrupted!");
 
-            // EMERGENCY: Clear corrupted data và skip
             PlayerPrefs.DeleteKey(PUNISHMENT_RESULT_KEY);
             PlayerPrefs.DeleteKey(PUNISHED_PLAYER_KEY);
             PlayerPrefs.DeleteKey("RouletteCompleted");
 
             if (lifeManager != null)
             {
-                lifeManager.UnblockAndForceUpdateAll(); // Unblock UI
+                lifeManager.UnblockAndForceUpdateAll();
             }
             return;
         }
 
-        // SET FLAG để LifeManager biết đang restore
         PlayerPrefs.SetString("AfterRoulette", "true");
         PlayerPrefs.Save();
         LogDebug("🎰 Set AfterRoulette flag to prevent lives reset");
 
-        // CLEAN UP roulette data
         PlayerPrefs.DeleteKey(PUNISHMENT_RESULT_KEY);
         PlayerPrefs.DeleteKey(PUNISHED_PLAYER_KEY);
         PlayerPrefs.DeleteKey("RouletteCompleted");
 
-        // ✅ THAY ĐỔI: KHÔNG CẦN RESTORE HAND VÌ SẼ TẠO MỚI
         LogDebug("🎯 MAJOR CHANGE: Skipping hand restoration - new hand will be created for new round");
-        RestoreHandDataAfterRoulette(); // This now just clears old data
+        RestoreHandDataAfterRoulette();
 
         if (punishedPlayer == PhotonNetwork.LocalPlayer.ActorNumber)
         {
@@ -2190,12 +2126,11 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        // BLOCK sync trong lúc restore để tránh conflict
+ 
         bool isAfterRoulette = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
 
         if (stream.IsWriting)
         {
-            // MASTER CLIENT gửi data
             stream.SendNext(currentPlayerIndex);
             stream.SendNext(currentTargetCard);
             stream.SendNext(currentRound);
@@ -2208,17 +2143,16 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         }
         else
         {
-            // NON-MASTER CLIENT nhận data
+
             if (isAfterRoulette)
             {
-                // SKIP nhận data để tránh override lives đã restore
+
                 LogDebug("⚠️ BLOCKING OnPhotonSerializeView receive during roulette restore");
 
-                // Consume data nhưng không apply
-                stream.ReceiveNext(); // currentPlayerIndex
-                stream.ReceiveNext(); // currentTargetCard
-                stream.ReceiveNext(); // currentRound
-                stream.ReceiveNext(); // currentState
+                stream.ReceiveNext();
+                stream.ReceiveNext(); 
+                stream.ReceiveNext();
+                stream.ReceiveNext(); 
                 return;
             }
 
@@ -2275,7 +2209,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             }
         }
 
-        // Check flags
         bool afterRouletteFlag = PlayerPrefs.HasKey("AfterRoulette_" + PhotonNetwork.LocalPlayer.ActorNumber);
         bool bypassFlag = PlayerPrefs.HasKey("BypassLifeManagerReset");
 
@@ -2292,7 +2225,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         LogDebug("🧪 TESTING: Card validation with mixed hand");
 
-        // Simulate a mixed hand với Jokers
         playedCardsThisTurn.Clear();
         playedCardsThisTurn.Add(new CardData { cardName = "K" });
         playedCardsThisTurn.Add(new CardData { cardName = "Joker" });
@@ -2307,7 +2239,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
         LogDebug($"All cards match target: {allMatch}");
         LogDebug($"Expected: TRUE (because Joker should match K, even though Q doesn't)");
 
-        // Test pure Joker hand
         playedCardsThisTurn.Clear();
         playedCardsThisTurn.Add(new CardData { cardName = "Joker" });
         playedCardsThisTurn.Add(new CardData { cardName = "joker" });
@@ -2328,7 +2259,6 @@ public class LiarBarGameManager : MonoBehaviourPunCallbacks, IPunObservable
             LogDebug($"Max Player Lives: {lifeManager.GetMaxPlayerLives()}");
             LogDebug($"Max Enemy Lives: {lifeManager.GetMaxEnemyLives()}");
 
-            // Call LifeManager's debug
             lifeManager.DebugHeartStatus();
         }
         else

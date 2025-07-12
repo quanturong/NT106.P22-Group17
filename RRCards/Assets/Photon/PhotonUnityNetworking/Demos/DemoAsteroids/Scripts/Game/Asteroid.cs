@@ -1,13 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="Asteroid.cs" company="Exit Games GmbH">
-//   Part of: Asteroid Demo
-// </copyright>
-// <summary>
-//  Asteroid Component
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 
 using Random = UnityEngine.Random;
@@ -53,7 +44,6 @@ namespace Photon.Pun.Demo.Asteroids
 
             if (Mathf.Abs(transform.position.x) > Camera.main.orthographicSize * Camera.main.aspect || Mathf.Abs(transform.position.z) > Camera.main.orthographicSize)
             {
-                // Out of the screen
                 PhotonNetwork.Destroy(gameObject);
             }
         }

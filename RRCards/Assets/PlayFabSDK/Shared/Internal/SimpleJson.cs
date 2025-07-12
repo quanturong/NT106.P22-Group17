@@ -1,51 +1,8 @@
-//-----------------------------------------------------------------------
-// <copyright file="SimpleJson.cs" company="The Outercurve Foundation">
-//    Copyright (c) 2011, The Outercurve Foundation.
-//
-//    Licensed under the MIT License (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//      http://www.opensource.org/licenses/mit-license.php
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-// </copyright>
-// <author>Nathan Totten (ntotten.com), Jim Zimmerman (jimzimmerman.com) and Prabir Shrestha (prabir.me)</author>
-// <website>https://github.com/facebook-csharp-sdk/simple-json</website>
-//-----------------------------------------------------------------------
-
-// VERSION:
-
-// NOTE: uncomment the following line to make SimpleJson class internal.
-//#define SIMPLE_JSON_INTERNAL
-
-// NOTE: uncomment the following line to make JsonArray and JsonObject class internal.
-//#define SIMPLE_JSON_OBJARRAYINTERNAL
-
-// NOTE: uncomment the following line to enable dynamic support.
-//#define SIMPLE_JSON_DYNAMIC
-
-// NOTE: uncomment the following line to enable DataContract support.
-//#define SIMPLE_JSON_DATACONTRACT
-
-// NOTE: uncomment the following line to enable IReadOnlyCollection<T> and IReadOnlyList<T> support.
-//#define SIMPLE_JSON_READONLY_COLLECTIONS
-
-// NOTE: uncomment the following line if you are compiling under Windows Store app/library.
-// usually already defined in properties
 #if UNITY_WSA && UNITY_WP8
 #define NETFX_CORE
 #endif
-
-// If you are targetting WinStore, WP8 and NET4.5+ PCL make sure to
 #if UNITY_WP8 || UNITY_WP8_1 || UNITY_WSA
-// #define SIMPLE_JSON_TYPEINFO
 #endif
-
-// original json parsing code from http://techblog.procurios.nl/k/618/news/view/14605/14863/How-do-I-write-my-own-parser-for-JSON.html
 
 #if NETFX_CORE
 #define SIMPLE_JSON_TYPEINFO
@@ -65,10 +22,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
-
-// ReSharper disable LoopCanBeConvertedToQuery
-// ReSharper disable RedundantExplicitArrayCreation
-// ReSharper disable SuggestUseVarKeywordEvident
 namespace PlayFab.Json
 {
     public enum NullValueHandling
@@ -76,20 +29,12 @@ namespace PlayFab.Json
         Include, // Include null values when serializing and deserializing objects
         Ignore // Ignore null values when serializing and deserializing objects
     }
-
-    /// <summary>
-    /// Customize the json output of a field or property
-    /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
     public class JsonProperty : Attribute
     {
         public string PropertyName = null;
         public NullValueHandling NullValueHandling = NullValueHandling.Include;
     }
-
-    /// <summary>
-    /// Represents the json array.
-    /// </summary>
     [GeneratedCode("simple-json", "1.0.0")]
     [EditorBrowsable(EditorBrowsableState.Never)]
     [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
@@ -100,30 +45,13 @@ namespace PlayFab.Json
 #endif
  class JsonArray : List<object>
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="JsonArray"/> class.
-        /// </summary>
         public JsonArray() { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="JsonArray"/> class.
-        /// </summary>
-        /// <param name="capacity">The capacity of the json array.</param>
         public JsonArray(int capacity) : base(capacity) { }
-
-        /// <summary>
-        /// The json representation of the array.
-        /// </summary>
-        /// <returns>The json representation of the array.</returns>
         public override string ToString()
         {
             return PlayFabSimpleJson.SerializeObject(this) ?? string.Empty;
         }
     }
-
-    /// <summary>
-    /// Represents the json object.
-    /// </summary>
     [GeneratedCode("simple-json", "1.0.0")]
     [EditorBrowsable(EditorBrowsableState.Never)]
     [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
@@ -139,32 +67,15 @@ namespace PlayFab.Json
  IDictionary<string, object>
     {
         private const int DICTIONARY_DEFAULT_SIZE = 16;
-        /// <summary>
-        /// The internal member dictionary.
-        /// </summary>
         private readonly Dictionary<string, object> _members;
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="JsonObject"/>.
-        /// </summary>
         public JsonObject()
         {
             _members = new Dictionary<string, object>(DICTIONARY_DEFAULT_SIZE);
         }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="JsonObject"/>.
-        /// </summary>
-        /// <param name="comparer">The <see cref="T:System.Collections.Generic.IEqualityComparer`1"/> implementation to use when comparing keys, or null to use the default <see cref="T:System.Collections.Generic.EqualityComparer`1"/> for the type of the key.</param>
         public JsonObject(IEqualityComparer<string> comparer)
         {
             _members = new Dictionary<string, object>(comparer);
         }
-
-        /// <summary>
-        /// Gets the <see cref="System.Object"/> at the specified index.
-        /// </summary>
-        /// <value></value>
         public object this[int index]
         {
             get { return GetAtIndex(_members, index); }
@@ -181,113 +92,48 @@ namespace PlayFab.Json
                 if (i++ == index) return o.Value;
             return null;
         }
-
-        /// <summary>
-        /// Adds the specified key.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
         public void Add(string key, object value)
         {
             _members.Add(key, value);
         }
-
-        /// <summary>
-        /// Determines whether the specified key contains key.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <returns>
-        ///     <c>true</c> if the specified key contains key; otherwise, <c>false</c>.
-        /// </returns>
         public bool ContainsKey(string key)
         {
             return _members.ContainsKey(key);
         }
-
-        /// <summary>
-        /// Gets the keys.
-        /// </summary>
-        /// <value>The keys.</value>
         public ICollection<string> Keys
         {
             get { return _members.Keys; }
         }
-
-        /// <summary>
-        /// Removes the specified key.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <returns></returns>
         public bool Remove(string key)
         {
             return _members.Remove(key);
         }
-
-        /// <summary>
-        /// Tries the get value.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        /// <returns></returns>
         public bool TryGetValue(string key, out object value)
         {
             return _members.TryGetValue(key, out value);
         }
-
-        /// <summary>
-        /// Gets the values.
-        /// </summary>
-        /// <value>The values.</value>
         public ICollection<object> Values
         {
             get { return _members.Values; }
         }
-
-        /// <summary>
-        /// Gets or sets the <see cref="System.Object"/> with the specified key.
-        /// </summary>
-        /// <value></value>
         public object this[string key]
         {
             get { return _members[key]; }
             set { _members[key] = value; }
         }
-
-        /// <summary>
-        /// Adds the specified item.
-        /// </summary>
-        /// <param name="item">The item.</param>
         public void Add(KeyValuePair<string, object> item)
         {
             _members.Add(item.Key, item.Value);
         }
-
-        /// <summary>
-        /// Clears this instance.
-        /// </summary>
         public void Clear()
         {
             _members.Clear();
         }
-
-        /// <summary>
-        /// Determines whether [contains] [the specified item].
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <returns>
-        /// <c>true</c> if [contains] [the specified item]; otherwise, <c>false</c>.
-        /// </returns>
         public bool Contains(KeyValuePair<string, object> item)
         {
             object value;
             return _members.TryGetValue(item.Key, out value) && value == item.Value;
         }
-
-        /// <summary>
-        /// Copies to.
-        /// </summary>
-        /// <param name="array">The array.</param>
-        /// <param name="arrayIndex">Index of the array.</param>
         public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
         {
             if (array == null) throw new ArgumentNullException("array");
@@ -299,83 +145,36 @@ namespace PlayFab.Json
                     return;
             }
         }
-
-        /// <summary>
-        /// Gets the count.
-        /// </summary>
-        /// <value>The count.</value>
         public int Count
         {
             get { return _members.Count; }
         }
-
-        /// <summary>
-        /// Gets a value indicating whether this instance is read only.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is read only; otherwise, <c>false</c>.
-        /// </value>
         public bool IsReadOnly
         {
             get { return false; }
         }
-
-        /// <summary>
-        /// Removes the specified item.
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <returns></returns>
         public bool Remove(KeyValuePair<string, object> item)
         {
             return _members.Remove(item.Key);
         }
-
-        /// <summary>
-        /// Gets the enumerator.
-        /// </summary>
-        /// <returns></returns>
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
             return _members.GetEnumerator();
         }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through a collection.
-        /// </summary>
-        /// <returns>
-        /// An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
-        /// </returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _members.GetEnumerator();
         }
-
-        /// <summary>
-        /// Returns a json <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
-        /// </summary>
-        /// <returns>
-        /// A json <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
-        /// </returns>
         public override string ToString()
         {
             return PlayFabSimpleJson.SerializeObject(_members);
         }
 
 #if SIMPLE_JSON_DYNAMIC
-        /// <summary>
-        /// Provides implementation for type conversion operations. Classes derived from the <see cref="T:System.Dynamic.DynamicObject"/> class can override this method to specify dynamic behavior for operations that convert an object from one type to another.
-        /// </summary>
-        /// <param name="binder">Provides information about the conversion operation. The binder.Type property provides the type to which the object must be converted. For example, for the statement (String)sampleObject in C# (CType(sampleObject, Type) in Visual Basic), where sampleObject is an instance of the class derived from the <see cref="T:System.Dynamic.DynamicObject"/> class, binder.Type returns the <see cref="T:System.String"/> type. The binder.Explicit property provides information about the kind of conversion that occurs. It returns true for explicit conversion and false for implicit conversion.</param>
-        /// <param name="result">The result of the type conversion operation.</param>
-        /// <returns>
-        /// Alwasy returns true.
-        /// </returns>
         public override bool TryConvert(ConvertBinder binder, out object result)
         {
-            // <pex>
             if (binder == null)
                 throw new ArgumentNullException("binder");
-            // </pex>
             Type targetType = binder.Type;
 
             if ((targetType == typeof(IEnumerable)) ||
@@ -389,32 +188,12 @@ namespace PlayFab.Json
 
             return base.TryConvert(binder, out result);
         }
-
-        /// <summary>
-        /// Provides the implementation for operations that delete an object member. This method is not intended for use in C# or Visual Basic.
-        /// </summary>
-        /// <param name="binder">Provides information about the deletion.</param>
-        /// <returns>
-        /// Alwasy returns true.
-        /// </returns>
         public override bool TryDeleteMember(DeleteMemberBinder binder)
         {
-            // <pex>
             if (binder == null)
                 throw new ArgumentNullException("binder");
-            // </pex>
             return _members.Remove(binder.Name);
         }
-
-        /// <summary>
-        /// Provides the implementation for operations that get a value by index. Classes derived from the <see cref="T:System.Dynamic.DynamicObject"/> class can override this method to specify dynamic behavior for indexing operations.
-        /// </summary>
-        /// <param name="binder">Provides information about the operation.</param>
-        /// <param name="indexes">The indexes that are used in the operation. For example, for the sampleObject[3] operation in C# (sampleObject(3) in Visual Basic), where sampleObject is derived from the DynamicObject class, <paramref name="indexes"/> is equal to 3.</param>
-        /// <param name="result">The result of the index operation.</param>
-        /// <returns>
-        /// Alwasy returns true.
-        /// </returns>
         public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result)
         {
             if (indexes == null) throw new ArgumentNullException("indexes");
@@ -426,15 +205,6 @@ namespace PlayFab.Json
             result = null;
             return true;
         }
-
-        /// <summary>
-        /// Provides the implementation for operations that get member values. Classes derived from the <see cref="T:System.Dynamic.DynamicObject"/> class can override this method to specify dynamic behavior for operations such as getting a value for a property.
-        /// </summary>
-        /// <param name="binder">Provides information about the object that called the dynamic operation. The binder.Name property provides the name of the member on which the dynamic operation is performed. For example, for the Console.WriteLine(sampleObject.SampleProperty) statement, where sampleObject is an instance of the class derived from the <see cref="T:System.Dynamic.DynamicObject"/> class, binder.Name returns "SampleProperty". The binder.IgnoreCase property specifies whether the member name is case-sensitive.</param>
-        /// <param name="result">The result of the get operation. For example, if the method is called for a property, you can assign the property value to <paramref name="result"/>.</param>
-        /// <returns>
-        /// Alwasy returns true.
-        /// </returns>
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
             object value;
@@ -446,16 +216,6 @@ namespace PlayFab.Json
             result = null;
             return true;
         }
-
-        /// <summary>
-        /// Provides the implementation for operations that set a value by index. Classes derived from the <see cref="T:System.Dynamic.DynamicObject"/> class can override this method to specify dynamic behavior for operations that access objects by a specified index.
-        /// </summary>
-        /// <param name="binder">Provides information about the operation.</param>
-        /// <param name="indexes">The indexes that are used in the operation. For example, for the sampleObject[3] = 10 operation in C# (sampleObject(3) = 10 in Visual Basic), where sampleObject is derived from the <see cref="T:System.Dynamic.DynamicObject"/> class, <paramref name="indexes"/> is equal to 3.</param>
-        /// <param name="value">The value to set to the object that has the specified index. For example, for the sampleObject[3] = 10 operation in C# (sampleObject(3) = 10 in Visual Basic), where sampleObject is derived from the <see cref="T:System.Dynamic.DynamicObject"/> class, <paramref name="value"/> is equal to 10.</param>
-        /// <returns>
-        /// true if the operation is successful; otherwise, false. If this method returns false, the run-time binder of the language determines the behavior. (In most cases, a language-specific run-time exception is thrown.
-        /// </returns>
         public override bool TrySetIndex(SetIndexBinder binder, object[] indexes, object value)
         {
             if (indexes == null) throw new ArgumentNullException("indexes");
@@ -466,31 +226,13 @@ namespace PlayFab.Json
             }
             return base.TrySetIndex(binder, indexes, value);
         }
-
-        /// <summary>
-        /// Provides the implementation for operations that set member values. Classes derived from the <see cref="T:System.Dynamic.DynamicObject"/> class can override this method to specify dynamic behavior for operations such as setting a value for a property.
-        /// </summary>
-        /// <param name="binder">Provides information about the object that called the dynamic operation. The binder.Name property provides the name of the member to which the value is being assigned. For example, for the statement sampleObject.SampleProperty = "Test", where sampleObject is an instance of the class derived from the <see cref="T:System.Dynamic.DynamicObject"/> class, binder.Name returns "SampleProperty". The binder.IgnoreCase property specifies whether the member name is case-sensitive.</param>
-        /// <param name="value">The value to set to the member. For example, for sampleObject.SampleProperty = "Test", where sampleObject is an instance of the class derived from the <see cref="T:System.Dynamic.DynamicObject"/> class, the <paramref name="value"/> is "Test".</param>
-        /// <returns>
-        /// true if the operation is successful; otherwise, false. If this method returns false, the run-time binder of the language determines the behavior. (In most cases, a language-specific run-time exception is thrown.)
-        /// </returns>
         public override bool TrySetMember(SetMemberBinder binder, object value)
         {
-            // <pex>
             if (binder == null)
                 throw new ArgumentNullException("binder");
-            // </pex>
             _members[binder.Name] = value;
             return true;
         }
-
-        /// <summary>
-        /// Returns the enumeration of all dynamic member names.
-        /// </summary>
-        /// <returns>
-        /// A sequence that contains dynamic member names.
-        /// </returns>
         public override IEnumerable<string> GetDynamicMemberNames()
         {
             foreach (var key in Keys)
@@ -498,15 +240,6 @@ namespace PlayFab.Json
         }
 #endif
     }
-
-    /// <summary>
-    /// Private. Do not call from client code.
-    /// This class encodes and decodes JSON strings.
-    /// Spec. details, see http://www.json.org/
-    ///
-    /// JSON uses Arrays and Objects. These correspond here to the datatypes JsonArray(IList&lt;object>) and JsonObject(IDictionary&lt;string,object>).
-    /// All numbers are parsed to doubles.
-    /// </summary>
     [GeneratedCode("simple-json", "1.0.0")]
 #if SIMPLE_JSON_INTERNAL
     internal
@@ -534,12 +267,9 @@ namespace PlayFab.Json
 
         private static readonly char[] EscapeTable;
         private static readonly char[] EscapeCharacters = new char[] { '"', '\\', '\b', '\f', '\n', '\r', '\t' };
-        // private static readonly string EscapeCharactersString = new string(EscapeCharacters);
         internal static readonly List<Type> NumberTypes = new List<Type> {
             typeof(bool), typeof(byte), typeof(ushort), typeof(uint), typeof(ulong), typeof(sbyte), typeof(short), typeof(int), typeof(long), typeof(double), typeof(float), typeof(decimal)
         };
-
-        // Performance stuff
         [ThreadStatic]
         private static StringBuilder _serializeObjectBuilder;
         [ThreadStatic]
@@ -556,12 +286,6 @@ namespace PlayFab.Json
             EscapeTable['\r'] = 'r';
             EscapeTable['\t'] = 't';
         }
-
-        /// <summary>
-        /// Parses the string json into a value
-        /// </summary>
-        /// <param name="json">A JSON string.</param>
-        /// <returns>An IList&lt;object>, a IDictionary&lt;string,object>, a double, a string, null, true, or false</returns>
         public static object DeserializeObject(string json)
         {
             object obj;
@@ -569,19 +293,6 @@ namespace PlayFab.Json
                 return obj;
             throw new SerializationException("Invalid JSON string");
         }
-
-        /// <summary>
-        /// Try parsing the json string into a value.
-        /// </summary>
-        /// <param name="json">
-        /// A JSON string.
-        /// </param>
-        /// <param name="obj">
-        /// The object.
-        /// </param>
-        /// <returns>
-        /// Returns true if successfull otherwise false.
-        /// </returns>
         [SuppressMessage("Microsoft.Design", "CA1007:UseGenericsWhereAppropriate", Justification = "Need to support .NET 2")]
         public static bool TryDeserializeObject(string json, out object obj)
         {
@@ -609,13 +320,6 @@ namespace PlayFab.Json
         {
             return (T)DeserializeObject(json, typeof(T), jsonSerializerStrategy);
         }
-
-        /// <summary>
-        /// Converts a IDictionary&lt;string,object> / IList&lt;object> object into a JSON string
-        /// </summary>
-        /// <param name="json">A IDictionary&lt;string,object> / IList&lt;object></param>
-        /// <param name="jsonSerializerStrategy">Serializer strategy to use</param>
-        /// <returns>A JSON encoded string, or null if object 'json' is not serializable</returns>
         public static string SerializeObject(object json, IJsonSerializerStrategy jsonSerializerStrategy = null)
         {
             if (_serializeObjectBuilder == null)
@@ -691,8 +395,6 @@ namespace PlayFab.Json
         {
             IDictionary<string, object> table = new JsonObject();
             TokenType token;
-
-            // {
             NextToken(json, ref index);
 
             bool done = false;
@@ -713,21 +415,18 @@ namespace PlayFab.Json
                 }
                 else
                 {
-                    // name
                     string name = ParseString(json, ref index, ref success);
                     if (!success)
                     {
                         success = false;
                         return null;
                     }
-                    // :
                     token = NextToken(json, ref index);
                     if (token != TokenType.COLON)
                     {
                         success = false;
                         return null;
                     }
-                    // value
                     object value = ParseValue(json, ref index, ref success);
                     if (!success)
                     {
@@ -743,8 +442,6 @@ namespace PlayFab.Json
         static JsonArray ParseArray(string json, ref int index, ref bool success)
         {
             JsonArray array = new JsonArray();
-
-            // [
             NextToken(json, ref index);
 
             bool done = false;
@@ -809,8 +506,6 @@ namespace PlayFab.Json
             _parseStringBuilder.Length = 0;
 
             EatWhitespace(json, ref index);
-
-            // "
             char c = json[index++];
             bool complete = false;
             while (!complete)
@@ -850,12 +545,9 @@ namespace PlayFab.Json
                         int remainingLength = json.Length - index;
                         if (remainingLength >= 4)
                         {
-                            // parse the 32 bit hex into an integer codepoint
                             uint codePoint;
                             if (!(success = UInt32.TryParse(json.Substring(index, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out codePoint)))
                                 return "";
-
-                            // convert the integer codepoint to a unicode char and add to string
                             if (0xD800 <= codePoint && codePoint <= 0xDBFF)  // if high surrogate
                             {
                                 index += 4; // skip 4 chars
@@ -878,7 +570,6 @@ namespace PlayFab.Json
                                 return "";
                             }
                             _parseStringBuilder.Append(ConvertFromUtf32((int)codePoint));
-                            // skip 4 chars
                             index += 4;
                         }
                         else
@@ -898,7 +589,6 @@ namespace PlayFab.Json
 
         private static string ConvertFromUtf32(int utf32)
         {
-            // http://www.java2s.com/Open-Source/CSharp/2.6.4-mono-.net-core/System/System/Char.cs.htm
             if (utf32 < 0 || utf32 > 0x10FFFF)
                 throw new ArgumentOutOfRangeException("utf32", "The argument must be from 0 to 0x10FFFF.");
             if (0xD800 <= utf32 && utf32 <= 0xDFFF)
@@ -997,7 +687,6 @@ namespace PlayFab.Json
             }
             index--;
             int remainingLength = json.Length - index;
-            // false
             if (remainingLength >= 5)
             {
                 if (json[index] == 'f' && json[index + 1] == 'a' && json[index + 2] == 'l' && json[index + 3] == 's' && json[index + 4] == 'e')
@@ -1006,7 +695,6 @@ namespace PlayFab.Json
                     return TokenType.FALSE;
                 }
             }
-            // true
             if (remainingLength >= 4)
             {
                 if (json[index] == 't' && json[index + 1] == 'r' && json[index + 2] == 'u' && json[index + 3] == 'e')
@@ -1015,7 +703,6 @@ namespace PlayFab.Json
                     return TokenType.TRUE;
                 }
             }
-            // null
             if (remainingLength >= 4)
             {
                 if (json[index] == 'n' && json[index + 1] == 'u' && json[index + 2] == 'l' && json[index + 3] == 'l')
@@ -1123,7 +810,6 @@ namespace PlayFab.Json
 
         static bool SerializeString(string aString, StringBuilder builder)
         {
-            // Happy path if there's nothing to be escaped. IndexOfAny is highly optimized (and unmanaged)
             if (aString.IndexOfAny(EscapeCharacters) == -1)
             {
                 builder.Append('"');
@@ -1140,10 +826,6 @@ namespace PlayFab.Json
             for (int i = 0; i < charArray.Length; i++)
             {
                 char c = charArray[i];
-
-                // Non ascii characters are fine, buffer them up and send them to the builder
-                // in larger chunks if possible. The escape table is a 1:1 translation table
-                // with \0 [default(char)] denoting a safe character.
                 if (c >= EscapeTable.Length || EscapeTable[c] == default(char))
                 {
                     safeCharacterCount++;
@@ -1182,11 +864,6 @@ namespace PlayFab.Json
                 builder.Append(number);
             return true;
         }
-
-        /// <summary>
-        /// Determines if a given object is numeric in any way
-        /// (can be integer, double, null, etc).
-        /// </summary>
         static bool IsNumeric(object value)
         {
             if (value is sbyte) return true;
@@ -1292,7 +969,6 @@ namespace PlayFab.Json
 
         protected virtual string MapClrMemberNameToJsonFieldName(MemberInfo memberInfo)
         {
-            // TODO: Optimize and/or cache
             foreach (JsonProperty eachAttr in memberInfo.GetCustomAttributes(typeof(JsonProperty), true))
                 if (!string.IsNullOrEmpty(eachAttr.PropertyName))
                     return eachAttr.PropertyName;
@@ -1303,7 +979,6 @@ namespace PlayFab.Json
         {
             jsonName = memberInfo.Name;
             jsonProp = null;
-            // TODO: Optimize and/or cache
             foreach (JsonProperty eachAttr in memberInfo.GetCustomAttributes(typeof(JsonProperty), true))
             {
                 jsonProp = eachAttr;
@@ -1416,7 +1091,6 @@ namespace PlayFab.Json
                     else
                         obj = str;
                 }
-                // Empty string case
                 if (!ReflectionUtils.IsNullableType(type) && Nullable.GetUnderlyingType(type) == typeof(Guid))
                     return str;
             }
@@ -1445,7 +1119,6 @@ namespace PlayFab.Json
 
                 if (ReflectionUtils.IsTypeDictionary(type))
                 {
-                    // if dictionary then
                     Type[] types = ReflectionUtils.GetGenericTypeArguments(type);
                     Type keyType = types[0];
                     Type valueType = types[1];
@@ -1632,7 +1305,6 @@ namespace PlayFab.Json
                 if (!fieldInfo.IsInitOnly && !fieldInfo.IsStatic && CanAdd(fieldInfo, out jsonKey))
                     result[jsonKey] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(fieldInfo.FieldType, ReflectionUtils.GetSetMethod(fieldInfo));
             }
-            // todo implement sorting for DATACONTRACT.
             return result;
         }
 
@@ -1650,9 +1322,6 @@ namespace PlayFab.Json
     }
 
 #endif
-
-    // This class is meant to be copied into other libraries. So we want to exclude it from Code Analysis rules
-    // that might be in place in the target project.
     [GeneratedCode("reflection-utils", "1.0.0")]
 #if SIMPLE_JSON_REFLECTION_UTILS_PUBLIC
         public
@@ -2075,7 +1744,3 @@ namespace PlayFab.Json
         }
     }
 }
-
-// ReSharper restore LoopCanBeConvertedToQuery
-// ReSharper restore RedundantExplicitArrayCreation
-// ReSharper restore SuggestUseVarKeywordEvident

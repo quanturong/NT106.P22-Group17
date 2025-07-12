@@ -20,8 +20,6 @@ namespace PlayFab.PfEditor
         private static bool isObjectFieldActive;
         private static bool isInitialized; //used to check once, gets reset after each compile;
         public static bool isSdkSupported = true;
-
-        //change in local
         private static int focusIndex;
         private static bool isShiftKeyPressed = false;
 
@@ -144,7 +142,6 @@ namespace PlayFab.PfEditor
             SDKInputHandler();
             if (!isInitialized)
             {
-                //SDK is installed.
                 CheckSdkVersion();
                 isInitialized = true;
                 GetLatestSdkVersion();
@@ -173,7 +170,6 @@ namespace PlayFab.PfEditor
 
             if (_previousSdkFolderPath != sdkFolder)
             {
-                // something changed, better save the result.
                 _previousSdkFolderPath = sdkFolder;
 
                 PlayFabEditorPrefsSO.Instance.SdkPath = (AssetDatabase.GetAssetPath(sdkFolder));
@@ -214,7 +210,6 @@ namespace PlayFab.PfEditor
 
                 if (!isObjectFieldActive)
                 {
-                    // this is a hack to prevent our "block while loading technique" from breaking up at this point.
                     GUI.enabled = !EditorApplication.isCompiling && PlayFabEditor.blockingRequests.Count == 0;
                 }
 
@@ -247,7 +242,6 @@ namespace PlayFab.PfEditor
                     if (string.IsNullOrEmpty(installedSdkVersion) || versionNumber == null || versionNumber.Length == 0 ||
                         (versionNumber.Length > 0 && int.TryParse(versionNumber[0], out numerical) && numerical < 2))
                     {
-                        //older version of the SDK
                         using (new UnityHorizontal(PlayFabEditorHelper.uiStyle.GetStyle("gpStyleClear")))
                         {
                             EditorGUILayout.LabelField("Most of the Editor Extensions depend on SDK versions >2.0. Consider upgrading to the get most features.", PlayFabEditorHelper.uiStyle.GetStyle("orTxt"));
@@ -353,8 +347,6 @@ namespace PlayFab.PfEditor
             {
                 Debug.Log("PlayFab SDK Install: Complete");
                 AssetDatabase.ImportPackage(fileName, false);
-
-                // attempts to re-import any changed assets (which ImportPackage doesn't implicitly do)
                 AssetDatabase.Refresh();
 
                 PlayFabEditorPrefsSO.Instance.SdkPath = PlayFabEditorHelper.DEFAULT_SDK_LOCATION;
@@ -389,11 +381,6 @@ namespace PlayFab.PfEditor
                         if (eachType.Name == PlayFabEditorHelper.PLAYFAB_SETTINGS_TYPENAME)
                             playFabSettingsType = eachType;
             }
-	    
-            //if (playFabSettingsType == typeof(object))
-            //    Debug.LogWarning("Should not have gotten here: "  + allAssemblies.Length);
-            //else
-            //    Debug.Log("Found Settings: " + allAssemblies.Length + ", " + playFabSettingsType.Assembly.FullName);
             return playFabSettingsType == typeof(object) ? null : playFabSettingsType;
         }
 
@@ -413,7 +400,6 @@ namespace PlayFab.PfEditor
                 }
                 catch (ReflectionTypeLoadException)
                 {
-                    // For this failure, silently skip this assembly unless we have some expectation that it contains PlayFab
                     if (assembly.FullName.StartsWith("Assembly-CSharp")) // The standard "source-code in unity proj" assembly name
                         Debug.LogWarning("PlayFab EdEx Error, failed to access the main CSharp assembly that probably contains PlayFab. Please report this on the PlayFab Forums");
                     continue;
@@ -434,8 +420,6 @@ namespace PlayFab.PfEditor
         private static UnityEngine.Object FindSdkAsset()
         {
             UnityEngine.Object sdkAsset = null;
-
-            // look in editor prefs
             if (PlayFabEditorPrefsSO.Instance.SdkPath != null)
             {
                 sdkAsset = AssetDatabase.LoadAssetAtPath(PlayFabEditorPrefsSO.Instance.SdkPath, typeof(UnityEngine.Object));
@@ -493,15 +477,11 @@ namespace PlayFab.PfEditor
         {
             if (prompt && !EditorUtility.DisplayDialog("Confirm SDK Removal", "This action will remove the current PlayFab SDK. Related plug-ins will need to be manually removed.", "Confirm", "Cancel"))
                 return;
-
-            //try to clean-up the plugin dirs
             if (Directory.Exists(Application.dataPath + "/Plugins"))
             {
                 var folders = Directory.GetDirectories(Application.dataPath + "/Plugins", "PlayFabShared", SearchOption.AllDirectories);
                 foreach (var folder in folders)
                     FileUtil.DeleteFileOrDirectory(folder);
-
-                //try to clean-up the plugin files (if anything is left)
                 var files = Directory.GetFiles(Application.dataPath + "/Plugins", "PlayFabErrors.cs", SearchOption.AllDirectories);
                 foreach (var file in files)
                     FileUtil.DeleteFileOrDirectory(file);
@@ -510,8 +490,6 @@ namespace PlayFab.PfEditor
             if (!string.IsNullOrEmpty(PlayFabEditorPrefsSO.Instance.SdkPath) && FileUtil.DeleteFileOrDirectory(PlayFabEditorPrefsSO.Instance.SdkPath))
             {
                 PlayFabEditor.RaiseStateUpdate(PlayFabEditor.EdExStates.OnSuccess, "PlayFab SDK Removed!");
-
-                // HACK for 5.4, AssetDatabase.Refresh(); seems to cause the install to fail.
                 if (prompt)
                 {
                     AssetDatabase.Refresh();

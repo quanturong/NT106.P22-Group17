@@ -45,8 +45,6 @@ public class RoomManager : MonoBehaviourPunCallbacks
         localPlayer = PhotonNetwork.LocalPlayer;
         SetupPlayerNames();
         StartCoroutine(CheckAndSpawnCoroutine());
-
-        // Setup debug UI
         if (debugUIPanel) debugUIPanel.SetActive(false);
     }
 
@@ -170,8 +168,7 @@ public class RoomManager : MonoBehaviourPunCallbacks
 
     private IEnumerator DisconnectSequence()
     {
-        yield return new WaitForSeconds(3.0f); // Longer wait for debugging
-
+        yield return new WaitForSeconds(3.0f);
         Debug.Log("*** LEAVING ROOM ***");
         if (PhotonNetwork.InRoom)
         {

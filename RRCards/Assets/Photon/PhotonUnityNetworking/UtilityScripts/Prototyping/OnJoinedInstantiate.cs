@@ -1,12 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="OnJoinedInstantiate.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities, 
-// </copyright>
-// <summary>
-//  This component will instantiate a network GameObject when a room is joined
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,18 +11,12 @@ using UnityEditor;
 
 namespace Photon.Pun.UtilityScripts
 {
-
-    /// <summary>
-    /// This component will instantiate a network GameObject when a room is joined
-    /// </summary>
     public class OnJoinedInstantiate : MonoBehaviour
         , IMatchmakingCallbacks
     {
         public enum SpawnSequence { Connection, Random, RoundRobin }
 
         #region Inspector Items
-
-        // Old field, only here for backwards compat. Value copies over to SpawnPoints in OnValidate
         [HideInInspector] private Transform SpawnPosition;
 
         [HideInInspector] public SpawnSequence Sequence = SpawnSequence.Connection;
@@ -54,8 +39,6 @@ namespace Photon.Pun.UtilityScripts
         [HideInInspector] public bool AutoSpawnObjects = true;
 
         #endregion
-
-        // Record of spawned objects, used for Despawn All
         public Stack<GameObject> SpawnedObjects = new Stack<GameObject>();
         protected int spawnedAsActorId;
 
@@ -65,7 +48,6 @@ namespace Photon.Pun.UtilityScripts
 
         protected void OnValidate()
         {
-            /// Check the prefab to make sure it is the actual resource, and not a scene object or other instance.
             if (PrefabsToInstantiate != null)
                 for (int i = 0; i < PrefabsToInstantiate.Count; ++i)
                 {
@@ -73,8 +55,6 @@ namespace Photon.Pun.UtilityScripts
                     if (prefab)
                         PrefabsToInstantiate[i] = ValidatePrefab(prefab);
                 }
-
-            /// Move any values from old SpawnPosition field to new SpawnPoints
             if (SpawnPosition)
             {
                 if (SpawnPoints == null)
@@ -84,24 +64,15 @@ namespace Photon.Pun.UtilityScripts
                 SpawnPosition = null;
             }
         }
-
-        /// <summary>
-        /// Validate, and if valid add this prefab to the first null element of the list, or create a new element. Returns true if the object was added.
-        /// </summary>
-        /// <param name="prefab"></param>
         public bool AddPrefabToList(GameObject prefab)
         {
             var validated = ValidatePrefab(prefab);
             if (validated)
             {
-                // Don't add to list if this prefab already is on the list
                 if (PrefabsToInstantiate.Contains(validated))
                     return false;
-
-                // First try to use any null array slots to keep things tidy
                 if (PrefabsToInstantiate.Contains(null))
                     PrefabsToInstantiate[PrefabsToInstantiate.IndexOf(null)] = validated;
-                // Otherwise, just add this prefab.
                 else
                     PrefabsToInstantiate.Add(validated);
                 return true;
@@ -110,12 +81,6 @@ namespace Photon.Pun.UtilityScripts
             return false;
 
         }
-
-        /// <summary>
-        /// Determines if the supplied GameObject is an instance of a prefab, or the actual source Asset, 
-        /// and returns a best guess at the actual resource the dev intended to use.
-        /// </summary>
-        /// <returns></returns>
         protected static GameObject ValidatePrefab(GameObject unvalidated)
         {
             if (unvalidated == null)
@@ -175,7 +140,6 @@ namespace Photon.Pun.UtilityScripts
 
         public virtual void OnJoinedRoom()
         {
-            // Only AutoSpawn if we are a new ActorId. Rejoining should reproduce the objects by server instantiation.
             if (AutoSpawnObjects && !PhotonNetwork.LocalPlayer.HasRejoined)
             {
                 SpawnObjects();
@@ -202,11 +166,6 @@ namespace Photon.Pun.UtilityScripts
                 }
             }
         }
-
-        /// <summary>
-        /// Destroy all objects that have been spawned by this component for this client.
-        /// </summary>
-        /// <param name="localOnly">Use Object.Destroy rather than PhotonNetwork.Destroy.</param>
         public virtual void DespawnObjects(bool localOnly)
         {
 
@@ -232,15 +191,8 @@ namespace Photon.Pun.UtilityScripts
         public virtual void OnLeftRoom() { }
 
         protected int lastUsedSpawnPointIndex = -1;
-
-        /// <summary>
-        /// Gets the next SpawnPoint from the list using the SpawnSequence, and applies RandomOffset (if used) to the transform matrix.
-        /// Override this method with any custom code for coming up with a spawn location. This method is used by AutoSpawn.
-        /// </summary>
         public virtual void GetSpawnPoint(out Vector3 spawnPos, out Quaternion spawnRot)
         {
-
-            // Fetch a point using the Sequence method indicated
             Transform point = GetSpawnPoint();
 
             if (point != null)
@@ -260,17 +212,8 @@ namespace Photon.Pun.UtilityScripts
                 spawnPos += GetRandomOffset();
             }
         }
-        
-
-        /// <summary>
-        /// Get the transform of the next SpawnPoint from the list, selected using the SpawnSequence setting. 
-        /// RandomOffset is not applied, only the transform of the SpawnPoint is returned.
-        /// Override this method to change how Spawn Point transform is selected. Return the transform you want to use as a spawn point.
-        /// </summary>
-        /// <returns></returns>
         protected virtual Transform GetSpawnPoint()
         {
-            // Fetch a point using the Sequence method indicated
             if (SpawnPoints == null || SpawnPoints.Count == 0)
             {
                 return null;
@@ -290,8 +233,6 @@ namespace Photon.Pun.UtilityScripts
                             lastUsedSpawnPointIndex++;
                             if (lastUsedSpawnPointIndex >= SpawnPoints.Count)
                                 lastUsedSpawnPointIndex = 0;
-
-                            /// Use Vector.Zero and Quaternion.Identity if we are dealing with no or a null spawnpoint.
                             return SpawnPoints == null || SpawnPoints.Count == 0 ? null : SpawnPoints[lastUsedSpawnPointIndex];
                         }
 
@@ -305,10 +246,6 @@ namespace Photon.Pun.UtilityScripts
                 }
             }
         }
-
-        /// <summary>
-        /// When UseRandomeOffset is enabled, this method is called to produce a Vector3 offset. The default implementation clamps the Y value to zero. You may override this with your own implementation.
-        /// </summary>
         protected virtual Vector3 GetRandomOffset()
         {
             Vector3 random = Random.insideUnitSphere;
@@ -355,8 +292,6 @@ namespace Photon.Pun.UtilityScripts
             EditableReferenceList(PrefabsToInstantiate, new GUIContent(PrefabsToInstantiate.displayName, PrefabsToInstantiate.tooltip), fieldBox);
 
             EditableReferenceList(SpawnPoints, new GUIContent(SpawnPoints.displayName, SpawnPoints.tooltip), fieldBox);
-
-            /// Spawn Pattern
             EditorGUILayout.BeginVertical(fieldBox);
             EditorGUILayout.PropertyField(Sequence);
             EditorGUILayout.PropertyField(UseRandomOffset);
@@ -366,8 +301,6 @@ namespace Photon.Pun.UtilityScripts
                 EditorGUILayout.PropertyField(ClampY);
             }
             EditorGUILayout.EndVertical();
-
-            /// Auto/Manual Spawn
             EditorGUILayout.BeginVertical(fieldBox);
             EditorGUILayout.PropertyField(autoSpawnObjects);
             EditorGUILayout.EndVertical();
@@ -377,12 +310,6 @@ namespace Photon.Pun.UtilityScripts
                 serializedObject.ApplyModifiedProperties();
             }
         }
-
-        /// <summary>
-        /// Create a basic rendered list of objects from a SerializedProperty list or array, with Add/Destroy buttons.
-        /// </summary>
-        /// <param name="list"></param>
-        /// <param name="gc"></param>
         public void EditableReferenceList(SerializedProperty list, GUIContent gc, GUIStyle style = null)
         {
             EditorGUILayout.LabelField(gc);
@@ -405,7 +332,6 @@ namespace Photon.Pun.UtilityScripts
             }
             else
             {
-                // List Elements and Delete buttons
                 for (int i = 0; i < count; ++i)
                 {
                     EditorGUILayout.BeginHorizontal();
@@ -424,7 +350,6 @@ namespace Photon.Pun.UtilityScripts
                     if (remove)
                     {
                         list.DeleteArrayElementAtIndex(i);
-                        //EditorGUILayout.EndHorizontal();
                         break;
                     }
                 }

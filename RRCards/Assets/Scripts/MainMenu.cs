@@ -8,7 +8,6 @@ using System;
 
 public class MainMenu : MonoBehaviour
 {
-    // Gán các panel qua Inspector
     public GameObject mainPanel;
     public GameObject optionPanel;
     public GameObject rulePanel;
@@ -23,16 +22,12 @@ public class MainMenu : MonoBehaviour
     {
         DebugLog("MainMenu script started");
         ShowMain();
-
-        // Ensure PlayerStatisticsManager is properly initialized after PlayFab login
         StartCoroutine(CheckAndInitializeStats());
     }
 
     private IEnumerator CheckAndInitializeStats()
     {
         DebugLog("Checking PlayFab login status for stats initialization...");
-
-        // Wait for PlayFab login
         float timeout = 15f;
         float timer = 0f;
 
@@ -45,8 +40,6 @@ public class MainMenu : MonoBehaviour
         if (PlayFabClientAPI.IsClientLoggedIn())
         {
             DebugLog("✅ PlayFab login detected in MainMenu");
-
-            // Ensure PlayerStatisticsManager exists and is initialized
             if (PlayerStatisticsManager.Instance != null)
             {
                 DebugLog("PlayerStatisticsManager.Instance found, manually initializing...");
@@ -55,8 +48,6 @@ public class MainMenu : MonoBehaviour
             else
             {
                 DebugLog("⚠️ PlayerStatisticsManager.Instance is null in MainMenu");
-
-                // Try to find it
                 var foundManager = FindObjectOfType<PlayerStatisticsManager>();
                 if (foundManager != null)
                 {
@@ -121,8 +112,6 @@ public class MainMenu : MonoBehaviour
         optionPanel.SetActive(false);
         rulePanel.SetActive(false);
         statsPanel.SetActive(true);
-
-        // Enhanced stats loading with error handling
         if (PlayerStatisticsManager.Instance != null)
         {
             DebugLog("Loading stats via PlayerStatisticsManager.Instance");
@@ -131,8 +120,6 @@ public class MainMenu : MonoBehaviour
         else
         {
             DebugLog("⚠️ PlayerStatisticsManager.Instance is null when ShowStats called");
-
-            // Try to find and use it
             var foundManager = FindObjectOfType<PlayerStatisticsManager>();
             if (foundManager != null)
             {
@@ -148,17 +135,12 @@ public class MainMenu : MonoBehaviour
 
     public void OnLogout()
     {
-        if (isLoggingOut) return; // tránh double click
-        isLoggingOut = true;
+        if (isLoggingOut) return;        isLoggingOut = true;
 
         DebugLog("=== LOGGING OUT FROM MAIN MENU ===");
-
-        // Xoá thông tin PlayFab
         PlayFabClientAPI.ForgetAllCredentials();
         PlayerPrefs.DeleteKey("PlayFabID");
         PlayerPrefs.DeleteKey("DisplayName");
-
-        // Ngắt kết nối Photon nếu đang kết nối
         if (PhotonNetwork.IsConnected)
         {
             PhotonNetwork.Disconnect();

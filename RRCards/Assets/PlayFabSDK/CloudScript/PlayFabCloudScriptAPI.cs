@@ -7,35 +7,17 @@ using PlayFab.Internal;
 
 namespace PlayFab
 {
-    /// <summary>
-    /// API methods for executing CloudScript using an Entity Profile
-    /// </summary>
     public static class PlayFabCloudScriptAPI
     {
         static PlayFabCloudScriptAPI() {}
-
-
-        /// <summary>
-        /// Verify entity login.
-        /// </summary>
         public static bool IsEntityLoggedIn()
         {
             return PlayFabSettings.staticPlayer.IsEntityLoggedIn();
         }
-
-        /// <summary>
-        /// Clear the Client SessionToken which allows this Client to call API calls requiring login.
-        /// A new/fresh login will be required after calling this.
-        /// </summary>
         public static void ForgetAllCredentials()
         {
             PlayFabSettings.staticPlayer.ForgetAllCredentials();
         }
-
-        /// <summary>
-        /// Cloud Script is one of PlayFab's most versatile features. It allows client code to request execution of any kind of
-        /// custom server-side functionality you can implement, and it can be used in conjunction with virtually anything.
-        /// </summary>
         public static void ExecuteEntityCloudScript(ExecuteEntityCloudScriptRequest request, Action<ExecuteCloudScriptResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -45,11 +27,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/ExecuteEntityCloudScript", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Cloud Script is one of PlayFab's most versatile features. It allows client code to request execution of any kind of
-        /// custom server-side functionality you can implement, and it can be used in conjunction with virtually anything.
-        /// </summary>
         public static void ExecuteFunction(ExecuteFunctionRequest request, Action<ExecuteFunctionResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -67,10 +44,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/ExecuteFunction", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Gets registered Azure Functions for a given title id and function name.
-        /// </summary>
         public static void GetFunction(GetFunctionRequest request, Action<GetFunctionResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -80,10 +53,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/GetFunction", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Lists all currently registered Event Hub triggered Azure Functions for a given title.
-        /// </summary>
         public static void ListEventHubFunctions(ListFunctionsRequest request, Action<ListEventHubFunctionsResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -93,10 +62,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/ListEventHubFunctions", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Lists all currently registered Azure Functions for a given title.
-        /// </summary>
         public static void ListFunctions(ListFunctionsRequest request, Action<ListFunctionsResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -106,10 +71,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/ListFunctions", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Lists all currently registered HTTP triggered Azure Functions for a given title.
-        /// </summary>
         public static void ListHttpFunctions(ListFunctionsRequest request, Action<ListHttpFunctionsResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -119,10 +80,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/ListHttpFunctions", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Lists all currently registered Queue triggered Azure Functions for a given title.
-        /// </summary>
         public static void ListQueuedFunctions(ListFunctionsRequest request, Action<ListQueuedFunctionsResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -132,10 +89,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/ListQueuedFunctions", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Generate an entity PlayStream event for the provided function result.
-        /// </summary>
         public static void PostFunctionResultForEntityTriggeredAction(PostFunctionResultForEntityTriggeredActionRequest request, Action<EmptyResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -145,10 +98,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/PostFunctionResultForEntityTriggeredAction", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Generate an entity PlayStream event for the provided function result.
-        /// </summary>
         public static void PostFunctionResultForFunctionExecution(PostFunctionResultForFunctionExecutionRequest request, Action<EmptyResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -158,10 +107,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/PostFunctionResultForFunctionExecution", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Generate a player PlayStream event for the provided function result.
-        /// </summary>
         public static void PostFunctionResultForPlayerTriggeredAction(PostFunctionResultForPlayerTriggeredActionRequest request, Action<EmptyResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -171,10 +116,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/PostFunctionResultForPlayerTriggeredAction", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Generate a PlayStream event for the provided function result.
-        /// </summary>
         public static void PostFunctionResultForScheduledTask(PostFunctionResultForScheduledTaskRequest request, Action<EmptyResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -184,10 +125,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/PostFunctionResultForScheduledTask", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Registers an event hub triggered Azure Function with a title.
-        /// </summary>
         public static void RegisterEventHubFunction(RegisterEventHubFunctionRequest request, Action<EmptyResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -197,10 +134,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/RegisterEventHubFunction", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Registers an HTTP triggered Azure function with a title.
-        /// </summary>
         public static void RegisterHttpFunction(RegisterHttpFunctionRequest request, Action<EmptyResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -210,10 +143,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/RegisterHttpFunction", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Registers a queue triggered Azure Function with a title.
-        /// </summary>
         public static void RegisterQueuedFunction(RegisterQueuedFunctionRequest request, Action<EmptyResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -223,10 +152,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/CloudScript/RegisterQueuedFunction", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Unregisters an Azure Function with a title.
-        /// </summary>
         public static void UnregisterFunction(UnregisterFunctionRequest request, Action<EmptyResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;

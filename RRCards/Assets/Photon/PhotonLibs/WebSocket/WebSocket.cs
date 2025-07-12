@@ -6,13 +6,6 @@
 #define PHOTON_WEBSOCKET_CS
 #endif
 
-// --------------------------------------------------------------------------------------------------------------------
-// <summary>
-//   Provided originally by Unity to cover WebSocket support in WebGL and the Editor. Modified by Exit Games GmbH.
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
 
 namespace ExitGames.Client.Photon
 {
@@ -28,35 +21,17 @@ namespace ExitGames.Client.Photon
     using System.Security.Authentication;
     #endif
 
-
-    // changed mProxyAddress to ProxyAddress
-    // changed mUrl to Url
-
     public partial class WebSocket
     {
-        /// <summary>Server address</summary>
         public Uri Url { get; private set; }
-
-        /// <summary>Only supported by WebSocket-sharp dll.</summary>
         public string ProxyAddress { get; private set; }
-
-        /// <summary>Photon uses this to agree on a serialization protocol. Either: GpBinaryV16 or GpBinaryV18. Based on enum SerializationProtocol.</summary>
         private readonly string protocols = "GpBinaryV16";
-
-
-        /// <summary>True after the websocket callback OnConnect until close or (permanent) error.</summary>
         public bool Connected { get; private set; }
-
-        /// <summary>Null until some error happened in underlying websocket.</summary>
         public string Error { get; private set; }
-
-
-        // callbacks to higher level
         private Action<byte[], int> recvCallback;
         private Action openCallback;
         private Action<int, string> errorCallback;
         private Action<int, string> closeCallback;
-        // logging callback
         public Action<DebugLevel, string> DebugReturn { get; set; }
 
 
@@ -82,9 +57,6 @@ namespace ExitGames.Client.Photon
             }
         }
     }
-
-
-    // .net specific implementation using websocket-sharp.dll
     public partial class WebSocket
     {
         #if PHOTON_WEBSOCKET_CS
@@ -158,8 +130,6 @@ namespace ExitGames.Client.Photon
                         user = user.Substring(0, passDelim);
                     }
                 }
-
-                // throws an exception, if scheme not specified
                 this.m_Socket.SetProxy("http://" + this.ProxyAddress, user, pass);
             }
 
@@ -175,7 +145,6 @@ namespace ExitGames.Client.Photon
 
         public void Close()
         {
-            // at this low level we are fine with closing the socket async / non-blocking
             this.m_Socket.CloseAsync();
         }
 
@@ -186,9 +155,6 @@ namespace ExitGames.Client.Photon
 
         #endif
     }
-
-
-    // js/native specific implementation
     public partial class WebSocket
     {
         #if PHOTON_WEBSOCKET_JS
@@ -213,8 +179,6 @@ namespace ExitGames.Client.Photon
         private static extern int SocketError (int socketInstance, byte[] ptr, int length);
 
         private int m_NativeRef = 0;
-
-        // TODO: discuss if we need this anymore?!
         public bool ConnectedOLD
         {
             get { return SocketState(m_NativeRef) != 0; }
@@ -222,8 +186,6 @@ namespace ExitGames.Client.Photon
 
         private const int SocketErrorBufferSize = 1024;
         private readonly byte[] socketErrorBuffer = new byte[SocketErrorBufferSize];
-
-        // TODO: discuss if we need this anymore?!
         public string ErrorOLD
         {
             get {

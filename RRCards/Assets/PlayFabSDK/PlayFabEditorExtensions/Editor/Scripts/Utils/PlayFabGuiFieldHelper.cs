@@ -16,10 +16,6 @@ namespace PlayFab.PfEditor
                     return i;
             return -1;
         }
-
-        /// <summary>
-        /// Build a dropdown menu from a list of arbitrary elements.
-        /// </summary>
         public static void SuperFancyDropdown<T>(float labelWidth, string label, T activeElement, IList<T> elements, Func<T, string> getElementKey, Action<T> OnChangeTo, GUIStyle style, params GUILayoutOption[] options)
         {
             if (elements == null || elements.Count == 0)
@@ -39,10 +35,6 @@ namespace PlayFab.PfEditor
             }
         }
     }
-
-    /// <summary>
-    /// A disposable wrapper for enabled/disabled which sets it to one way or another and restores when finished
-    /// </summary>
     public class UnityGuiToggler : IDisposable
     {
         private bool previous;
@@ -58,10 +50,6 @@ namespace PlayFab.PfEditor
             GUI.enabled = previous;
         }
     }
-
-    /// <summary>
-    /// A disposable wrapper for Verticals, to ensure they're paired properly, and to make the code visually block together within them
-    /// </summary>
     public class UnityHorizontal : IDisposable
     {
         public UnityHorizontal(params GUILayoutOption[] options)
@@ -79,10 +67,6 @@ namespace PlayFab.PfEditor
             EditorGUILayout.EndHorizontal();
         }
     }
-
-    /// <summary>
-    /// A disposable wrapper for Horizontals, to ensure they're paired properly, and to make the code visually block together within them
-    /// </summary>
     public class UnityVertical : IDisposable
     {
         public UnityVertical(params GUILayoutOption[] options)
@@ -100,8 +84,6 @@ namespace PlayFab.PfEditor
             EditorGUILayout.EndVertical();
         }
     }
-
-    //FixedWidthLabel class. Extends IDisposable, so that it can be used with the "using" keyword.
     public class FixedWidthLabel : IDisposable
     {
         private readonly ZeroIndent indentReset; //helper class to reset and restore indentation
@@ -109,12 +91,10 @@ namespace PlayFab.PfEditor
 
         public FixedWidthLabel(GUIContent label, GUIStyle style) // constructor.
         {
-            //state changes are applied here.
 
             this.fieldWidth = style.CalcSize(label).x + 9 * EditorGUI.indentLevel;
             EditorGUILayout.BeginHorizontal(PlayFabEditorHelper.uiStyle.GetStyle("gpStyleClear")); // create a new horizontal group
             EditorGUILayout.LabelField(label, style, GUILayout.Width(fieldWidth));
-            // indentation from the left side. It's 9 pixels per indent level
 
             indentReset = new ZeroIndent(); //helper class to have no indentation after the label
         }

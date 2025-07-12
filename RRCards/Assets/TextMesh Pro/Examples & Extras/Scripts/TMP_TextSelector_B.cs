@@ -137,8 +137,6 @@ namespace TMPro.Examples
             Color32[] dstColors = m_TextMeshPro.textInfo.meshInfo[materialIndex].colors32;
             for (int i = 0; i < 4; i++)
                 dstColors[vertexIndex + i] = srcColors[vertexIndex + i];
-
-            // ✅ Vector4[] to Vector2[] conversion for UVs0
             Vector4[] srcUVs0_4D = m_cachedMeshInfoVertexData[materialIndex].uvs0;
             Vector2[] dstUVs0 = new Vector2[srcUVs0_4D.Length];
             for (int i = 0; i < srcUVs0_4D.Length; i++)

@@ -1,28 +1,12 @@
-﻿// ----------------------------------------------------------------------------
-// <copyright file="WebRpcImplementationExample.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//  Sample of best practices when implementing & handling WebRPCs.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
-
+﻿
 using ExitGames.Client.Photon;
 using Photon.Realtime;
 using UnityEngine;
 
 namespace Photon.Pun.Demo
 {
-
-    /// <summary>
-    /// This class is a sample of how to implement WebRPCs calling & callbacks.
-    /// </summary>
     public class WebRpcImplementationExample : MonoBehaviour, IWebRpcCallback
     {
-        /// <summary>
-        /// example of WebRPC method name, add yours as enum or constants to avoid typos and have them in one place
-        /// </summary>
         public const string GetGameListWebRpcMethodName = "GetGameList";
 
         public void OnWebRpcResponse(OperationResponse response)
@@ -41,9 +25,7 @@ namespace Photon.Pun.Demo
                     {
                         switch (webRpcResponse.Name)
                         {
-                            // todo: add your code here
                             case GetGameListWebRpcMethodName: // example
-                                // ... 
                                 break;
                         }
                     }
@@ -60,7 +42,6 @@ namespace Photon.Pun.Demo
                     Debug.LogErrorFormat("WebRPC call failed as request could not be sent to the server. {0}", response.DebugMessage);
                     break;
                 case ErrorCode.HttpLimitReached: // too many WebRPCs in a short period of time
-                                                 // the debug message should contain the limit exceeded
                     Debug.LogErrorFormat("WebRPCs rate limit exceeded: {0}", response.DebugMessage);
                     break;
                 case ErrorCode.InvalidOperation: // WebRPC not configured at all OR not configured properly OR trying to send on name server
@@ -74,7 +55,6 @@ namespace Photon.Pun.Demo
                     }
                     break;
                 default:
-                    // other unknown error, unexpected
                     Debug.LogErrorFormat("Unexpected error, {0} {1}", response.ReturnCode, response.DebugMessage);
                     break;
             }

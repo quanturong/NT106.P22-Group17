@@ -1,8 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ConnectAndJoinRandomLb.cs" company="Exit Games GmbH"/>
-// <summary>Prototyping / sample code for Photon Realtime.</summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
 using ExitGames.Client.Photon;
@@ -131,10 +126,6 @@ namespace Photon.Realtime.Demo
         public void OnLeftRoom()
         {
         }
-
-
-        /// <summary>A callback of the RegionHandler, provided in OnRegionListReceived.</summary>
-        /// <param name="regionHandler">The regionHandler wraps up best region and other region relevant info.</param>
         private void OnRegionPingCompleted(RegionHandler regionHandler)
         {
             Debug.Log("OnRegionPingCompleted " + regionHandler.BestRegion);

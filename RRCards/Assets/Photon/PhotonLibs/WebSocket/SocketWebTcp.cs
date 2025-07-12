@@ -1,15 +1,5 @@
 #if UNITY_WEBGL || WEBSOCKET || WEBSOCKET_PROXYCONFIG
 
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SocketWebTcp.cs" company="Exit Games GmbH">
-//   Copyright (c) Exit Games GmbH.  All rights reserved.
-// </copyright>
-// <summary>
-//   Internal class to encapsulate the network i/o functionality for the realtime library.
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
 
 namespace ExitGames.Client.Photon
 {
@@ -18,10 +8,6 @@ namespace ExitGames.Client.Photon
     #if UNITY_2019_3_OR_NEWER
     using UnityEngine.Scripting;
     #endif
-
-    /// <summary>
-    /// Internal class to encapsulate the network i/o functionality for the realtime library.
-    /// </summary>
     [Preserve]
     public class SocketWebTcp : IPhotonSocket, IDisposable
     {
@@ -76,13 +62,6 @@ namespace ExitGames.Client.Photon
                 this.ConnectAddress += "&IPv6"; // this makes the Photon Server return a host name for the next server (NS points to MS and MS points to GS)
             }
 
-            // earlier, we read the proxy address/scheme and failed to connect entirely, if that wasn't successful...
-            // it was either successful (using the resulting proxy address) or no connect at all...
-
-            // we want:
-            // WITH support: fail if the scheme is wrong or use it if possible
-            // WITHOUT support: use proxy address, if it's a direct value (not a scheme we provide) or fail if it's a scheme
-
             string proxyServerAddress;
             if (!this.ReadProxyConfigScheme(this.ProxyServerAddress, this.ServerAddress, out proxyServerAddress))
             {
@@ -117,19 +96,14 @@ namespace ExitGames.Client.Photon
                 this.HandleException(StatusCode.ExceptionOnConnect); // sets state to Disconnecting
                 return;
             }
-
-            // passing-on close only if this socket is still used / expected to be connected
             if (this.State != PhotonSocketState.Disconnecting && this.State != PhotonSocketState.Disconnected)
             {
                 this.Listener.DebugReturn(DebugLevel.ERROR, "SocketWebTcp.CloseCallback(). Going to disconnect. Server: " + this.ServerAddress + " Error: " + code + " Reason: " + reason);
                 this.HandleException(StatusCode.DisconnectByServerReasonUnknown); // sets state to Disconnecting
             }
         }
-
-        // code can be from JsLib or WebSocket-Sharp, so it is not guaranteed to be the same in both cases
         private void ErrorCallback(int code, string message)
         {
-            // passing-on errors only if this socket is still used / expected to be connected
             if (this.State != PhotonSocketState.Disconnecting && this.State != PhotonSocketState.Disconnected)
             {
                 this.Listener.DebugReturn(DebugLevel.ERROR, "SocketWebTcp.ErrorCallback(). Going to disconnect. Server: " + this.ServerAddress + " Error: " + code + " Message: " + message);
@@ -145,21 +119,6 @@ namespace ExitGames.Client.Photon
                 this.peerBase.OnConnect();
             }
         }
-
-
-        /// <summary>
-        /// Attempts to read a proxy configuration defined by a address prefix. Only available to Industries Circle members on demand.
-        /// </summary>
-        /// <remarks>
-        /// Extended proxy support is available to Industries Circle members. Where available, proxy addresses may be defined as 'auto:', 'pac:' or 'system:'.
-        /// In all other cases, the proxy address is used as is and fails to read configs (if one of the listed schemes is used).
-        ///
-        /// Requires file ProxyAutoConfig.cs and compile define: WEBSOCKET_PROXYCONFIG_SUPPORT.
-        /// </remarks>
-        /// <param name="proxyAddress">Proxy address from the server configuration.</param>
-        /// <param name="url">Url to connect to (one of the Photon servers).</param>
-        /// <param name="proxyUrl">Resulting proxy URL to use.</param>
-        /// <returns>False if there is some error and the resulting proxy address should not be used.</returns>
         private bool ReadProxyConfigScheme(string proxyAddress, string url, out string proxyUrl)
         {
             proxyUrl = null;
@@ -280,8 +239,6 @@ namespace ExitGames.Client.Photon
             this.State = PhotonSocketState.Disconnected;
             return true;
         }
-
-        /// <summary>Used by TPeer</summary>
         public override PhotonSocketError Send(byte[] data, int length)
         {
             if (this.State != PhotonSocketState.Connected)
@@ -323,7 +280,6 @@ namespace ExitGames.Client.Photon
 
         public void ReceiveCallback(byte[] buf, int len)
         {
-            // once the websocket is disconnecting / disconnected, it should not receive anything anymore
             if (State == PhotonSocketState.Disconnecting || State == PhotonSocketState.Disconnected)
             {
                 return;

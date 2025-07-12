@@ -1,10 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="FriendListCell.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,9 +6,6 @@ using Photon.Realtime;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// Friend list cell
-    /// </summary>
     public class FriendListCell : MonoBehaviour
     {
         public FriendListView ListManager;
@@ -50,7 +41,6 @@ namespace Photon.Pun.Demo.Cockpit
 
         public void JoinFriendRoom()
         {
-            //Debug.Log("FriendListCell:JoinFriendRoom " + _info.Room);
             ListManager.JoinFriendRoom(_info.Room);
         }
 

@@ -1,12 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ToDemoHubButton.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Demos
-// </copyright>
-// <summary>
-//  Present a button on all launched demos from hub to allow getting back to the demo hub.
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,9 +5,6 @@ using UnityEngine.EventSystems;
 
 namespace Photon.Pun.Demo.Hub
 {
-	/// <summary>
-	/// Present a button on all launched demos from hub to allow getting back to the demo hub.
-	/// </summary>
 	public class ToDemoHubButton : MonoBehaviour
 	{
 
@@ -49,8 +37,6 @@ namespace Photon.Pun.Demo.Hub
 	            Destroy(gameObject);
 	        }
 	    }
-
-	    // Use this for initialization
 	    public void Start()
 	    {
 	        DontDestroyOnLoad(gameObject);

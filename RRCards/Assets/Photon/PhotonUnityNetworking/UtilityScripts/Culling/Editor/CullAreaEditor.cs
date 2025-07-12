@@ -1,13 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CullAreaEditor.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities,
-// </copyright>
-// <summary>
-//  Custom inspector for CullArea
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEditor;
 using UnityEngine;
 
@@ -32,8 +23,6 @@ namespace Photon.Pun.UtilityScripts
         public void OnEnable()
         {
             cullArea = (CullArea)target;
-
-            // Destroying the newly created cull area if there is already one existing
             int cullAreaCount = 0;
             #if UNITY_6000_0_OR_NEWER
             cullAreaCount = FindObjectsByType<CullArea>(FindObjectsSortMode.None).Length;
@@ -49,8 +38,6 @@ namespace Photon.Pun.UtilityScripts
 
                 return;
             }
-
-            // Prevents the dropdown from resetting
             if (cullArea != null)
             {
                 upAxisOptions = cullArea.YIsUpAxis ? UP_AXIS_OPTIONS.SideScrollerMode : UP_AXIS_OPTIONS.TopDownOr3DMode;
@@ -72,10 +59,6 @@ namespace Photon.Pun.UtilityScripts
 
             EditorGUILayout.EndVertical();
         }
-
-        /// <summary>
-        ///     Represents the inspector GUI when edit mode is active.
-        /// </summary>
         private void OnInspectorGUIEditMode()
         {
             EditorGUI.BeginChangeCheck();
@@ -182,10 +165,6 @@ namespace Photon.Pun.UtilityScripts
                 EditorGUILayout.EndHorizontal();
             }
         }
-
-        /// <summary>
-        ///     Represents the inspector GUI when play mode is active.
-        /// </summary>
         private void OnInspectorGUIPlayMode()
         {
             EditorGUILayout.LabelField("No changes allowed when game is running. Please exit play mode first.", EditorStyles.boldLabel);
@@ -208,18 +187,13 @@ namespace Photon.Pun.UtilityScripts
 
             GUILayout.EndArea();
             Handles.EndGUI();
-
-            // Checking for changes of the transform
             if (cullArea.transform.hasChanged)
             {
-                // Resetting position
                 float posX = cullArea.transform.position.x;
                 float posY = cullArea.YIsUpAxis ? cullArea.transform.position.y : 0.0f;
                 float posZ = !cullArea.YIsUpAxis ? cullArea.transform.position.z : 0.0f;
 
                 cullArea.transform.position = new Vector3(posX, posY, posZ);
-
-                // Resetting scaling
                 if (cullArea.Size.x < 1.0f || cullArea.Size.y < 1.0f)
                 {
                     float scaleX = (cullArea.transform.localScale.x < 1.0f) ? 1.0f : cullArea.transform.localScale.x;
@@ -236,19 +210,12 @@ namespace Photon.Pun.UtilityScripts
                 AlignEditorView();
             }
         }
-
-        /// <summary>
-        ///     Aligns the editor view with the created grid.
-        /// </summary>
         private void AlignEditorView()
         {
             if (!alignEditorCamera)
             {
                 return;
             }
-
-            // This creates a temporary game object in order to align the editor view.
-            // The created game object is destroyed afterwards.
             GameObject tmpGo = new GameObject();
 
             float yCoord = cullArea.YIsUpAxis ? cullArea.Center.y : Mathf.Max(cullArea.Size.x, cullArea.Size.y);

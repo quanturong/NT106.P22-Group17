@@ -1,14 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SplineWalker.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Networking Demos
-// </copyright>
-// <summary>
-//  Original: http://catlikecoding.com/unity/tutorials/curves-and-splines/
-//  Used in SlotRacer Demo
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 
 namespace Photon.Pun.Demo.SlotRacer.Utils
@@ -38,7 +28,6 @@ namespace Photon.Pun.Demo.SlotRacer.Utils
 
 		void Update()
 		{
-			// update the distance used.
 			currentDistance += Speed * Time.deltaTime;
 			ExecutePositioning ();
 		}
@@ -49,10 +38,7 @@ namespace Photon.Pun.Demo.SlotRacer.Utils
 			{
 				return;
 			}
-			// move the transform to the new point
 			transform.position = spline.GetPositionAtDistance(currentDistance,this.reverse);
-
-			// update the distance used.
 			currentDistance += Speed * Time.deltaTime;
 
 

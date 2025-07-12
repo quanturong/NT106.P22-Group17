@@ -1,26 +1,14 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PhotonNetwork.CurrentRoom.IsOpen.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit Demo
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-	/// <summary>
-	/// PhotonNetwork.CurrentRoom.IsOpen UI Toggle
-	/// </summary>
 	[RequireComponent(typeof(Toggle))]
 	public class CurrentRoomIsOpenToggle : MonoBehaviour, IPointerClickHandler
 	{
 		Toggle _toggle;
-
-
-		// Use this for initialization
 		void OnEnable()
 		{
 			_toggle = GetComponent<Toggle>();

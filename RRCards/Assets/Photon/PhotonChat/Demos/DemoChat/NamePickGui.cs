@@ -1,9 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright company="Exit Games GmbH"/>
-// <summary>Demo code for Photon Chat in Unity.</summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -34,9 +29,6 @@ namespace Photon.Chat.Demo
                 this.idInput.text = prefsName;
             }
         }
-
-
-        // new UI will fire "EndEdit" event also when loosing focus. So check "enter" key and only then StartChat.
         public void EndEditOnEnter()
         {
             if (Input.GetKey(KeyCode.Return) || Input.GetKey(KeyCode.KeypadEnter))

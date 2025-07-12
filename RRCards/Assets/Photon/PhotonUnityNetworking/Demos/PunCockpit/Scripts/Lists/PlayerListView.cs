@@ -1,10 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PlayerListView.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
- 
+﻿ 
 
 using System.Collections;
 using System.Linq;
@@ -17,9 +11,6 @@ using Photon.Realtime;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// Player list UI View.
-    /// </summary>
     public class PlayerListView : MonoBehaviourPunCallbacks
     {
         public PlayerDetailsController PlayerDetailManager;
@@ -58,8 +49,6 @@ namespace Photon.Pun.Demo.Cockpit
                 {
                     continue;
                 }
-
-                //Debug.Log("PlayerListView:adding player " + _entry.Key);
                 playerCellList[_entry.Key] = Instantiate(CellPrototype);
                 playerCellList[_entry.Key].transform.SetParent(CellPrototype.transform.parent, false);
                 playerCellList[_entry.Key].gameObject.SetActive(true);
@@ -74,9 +63,6 @@ namespace Photon.Pun.Demo.Cockpit
 
         public override void OnPlayerEnteredRoom(Player newPlayer)
         {
-            //Debug.Log("PlayerListView:OnPlayerEnteredRoom:" + newPlayer);
-
-            // we create the cell
             if (!playerCellList.ContainsKey(newPlayer.ActorNumber))
             {
                 playerCellList[newPlayer.ActorNumber] = Instantiate(CellPrototype.gameObject).GetComponent<PlayerListCell>();
@@ -117,9 +103,6 @@ namespace Photon.Pun.Demo.Cockpit
 
         public override void OnPlayerLeftRoom(Player otherPlayer)
         {
-            //Debug.Log("OnPlayerLeftRoom isinactive " + otherPlayer.IsInactive);
-
-            //	bool _remove = false;
 
             if (!PhotonNetwork.PlayerListOthers.Contains(otherPlayer))
             {
@@ -131,20 +114,6 @@ namespace Photon.Pun.Demo.Cockpit
 
                 playerCellList[otherPlayer.ActorNumber].RefreshInfo(null);
             }
-
-            //		_remove = otherPlayer.IsInactive && playerCellList [otherPlayer.ID].isInactiveCache;
-            //
-            //		if (otherPlayer.IsInactive && ! playerCellList [otherPlayer.ID].isInactiveCache) {
-            //
-            //			//playerCellList [otherPlayer.ID].isInactiveCache = true;
-            //			playerCellList[otherPlayer.ID].RefreshInfo(null);
-            //		} 
-            //
-            //		if (_remove)
-            //		{
-            //			playerCellList[otherPlayer.ID].RemoveFromList ();
-            //			playerCellList.Remove (otherPlayer.ID);
-            //		}
 
             StartCoroutine("UpdateUIPing");
         }

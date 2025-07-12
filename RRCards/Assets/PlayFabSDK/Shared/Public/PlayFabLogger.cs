@@ -15,16 +15,10 @@ namespace PlayFab.Public
         IPAddress ip { get; set; }
         int port { get; set; }
         string url { get; set; }
-
-        // Unity MonoBehaviour callbacks
         void OnEnable();
         void OnDisable();
         void OnDestroy();
     }
-
-    /// <summary>
-    /// This is some unity-log capturing logic, and threading tools that allow logging to be caught and processed on another thread
-    /// </summary>
     public abstract class PlayFabLoggerBase : IPlayFabLogger
     {
         private static readonly StringBuilder Sb = new StringBuilder();
@@ -86,29 +80,9 @@ namespace PlayFab.Public
         {
             _isApplicationPlaying = false;
         }
-
-        /// <summary>
-        /// Logs are cached and written in bursts
-        /// BeginUploadLog is called at the begining of each burst
-        /// </summary>
         protected abstract void BeginUploadLog();
-        /// <summary>
-        /// Logs are cached and written in bursts
-        /// UploadLog is called for each cached log, between BeginUploadLog and EndUploadLog
-        /// </summary>
         protected abstract void UploadLog(string message);
-        /// <summary>
-        /// Logs are cached and written in bursts
-        /// EndUploadLog is called at the end of each burst
-        /// </summary>
         protected abstract void EndUploadLog();
-
-        /// <summary>
-        /// Handler to process Unity logs into our logging system
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="stacktrace"></param>
-        /// <param name="type"></param>
         private void HandleUnityLog(string message, string stacktrace, LogType type)
         {
             if (!PlayFabSettings.EnableRealTimeLogging)
@@ -156,7 +130,6 @@ namespace PlayFab.Public
                 bool active;
                 lock (_threadLock)
                 {
-                    // Kill the thread after 1 minute of inactivity
                     _threadKillTime = DateTime.UtcNow + _threadKillTimeout;
                 }
 
@@ -176,22 +149,18 @@ namespace PlayFab.Public
                     EndUploadLog();
 
                     #region Expire Thread.
-                    // Check if we've been inactive
                     lock (_threadLock)
                     {
                         var now = DateTime.UtcNow;
                         if (_pendingLogsCount > 0 && _isApplicationPlaying)
                         {
-                            // Still active, reset the _threadKillTime
                             _threadKillTime = now + _threadKillTimeout;
                         }
-                        // Kill the thread after 1 minute of inactivity
                         active = now <= _threadKillTime;
                         if (!active)
                         {
                             _writeLogThread = null;
                         }
-                        // This thread will be stopped, so null this now, inside lock (_threadLock)
                     }
                     #endregion
 
@@ -212,23 +181,15 @@ namespace PlayFab.Public
         string ip { get; set; }
         int port { get; set; }
         string url { get; set; }
-
-        // Unity MonoBehaviour callbacks
         void OnEnable();
         void OnDisable();
         void OnDestroy();
     }
-
-    /// <summary>
-    /// This is just a placeholder.  WP8 doesn't support direct threading, but instead makes you use the await command.
-    /// </summary>
     public abstract class PlayFabLoggerBase : IPlayFabLogger
     {
         public string ip { get; set; }
         public int port { get; set; }
         public string url { get; set; }
-
-        // Unity MonoBehaviour callbacks
         public void OnEnable() { }
         public void OnDisable() { }
         public void OnDestroy() { }
@@ -238,31 +199,14 @@ namespace PlayFab.Public
         protected abstract void EndUploadLog();
     }
 #endif
-
-    /// <summary>
-    /// This translates the logs up to the PlayFab service via a PlayFab restful API
-    /// TODO: PLAYFAB - attach these to the PlayFab API
-    /// </summary>
     public class PlayFabLogger : PlayFabLoggerBase
     {
-        /// <summary>
-        /// Logs are cached and written in bursts
-        /// BeginUploadLog is called at the begining of each burst
-        /// </summary>
         protected override void BeginUploadLog()
         {
         }
-        /// <summary>
-        /// Logs are cached and written in bursts
-        /// UploadLog is called for each cached log, between BeginUploadLog and EndUploadLog
-        /// </summary>
         protected override void UploadLog(string message)
         {
         }
-        /// <summary>
-        /// Logs are cached and written in bursts
-        /// EndUploadLog is called at the end of each burst
-        /// </summary>
         protected override void EndUploadLog()
         {
         }

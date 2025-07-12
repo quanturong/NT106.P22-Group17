@@ -1,13 +1,4 @@
-﻿// ----------------------------------------------------------------------------
-// <copyright file="PhotonGUI.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   GUI scripts for the Editor.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
-
+﻿
 
 using UnityEngine;
 using UnityEditor;
@@ -324,14 +315,10 @@ namespace Photon.Pun
             bool showButton = buttonAction != null;
 
             Rect rect = DoContainerHeader("", 27, 0f);
-
-            // Shorten foldout label if button is present, so it doesn't interfere with clicking.
             float foldoutWidth = rect.width - (showButton ? 15 + buttonWidth: 15);
             Rect foldoutRect = new Rect(rect.xMin + 15, rect.yMin + 5, foldoutWidth, 16);
 
             bool expanded = EditorGUI.Foldout(foldoutRect, foldout, headline, FoldoutBold);
-
-            // If a button is defined show it, and invoke action on click.
             if (showButton && GUI.Button(new Rect(foldoutRect) { x = foldoutRect.xMax, height = 17, width = buttonWidth - 4 }, buttonLabel == null ? "" : buttonLabel))
             {
                 buttonAction.Invoke();

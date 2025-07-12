@@ -63,8 +63,6 @@ namespace PlayFab.PfEditor
             var jsonResponse = JsonWrapper.DeserializeObject<List<object>>(response);
             if (jsonResponse == null || jsonResponse.Count == 0)
                 return;
-
-            // list seems to come back in ascending order (oldest -> newest)
             var latestSdkTag = (JsonObject)jsonResponse[jsonResponse.Count - 1];
             object tag;
             if (latestSdkTag.TryGetValue("ref", out tag))

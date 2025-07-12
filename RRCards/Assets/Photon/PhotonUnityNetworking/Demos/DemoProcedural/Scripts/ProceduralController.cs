@@ -2,9 +2,6 @@
 
 namespace Photon.Pun.Demo.Procedural
 {
-    /// <summary>
-    /// Simple Input Handler to control the camera.
-    /// </summary>
     public class ProceduralController : MonoBehaviour
     {
         private Camera cam;
@@ -15,13 +12,6 @@ namespace Photon.Pun.Demo.Procedural
         {
             cam = Camera.main;
         }
-
-        /// <summary>
-        /// Use horizontal and vertical axes (by default WASD or the arrow keys) for moving for-, back- or sidewards.
-        /// Use E or Q for 'zooming' in or out.
-        /// Use the left mouse button to decrease a Block's height 
-        /// or the right mouse button to increase a Block's height.
-        /// </summary>
         public void Update()
         {
             float h = Input.GetAxisRaw("Horizontal");

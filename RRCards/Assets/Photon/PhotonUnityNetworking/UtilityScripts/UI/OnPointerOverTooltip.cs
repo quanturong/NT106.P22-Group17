@@ -1,19 +1,9 @@
-// <copyright file="OnPointerOverTooltip.cs" company="Exit Games GmbH">
-// </copyright>
-// <summary>
-// Set focus to a given photonView when pointed is over
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace Photon.Pun.UtilityScripts
 {
-	/// <summary>
-    /// Set focus to a given photonView when pointed is over
-	/// </summary>
 	public class OnPointerOverTooltip : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
 	{
 

@@ -11,9 +11,6 @@ namespace PlayFab.Events
         public event PlayFabErrorEvent OnGlobalErrorEvent;
 
         private static PlayFabEvents _instance;
-        /// <summary>
-        /// Private constructor because we call PlayFabEvents.init();
-        /// </summary>
         private PlayFabEvents() { }
 
         public static PlayFabEvents Init()
@@ -2169,7 +2166,6 @@ namespace PlayFab.Events
 
         private void OnProcessingErrorEvent(PlayFabRequestCommon request, PlayFabError error)
         {
-            //This just forwards the event.
             if (_instance.OnGlobalErrorEvent != null)
             {
                 _instance.OnGlobalErrorEvent(request, error);

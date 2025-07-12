@@ -68,7 +68,6 @@ namespace TMPro.Examples
 
             if (timeNow > m_LastInterval + UpdateInterval)
             {
-                // display two fractional digits (f2 format)
                 float fps = m_Frames / (timeNow - m_LastInterval);
                 float ms = 1000.0f / Mathf.Max(fps, 0.00001f);
 

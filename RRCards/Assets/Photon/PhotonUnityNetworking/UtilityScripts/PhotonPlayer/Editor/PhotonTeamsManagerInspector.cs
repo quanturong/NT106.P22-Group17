@@ -1,13 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PhotonTeamsManagerEditor.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities, 
-// </copyright>
-// <summary>
-//  Custom inspector for PhotonTeamsManager
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System;
 using UnityEngine;
 using System.Collections.Generic;
@@ -45,13 +36,6 @@ namespace Photon.Pun.UtilityScripts
             isOpen = listFoldIsOpenSp.boolValue;
             removeTexture = LoadTexture(removeTextureName, proSkinString, lightSkinString);
         }
-
-        /// <summary>
-        /// Read width and height if PNG file in pixels.
-        /// </summary>
-        /// <param name="imageData">PNG image data.</param>
-        /// <param name="width">Width of image in pixels.</param>
-        /// <param name="height">Height of image in pixels.</param>
         private static void GetImageSize( byte[] imageData, out int width, out int height )
         {
             width = ReadInt( imageData, 3 + 15 );
@@ -66,12 +50,9 @@ namespace Photon.Pun.UtilityScripts
         private Texture LoadTexture(string textureName, string proSkin, string lightSkin)
         {
             string skin = EditorGUIUtility.isProSkin ? proSkin : lightSkin;
-            // Get image data (PNG) from base64 encoded strings.
             byte[] imageData = Convert.FromBase64String( skin );
-            // Gather image size from image data.
             int texWidth, texHeight;
             GetImageSize( imageData, out texWidth, out texHeight );
-            // Generate texture asset.
             var tex = new Texture2D( texWidth, texHeight, TextureFormat.ARGB32, false, true );
             tex.hideFlags = HideFlags.HideAndDontSave;
             tex.name = textureName;

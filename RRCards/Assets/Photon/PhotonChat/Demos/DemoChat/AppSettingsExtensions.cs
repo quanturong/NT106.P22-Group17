@@ -1,9 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright company="Exit Games GmbH"/>
-// <summary>Demo code for Photon Chat in Unity.</summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 
 using Photon.Realtime;
 
@@ -24,8 +19,6 @@ namespace Photon.Chat.Demo
                        Server = appSettings.IsDefaultNameServer ? null : appSettings.Server,
                        Port = (ushort)appSettings.Port,
                        ProxyServer = appSettings.ProxyServer
-                       // values not copied from AppSettings class: AuthMode
-                       // values not needed from AppSettings class: EnableLobbyStatistics 
                    };
         }
     }

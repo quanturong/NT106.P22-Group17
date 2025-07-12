@@ -1,13 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SlotRacerSpashScreen.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Networking Demos
-// </copyright>
-// <summary>
-//  Used in SlotRacer Demo
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,10 +10,6 @@ using UnityEditor;
 
 namespace Photon.Pun.Demo.SlotRacer
 {
-    /// <summary>
-    /// Slot racer splash screen. Inform about the slotRacer demo and the Cockpit control setup
-    /// Gets deleted as soon as the scene plays
-    /// </summary>
     [ExecuteInEditMode]
     public class SlotRacerSplashScreen : MonoBehaviour
     {

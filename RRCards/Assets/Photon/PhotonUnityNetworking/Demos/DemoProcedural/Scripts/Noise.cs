@@ -1,44 +1,8 @@
-﻿// Copyright(c) 2018, Benjamin Ward
-// All rights reserved.
-   
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-   
-// * Redistributions of source code must retain the above copyright notice, this
-//   list of conditions and the following disclaimer.
-   
-// * Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the following disclaimer in the documentation
-//   and/or other materials provided with the distribution.
-   
-// * Neither the name of the copyright holder nor the names of its
-//   contributors may be used to endorse or promote products derived from
-//   this software without specific prior written permission.
-   
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED.IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-// SimplexNoise for C#
-// Author: Benjamin Ward
-// Github Link: https://github.com/WardBenjamin/SimplexNoise
-// Originally authored by Heikki Törmälä
-
+﻿
 using System;
 
 namespace Simplex
 {
-    /// <summary>
-    /// Implementation of the Perlin simplex noise, an improved Perlin noise algorithm.
-    /// Based loosely on SimplexNoise1234 by Stefan Gustavson <http://staffwww.itn.liu.se/~stegu/aqsis/aqsis-newnoise/>
-    /// </summary>
     public class Noise
     {
         public static float[] Calc1D(int width, float scale)
@@ -108,12 +72,6 @@ namespace Simplex
             }
         }
         private static int seed = 0;
-
-        /// <summary>
-        /// 1D simplex noise
-        /// </summary>
-        /// <param name="x"></param>
-        /// <returns></returns>
         internal static float Generate(float x)
         {
             int i0 = FastFloor(x);
@@ -130,25 +88,14 @@ namespace Simplex
             float t1 = 1.0f - x1 * x1;
             t1 *= t1;
             n1 = t1 * t1 * grad(perm[i1 & 0xff], x1);
-            // The maximum value of this noise is 8*(3/4)^4 = 2.53125
-            // A factor of 0.395 scales to fit exactly within [-1,1]
             return 0.395f * (n0 + n1);
         }
-
-        /// <summary>
-        /// 2D simplex noise
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
         internal static float Generate(float x, float y)
         {
             const float F2 = 0.366025403f; // F2 = 0.5*(sqrt(3.0)-1.0)
             const float G2 = 0.211324865f; // G2 = (3.0-Math.sqrt(3.0))/6.0
 
             float n0, n1, n2; // Noise contributions from the three corners
-
-            // Skew the input space to determine which simplex cell we're in
             float s = (x + y) * F2; // Hairy factor for 2D
             float xs = x + s;
             float ys = y + s;
@@ -160,27 +107,16 @@ namespace Simplex
             float Y0 = j - t;
             float x0 = x - X0; // The x,y distances from the cell origin
             float y0 = y - Y0;
-
-            // For the 2D case, the simplex shape is an equilateral triangle.
-            // Determine which simplex we are in.
             int i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
             if (x0 > y0) { i1 = 1; j1 = 0; } // lower triangle, XY order: (0,0)->(1,0)->(1,1)
             else { i1 = 0; j1 = 1; }      // upper triangle, YX order: (0,0)->(0,1)->(1,1)
-
-            // A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
-            // a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
-            // c = (3-sqrt(3))/6
 
             float x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
             float y1 = y0 - j1 + G2;
             float x2 = x0 - 1.0f + 2.0f * G2; // Offsets for last corner in (x,y) unskewed coords
             float y2 = y0 - 1.0f + 2.0f * G2;
-
-            // Wrap the integer indices at 256, to avoid indexing perm[] out of bounds
             int ii = Mod(i, 256);
             int jj = Mod(j, 256);
-
-            // Calculate the contribution from the three corners
             float t0 = 0.5f - x0 * x0 - y0 * y0;
             if (t0 < 0.0f) n0 = 0.0f;
             else
@@ -204,22 +140,16 @@ namespace Simplex
                 t2 *= t2;
                 n2 = t2 * t2 * grad(perm[ii + 1 + perm[jj + 1]], x2, y2);
             }
-
-            // Add contributions from each corner to get the final noise value.
-            // The result is scaled to return values in the interval [-1,1].
             return 40.0f * (n0 + n1 + n2); // TODO: The scale factor is preliminary!
         }
 
 
         internal static float Generate(float x, float y, float z)
         {
-            // Simple skewing factors for the 3D case
             const float F3 = 0.333333333f;
             const float G3 = 0.166666667f;
 
             float n0, n1, n2, n3; // Noise contributions from the four corners
-
-            // Skew the input space to determine which simplex cell we're in
             float s = (x + y + z) * F3; // Very nice and simple skew factor for 3D
             float xs = x + s;
             float ys = y + s;
@@ -235,9 +165,6 @@ namespace Simplex
             float x0 = x - X0; // The x,y,z distances from the cell origin
             float y0 = y - Y0;
             float z0 = z - Z0;
-
-            // For the 3D case, the simplex shape is a slightly irregular tetrahedron.
-            // Determine which simplex we are in.
             int i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords
             int i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
 
@@ -256,11 +183,6 @@ namespace Simplex
                 else { i1 = 0; j1 = 1; k1 = 0; i2 = 1; j2 = 1; k2 = 0; } // Y X Z order
             }
 
-            // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z),
-            // a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and
-            // a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where
-            // c = 1/6.
-
             float x1 = x0 - i1 + G3; // Offsets for second corner in (x,y,z) coords
             float y1 = y0 - j1 + G3;
             float z1 = z0 - k1 + G3;
@@ -270,13 +192,9 @@ namespace Simplex
             float x3 = x0 - 1.0f + 3.0f * G3; // Offsets for last corner in (x,y,z) coords
             float y3 = y0 - 1.0f + 3.0f * G3;
             float z3 = z0 - 1.0f + 3.0f * G3;
-
-            // Wrap the integer indices at 256, to avoid indexing perm[] out of bounds
             int ii = Mod(i, 256);
             int jj = Mod(j, 256);
             int kk = Mod(k, 256);
-
-            // Calculate the contribution from the four corners
             float t0 = 0.6f - x0 * x0 - y0 * y0 - z0 * z0;
             if (t0 < 0.0f) n0 = 0.0f;
             else
@@ -308,9 +226,6 @@ namespace Simplex
                 t3 *= t3;
                 n3 = t3 * t3 * grad(perm[ii + 1 + perm[jj + 1 + perm[kk + 1]]], x3, y3, z3);
             }
-
-            // Add contributions from each corner to get the final noise value.
-            // The result is scaled to stay just inside [-1,1]
             return 32.0f * (n0 + n1 + n2 + n3); // TODO: The scale factor is preliminary!
         }
 

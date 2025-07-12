@@ -1,17 +1,8 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CurrentRoomIsOpenProperty.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine.UI;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// PhotonNetwork.CurrentRoom.IsOpen UI property.
-    /// </summary>
     public class CurrentRoomIsOpenProperty : PropertyListenerBase
     {
         public Text Text;

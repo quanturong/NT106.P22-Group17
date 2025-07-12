@@ -5,10 +5,6 @@ using UnityEngine.UI;
 
 namespace Photon.Pun.Demo.Procedural
 {
-    /// <summary>
-    /// The Ingame Control Panel basically controls the WorldGenerator.
-    /// It is only interactable for the current MasterClient in the room.
-    /// </summary>
     public class IngameControlPanel : MonoBehaviourPunCallbacks
     {
         private bool isSeedValid;
@@ -20,11 +16,6 @@ namespace Photon.Pun.Demo.Procedural
         private Button generateWorldButton;
 
         #region UNITY
-
-        /// <summary>
-        /// When the object gets created, all necessary references are set up.
-        /// Also the UI elements get set up properly in order to control the WorldGenerator.
-        /// </summary>
         public void Awake()
         {
             isSeedValid = false;
@@ -149,12 +140,6 @@ namespace Photon.Pun.Demo.Procedural
         #endregion
 
         #region PUN CALLBACKS
-
-        /// <summary>
-        /// Gets called when the local client has joined the room.
-        /// Since only the MasterClient can control the WorldGenerator,
-        /// we are checking if we have to make the UI controls available for the local client.
-        /// </summary>
         public override void OnJoinedRoom()
         {
             seedInputField.interactable = PhotonNetwork.IsMasterClient;
@@ -163,11 +148,6 @@ namespace Photon.Pun.Demo.Procedural
             worldTypeDropdown.interactable = PhotonNetwork.IsMasterClient;
             generateWorldButton.interactable = PhotonNetwork.IsMasterClient;
         }
-
-        /// <summary>
-        /// Gets called whenever the current MasterClient has left the room and a new one is selected.
-        /// If the local client is the new MasterClient, we make the UI controls available for him.
-        /// </summary>
         public override void OnMasterClientSwitched(Player newMasterClient)
         {
             seedInputField.interactable = newMasterClient.IsLocal;
@@ -176,23 +156,12 @@ namespace Photon.Pun.Demo.Procedural
             worldTypeDropdown.interactable = newMasterClient.IsLocal;
             generateWorldButton.interactable = newMasterClient.IsLocal;
         }
-
-        /// <summary>
-        /// Gets called whenever the Custom Room Properties are updated.
-        /// In this callback we are interested in the settings the MasterClient can apply to the WorldGenerator.
-        /// If all possible settings are updated (and available within the updated properties), these settings are also used
-        /// to update the Ingame Control Panel as well as the WorldGenerator on all clients.
-        /// Afterwards the WorldGenerator creates a new world with the new settings.
-        /// </summary>
         public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
         {
             if (propertiesThatChanged.ContainsKey(WorldGenerator.Instance.SeedPropertiesKey) && propertiesThatChanged.ContainsKey(WorldGenerator.Instance.WorldSizePropertiesKey) && propertiesThatChanged.ContainsKey(WorldGenerator.Instance.ClusterSizePropertiesKey) && propertiesThatChanged.ContainsKey(WorldGenerator.Instance.WorldTypePropertiesKey))
             {
-                // Updating Seed
                 int seed = (int) propertiesThatChanged[WorldGenerator.Instance.SeedPropertiesKey];
                 seedInputField.text = seed.ToString();
-
-                // Updating World Size
                 WorldSize worldSize = (WorldSize) propertiesThatChanged[WorldGenerator.Instance.WorldSizePropertiesKey];
                 switch (worldSize)
                 {
@@ -217,8 +186,6 @@ namespace Photon.Pun.Demo.Procedural
                         break;
                     }
                 }
-
-                // Updating Cluster Size
                 ClusterSize clusterSize = (ClusterSize) propertiesThatChanged[WorldGenerator.Instance.ClusterSizePropertiesKey];
                 switch (clusterSize)
                 {
@@ -238,8 +205,6 @@ namespace Photon.Pun.Demo.Procedural
                         break;
                     }
                 }
-
-                // Updating World Type
                 WorldType worldType = (WorldType) propertiesThatChanged[WorldGenerator.Instance.WorldTypePropertiesKey];
                 switch (worldType)
                 {
@@ -259,8 +224,6 @@ namespace Photon.Pun.Demo.Procedural
                         break;
                     }
                 }
-
-                // Generating a new world
                 WorldGenerator.Instance.CreateWorld();
             }
         }

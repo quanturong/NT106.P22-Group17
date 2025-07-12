@@ -4,10 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine.UI;
-
-/// <summary>
-/// Extension của HandManager để hỗ trợ card selection cho Liar's Bar
-/// </summary>
 public class LiarBarHandManager : MonoBehaviour
 {
     [Header("Selection UI")]
@@ -75,8 +71,6 @@ public class LiarBarHandManager : MonoBehaviour
         UpdateSelectionInfo();
         UpdateQuickSelectButtons();
     }
-
-    // THÊM METHOD ĐỂ KHÔI PHỤC HAND SAU ROULETTE
     public void RestoreHand(List<CardData> handData)
     {
         if (baseHandManager == null)
@@ -86,18 +80,10 @@ public class LiarBarHandManager : MonoBehaviour
         }
 
         Debug.Log($"RestoreHand called with {handData.Count} cards");
-
-        // Xóa tất cả cards hiện tại
         ClearAllCards();
-
-        // Thay vì tạo từ prefab, chúng ta sẽ gọi method có sẵn của baseHandManager
-        // hoặc tạo một cách đơn giản hơn
         if (baseHandManager.handPanel != null)
         {
-            // Cập nhật hand data trong baseHandManager trực tiếp
             baseHandManager.SetHand(handData);
-
-            // Sau đó tái tạo UI cards
             Invoke(nameof(ReinitializeCardsAfterRestore), 0.5f);
         }
 
@@ -106,7 +92,6 @@ public class LiarBarHandManager : MonoBehaviour
 
     void ReinitializeCardsAfterRestore()
     {
-        // Tái khởi tạo card UI sau khi restore
         allCards.Clear();
         selectedCards.Clear();
 
@@ -130,11 +115,8 @@ public class LiarBarHandManager : MonoBehaviour
 
     void ClearAllCards()
     {
-        // Xóa tất cả cards hiện có
         selectedCards.Clear();
         allCards.Clear();
-
-        // Xóa UI cards
         if (baseHandManager != null && baseHandManager.handPanel != null)
         {
             var existingCards = baseHandManager.handPanel.GetComponentsInChildren<CardData>();
@@ -286,8 +268,6 @@ public class LiarBarHandManager : MonoBehaviour
     {
         if (enableDebugLogs)
             Debug.Log($"[LIARBARHANDMANAGER] RemoveCard called for: {card.cardName}");
-
-        // Tìm và xóa card tương ứng từ allCards và selectedCards
         var cardToRemove = allCards.FirstOrDefault(c =>
             c.GetCardData() != null &&
             c.GetCardData().cardName == card.cardName &&
@@ -304,14 +284,10 @@ public class LiarBarHandManager : MonoBehaviour
             if (enableDebugLogs)
                 Debug.Log($"[LIARBARHANDMANAGER] Removed {card.cardName} from allCards and selectedCards");
         }
-
-        // Remove from base hand manager
         if (baseHandManager != null)
         {
             baseHandManager.RemoveCard(card);
         }
-
-        // Update UI
         UpdateSelectionInfo();
         UpdateQuickSelectButtons();
 

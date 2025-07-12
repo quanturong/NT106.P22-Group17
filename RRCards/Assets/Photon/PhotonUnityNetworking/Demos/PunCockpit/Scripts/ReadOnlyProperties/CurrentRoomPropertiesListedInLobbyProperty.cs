@@ -1,20 +1,10 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="RoomListView.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine.UI;
 
 using System.Linq;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-
-    /// <summary>
-    /// PhotonNetwork.CurrentRoom.PropertiesListedInLobby UI property.
-    /// </summary>
     public class CurrentRoomPropertiesListedInLobbyProperty : PropertyListenerBase
     {
         public Text Text;

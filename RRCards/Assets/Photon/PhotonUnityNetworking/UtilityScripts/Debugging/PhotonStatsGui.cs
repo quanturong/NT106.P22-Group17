@@ -1,14 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PhotonStatsGui.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities,
-// </copyright>
-// <summary>
-// Basic GUI to show traffic and health statistics of the connection to Photon,
-// toggled by shift+tab.
-// Part of the [Optional GUI](@ref optionalGui).
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 using UnityEngine;
 
@@ -18,39 +7,14 @@ using ExitGames.Client.Photon;
 
 namespace Photon.Pun.UtilityScripts
 {
-    /// <summary>
-    /// Basic GUI to show traffic and health statistics of the connection to Photon,
-    /// toggled by shift+tab.
-    /// </summary>
-    /// <remarks>
-    /// The shown health values can help identify problems with connection losses or performance.
-    /// Example:
-    /// If the time delta between two consecutive SendOutgoingCommands calls is a second or more,
-    /// chances rise for a disconnect being caused by this (because acknowledgements to the server
-    /// need to be sent in due time).
-    /// </remarks>
-    /// \ingroup optionalGui
     public class PhotonStatsGui : MonoBehaviour
     {
-        /// <summary>Shows or hides GUI (does not affect if stats are collected).</summary>
         public bool statsWindowOn = true;
-
-        /// <summary>Option to turn collecting stats on or off (used in Update()).</summary>
         public bool statsOn = true;
-
-        /// <summary>Shows additional "health" values of connection.</summary>
         public bool healthStatsVisible;
-
-        /// <summary>Shows additional "lower level" traffic stats.</summary>
         public bool trafficStatsOn;
-
-        /// <summary>Show buttons to control stats and reset them.</summary>
         public bool buttonsOn;
-
-        /// <summary>Positioning rect for window.</summary>
         public Rect statsRect = new Rect(0, 100, 200, 50);
-
-        /// <summary>Unity GUI Window ID (must be unique or will cause issues).</summary>
         public int WindowId = 100;
 
 
@@ -61,8 +25,6 @@ namespace Photon.Pun.UtilityScripts
                 this.statsRect.x = Screen.width - this.statsRect.width;
             }
         }
-
-        /// <summary>Checks for shift+tab input combination (to toggle statsOn).</summary>
         public void Update()
         {
             if (Input.GetKeyDown(KeyCode.Tab) && Input.GetKey(KeyCode.LeftShift))
@@ -157,8 +119,6 @@ namespace Photon.Pun.UtilityScripts
                 string complete = string.Format("{0}\n{1}\n{2}\n{3}\n{4}\n{5}", total, elapsedTime, average, trafficStatsIn, trafficStatsOut, healthStats);
                 Debug.Log(complete);
             }
-
-            // if anything was clicked, the height of this window is likely changed. reduce it to be layouted again next frame
             if (GUI.changed)
             {
                 this.statsRect.height = 100;

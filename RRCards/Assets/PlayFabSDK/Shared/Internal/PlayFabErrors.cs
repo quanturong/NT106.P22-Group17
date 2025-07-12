@@ -4,9 +4,6 @@ using System.Text;
 
 namespace PlayFab
 {
-    /// <summary>
-    /// Error codes returned by PlayFabAPIs
-    /// </summary>
     public enum PlayFabErrorCode
     {
         Unknown = 1,
@@ -939,11 +936,6 @@ namespace PlayFab
 
         [ThreadStatic]
         private static StringBuilder _tempSb;
-        /// <summary>
-        /// This converts the PlayFabError into a human readable string describing the error.
-        /// If error is not found, it will return the http code, status, and error
-        /// </summary>
-        /// <returns>A description of the error that we just incur.</returns>
         public string GenerateErrorReport()
         {
             if (_tempSb == null)

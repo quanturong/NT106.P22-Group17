@@ -1,16 +1,4 @@
-﻿// ----------------------------------------------------------------------------
-// <copyright file="PhotonPing.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-// This file includes various PhotonPing implementations for different APIs,
-// platforms and protocols.
-// The RegionPinger class is the instance which selects the Ping implementation
-// to use.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
-
+﻿
 
 namespace Photon.Realtime
 {
@@ -33,54 +21,30 @@ namespace Photon.Realtime
     #endif
 
     #if UNITY_WEBGL
-    // import UnityWebRequest
     using UnityEngine.Networking;
     #endif
-
-    /// <summary>
-    /// Abstract implementation of PhotonPing, ase for pinging servers to find the "Best Region".
-    /// </summary>
     public abstract class PhotonPing : IDisposable
     {
-        /// <summary>Caches the last exception/error message, if any.</summary>
         public string DebugString = "";
-
-        /// <summary>True of the ping was successful.</summary>
         public bool Successful;
-
-        /// <summary>True if there was any result.</summary>
         protected internal bool GotResult;
-
-        /// <summary>Length of a ping.</summary>
         protected internal int PingLength = 13;
-
-        /// <summary>Bytes to send in a (Photon UDP) ping.</summary>
         protected internal byte[] PingBytes = new byte[] { 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x00 };
-
-        /// <summary>Randomized number to identify a ping.</summary>
         protected internal byte PingId;
 
         private static readonly System.Random RandomIdProvider = new System.Random();
-
-        /// <summary>Begins sending a ping.</summary>
         public virtual bool StartPing(string ip)
         {
             throw new NotImplementedException();
         }
-
-        /// <summary>Check if done.</summary>
         public virtual bool Done()
         {
             throw new NotImplementedException();
         }
-
-        /// <summary>Dispose of this ping.</summary>
         public virtual void Dispose()
         {
             throw new NotImplementedException();
         }
-
-        /// <summary>Initialize this ping (GotResult, Successful, PingId).</summary>
         protected internal void Init()
         {
             this.GotResult = false;
@@ -91,17 +55,9 @@ namespace Photon.Realtime
 
 
     #if !NETFX_CORE && !NO_SOCKET
-    /// <summary>Uses C# Socket class from System.Net.Sockets (as Unity usually does).</summary>
-    /// <remarks>Incompatible with Windows 8 Store/Phone API.</remarks>
     public class PingMono : PhotonPing
     {
         private Socket sock;
-
-        /// <summary>
-        /// Sends a "Photon Ping" to a server.
-        /// </summary>
-        /// <param name="ip">Address in IPv4 or IPv6 format. An address containing a '.' will be interpreted as IPv4.</param>
-        /// <returns>True if the Photon Ping could be sent.</returns>
         public override bool StartPing(string ip)
         {
             this.Init();
@@ -133,15 +89,11 @@ namespace Photon.Realtime
             {
                 this.sock = null;
                 System.Diagnostics.Debug.WriteLine(e.ToString());
-
-                // bubble up
                 throw;
             }
 
             return false;
         }
-
-        /// <summary>Check if done.</summary>
         public override bool Done()
         {
             if (this.GotResult || this.sock == null)
@@ -181,8 +133,6 @@ namespace Photon.Realtime
             this.GotResult = true;
             return true;
         }
-
-        /// <summary>Dispose of this ping.</summary>
         public override void Dispose()
         {
             if (this.sock == null) { return; }
@@ -203,7 +153,6 @@ namespace Photon.Realtime
 
 
     #if NETFX_CORE
-    /// <summary>Windows store API implementation of PhotonPing, based on DatagramSocket for UDP.</summary>
     public class PingWindowsStore : PhotonPing
     {
         private DatagramSocket sock;
@@ -226,8 +175,6 @@ namespace Photon.Realtime
                 return true;
             }
         }
-
-        /// <summary>Check if done.</summary>
         public override bool Done()
         {
             lock (this.syncer)
@@ -235,8 +182,6 @@ namespace Photon.Realtime
                 return this.GotResult || this.sock == null; // this just indicates the ping is no longer waiting. this.Successful value defines if the roundtrip completed
             }
         }
-
-        /// <summary>Dispose of this ping.</summary>
         public override void Dispose()
         {
             lock (this.syncer)
@@ -285,8 +230,6 @@ namespace Photon.Realtime
                         byte[] resultBytes = new byte[receivedByteCount];
                         reader.ReadBytes(resultBytes);
 
-                        //TODO: check result bytes!
-
 
                         this.Successful = receivedByteCount == this.PingLength && resultBytes[resultBytes.Length - 1] == this.PingId;
                         this.GotResult = true;
@@ -294,7 +237,6 @@ namespace Photon.Realtime
                 }
                 catch
                 {
-                    // TODO: handle error
                 }
             }
         }
@@ -303,10 +245,8 @@ namespace Photon.Realtime
 
 
     #if NATIVE_SOCKETS
-    /// <summary>Abstract base class to provide proper resource management for the below native ping implementations</summary>
     public abstract class PingNative : PhotonPing
     {
-        // Native socket states - according to EnetConnect.h state definitions
         protected enum NativeSocketState : byte
         {
             Disconnected = 0,
@@ -325,8 +265,6 @@ namespace Photon.Realtime
             Dispose();
         }
     }
-
-    /// <summary>Uses dynamic linked native Photon socket library via DllImport("PhotonSocketPlugin") attribute (as done by Unity Android and Unity PS3).</summary>
     public class PingNativeDynamic : PingNative
     {
         public override bool StartPing(string ip)
@@ -374,7 +312,6 @@ namespace Photon.Realtime
                 int pingBytesLength = PingBytes.Length;
                 int bytesInRemainginDatagrams = SocketUdpNativeDynamic.egread(pConnectionHandler, PingBytes, ref pingBytesLength);
                 this.Successful = (PingBytes != null && PingBytes[PingBytes.Length - 1] == PingId);
-                //Debug.Log("Successful: " + this.Successful + " bytesInRemainginDatagrams: " + bytesInRemainginDatagrams + " PingId: " + PingId);
 
                 this.GotResult = true;
                 return true;
@@ -394,7 +331,6 @@ namespace Photon.Realtime
     }
 
     #if NATIVE_SOCKETS && NATIVE_SOCKETS_STATIC
-    /// <summary>Uses static linked native Photon socket library via DllImport("__Internal") attribute (as done by Unity iOS and Unity Switch).</summary>
     public class PingNativeStatic : PingNative
     {
         public override bool StartPing(string ip)
@@ -443,7 +379,6 @@ namespace Photon.Realtime
                 int pingBytesLength = PingBytes.Length;
                 int bytesInRemainginDatagrams = SocketUdpNativeStatic.egread(pConnectionHandler, PingBytes, ref pingBytesLength);
                 this.Successful = (PingBytes != null && PingBytes[PingBytes.Length - 1] == PingId);
-                //Debug.Log("Successful: " + this.Successful + " bytesInRemainginDatagrams: " + bytesInRemainginDatagrams + " PingId: " + PingId);
 
                 this.GotResult = true;
                 return true;
@@ -473,8 +408,6 @@ namespace Photon.Realtime
         public override bool StartPing(string address)
         {
             base.Init();
-
-            // to work around an issue with UnityWebRequest in Editor (2021 at least), use http to ping in-Editor
             string scheme = UnityEngine.Application.isEditor ? "http://" : "https://";
             address = $"{scheme}{address}/photon/m/?ping&r={UnityEngine.Random.Range(0, 10000)}";
 

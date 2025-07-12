@@ -1,10 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="RoomListCell.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System.Collections;
 
 using UnityEngine;
@@ -14,9 +8,6 @@ using Photon.Realtime;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// Roomlist cell.
-    /// </summary>
     public class RoomListCell : MonoBehaviour
     {
         public RoomListView ListManager;

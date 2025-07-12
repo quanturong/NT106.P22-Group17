@@ -1,19 +1,10 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="StringInputField.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit Demo
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// String UI InputField.
-    /// </summary>
     public class StringInputField : MonoBehaviour
     {
         public InputField PropertyValueInput;

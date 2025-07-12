@@ -9,11 +9,8 @@ namespace PlayFab.PfEditor
         {
             if (PlayFabEditorHelper.uiStyle == null)
                 return;
-
-            //using Begin Vertical as our container.
             using (new UnityHorizontal(GUILayout.Height(52)))
             {
-                //Set the image in the container
                 if (EditorGUIUtility.currentViewWidth < 375)
                 {
                     EditorGUILayout.LabelField("", PlayFabEditorHelper.uiStyle.GetStyle("pfLogo"), GUILayout.MaxHeight(50), GUILayout.Width(186));
@@ -39,8 +36,6 @@ namespace PlayFab.PfEditor
                 }
                 GUILayout.EndHorizontal();
                 GUILayout.EndArea();
-
-                //end the vertical container
             }
 
             ProgressBar.Draw();

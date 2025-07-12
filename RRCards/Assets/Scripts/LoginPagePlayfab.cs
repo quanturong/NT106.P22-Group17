@@ -195,11 +195,7 @@ public class LoginPagePlayfab : MonoBehaviour
 
         ShowMessage("Ready! Loading game...", 2f);
         yield return new WaitForSeconds(1f);
-
-        // Load scene
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
-
-        // Đợi scene load xong rồi tạo StatMNG nếu chưa có
         SceneManager.sceneLoaded += (scene, mode) =>
         {
             if (PlayerStatisticsManager.Instance == null)
@@ -211,8 +207,6 @@ public class LoginPagePlayfab : MonoBehaviour
             {
                 Debug.Log("PlayerStatisticsManager already exists");
             }
-
-            // Gỡ bỏ để tránh trùng lặp listener
             SceneManager.sceneLoaded -= (scene, mode) => { };
         };
     }
@@ -255,7 +249,6 @@ public class LoginPagePlayfab : MonoBehaviour
 
     private IEnumerator HandleLogout()
     {
-        // Nếu đang kết nối Photon thì ngắt kết nối
         if (PhotonNetwork.IsConnected)
         {
             PhotonNetwork.Disconnect();
@@ -269,20 +262,9 @@ public class LoginPagePlayfab : MonoBehaviour
                 yield return null;
             }
         }
-
-        // Xóa thông tin đăng nhập PlayFab
         PlayFabClientAPI.ForgetAllCredentials();
-
-        // Hiển thị thông báo
         ShowMessage("Bạn đã đăng xuất", 2.5f);
-
-        // Nếu bạn có scene riêng cho login
-        // SceneManager.LoadScene("LoginScene"); 
-
-        // Nếu đang dùng chung scene, thì bật lại giao diện login
         OpenLoginPage();
-
-        // Reset các input field nếu cần
         EmailLoginInput.text = "";
         PasswordLoginInput.text = "";
     }
@@ -290,7 +272,6 @@ public class LoginPagePlayfab : MonoBehaviour
     {
         PlayfabAuthManager.Instance.Logout(() =>
         {
-            // Load lại màn login
             OpenLoginPage();
         });
     }

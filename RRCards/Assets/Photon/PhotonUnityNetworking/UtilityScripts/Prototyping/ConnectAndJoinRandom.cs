@@ -1,38 +1,13 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ConnectAndJoinRandom.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities, 
-// </copyright>
-// <summary>
-//  Simple component to call ConnectUsingSettings and to get into a PUN room easily.
-// </summary>
-// <remarks>
-//  A custom inspector provides a button to connect in PlayMode, should AutoConnect be false.
-//  </remarks>                                                                                               
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
-//#if UNITY_EDITOR
-//using UnityEditor;
-//#endif
 
 using UnityEngine;
-
-//using Photon.Pun;
 using Photon.Realtime;
 
 namespace Photon.Pun.UtilityScripts
 {
-    /// <summary>Simple component to call ConnectUsingSettings and to get into a PUN room easily.</summary>
-    /// <remarks>A custom inspector provides a button to connect in PlayMode, should AutoConnect be false.</remarks>
     public class ConnectAndJoinRandom : MonoBehaviourPunCallbacks
     {
-        /// <summary>Connect automatically? If false you can set this to true later on or call ConnectUsingSettings in your own scripts.</summary>
         public bool AutoConnect = true;
-
-        /// <summary>Used as PhotonNetwork.GameVersion.</summary>
         public byte Version = 1;
-
-		/// <summary>Max number of players allowed in room. Once full, a new room will be created by the next connection attemping to join.</summary>
 		[Tooltip("The max number of players allowed in room. Once full, a new room will be created by the next connection attemping to join.")]
 		public byte MaxPlayers = 4;
 
@@ -55,10 +30,6 @@ namespace Photon.Pun.UtilityScripts
             PhotonNetwork.GameVersion = this.Version + "." + SceneManagerHelper.ActiveSceneBuildIndex;
            
         }
-
-
-        // below, we implement some callbacks of the Photon Realtime API.
-        // Being a MonoBehaviourPunCallbacks means, we can override the few methods which are needed here.
 
 
         public override void OnConnectedToMaster()
@@ -84,8 +55,6 @@ namespace Photon.Pun.UtilityScripts
 
             PhotonNetwork.CreateRoom(null, roomOptions, null);
         }
-
-        // the following methods are implemented to give you some context. re-implement them as needed.
         public override void OnDisconnected(DisconnectCause cause)
         {
             Debug.Log("OnDisconnected(" + cause + ")");
@@ -96,41 +65,4 @@ namespace Photon.Pun.UtilityScripts
             Debug.Log("OnJoinedRoom() called by PUN. Now this client is in a room in region [" + PhotonNetwork.CloudRegion + "]. Game is now running.");
         }
     }
-
-
-    //#if UNITY_EDITOR
-    //[CanEditMultipleObjects]
-    //[CustomEditor(typeof(ConnectAndJoinRandom), true)]
-    //public class ConnectAndJoinRandomInspector : Editor
-    //{
-    //    void OnEnable() { EditorApplication.update += Update; }
-    //    void OnDisable() { EditorApplication.update -= Update; }
-
-    //    bool isConnectedCache = false;
-
-    //    void Update()
-    //    {
-    //        if (this.isConnectedCache != PhotonNetwork.IsConnected)
-    //        {
-    //            this.Repaint();
-    //        }
-    //    }
-
-    //    public override void OnInspectorGUI()
-    //    {
-    //        this.isConnectedCache = !PhotonNetwork.IsConnected;
-
-
-    //        this.DrawDefaultInspector(); // Draw the normal inspector
-
-    //        if (Application.isPlaying && !PhotonNetwork.IsConnected)
-    //        {
-    //            if (GUILayout.Button("Connect"))
-    //            {
-    //                ((ConnectAndJoinRandom)this.target).ConnectNow();
-    //            }
-    //        }
-    //    }
-    //}
-    //#endif
 }

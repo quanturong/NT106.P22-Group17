@@ -70,7 +70,6 @@ namespace PlayFab.PfEditor
 
         static PlayFabEditorHelper()
         {
-            // scan for changes to the editor folder / structure.
             if (uiStyle == null)
             {
                 string[] rootFiles = new string[0];
@@ -88,8 +87,6 @@ namespace PlayFab.PfEditor
 
                     if (rootFiles.Length == 0)
                     {
-                        // this probably means the editor folder was moved.
-                        // see if we can locate the moved root and reload the assets
 
                         var movedRootFiles = Directory.GetFiles(Application.dataPath, PLAYFAB_EDEX_MAINFILE, SearchOption.AllDirectories);
                         if (movedRootFiles.Length > 0)
@@ -144,7 +141,6 @@ namespace PlayFab.PfEditor
             Dictionary<string, List<string>> errorDetails = null;
             try
             {
-                //deserialize the error
                 errorDict = JsonWrapper.DeserializeObject<JsonObject>(json, PlayFabEditorUtil.ApiSerializerStrategy);
 
 
@@ -161,8 +157,6 @@ namespace PlayFab.PfEditor
                     ErrorMessage = e.Message
                 };
             }
-
-            //create new error object
             return new EditorModels.PlayFabError
             {
                 HttpCode = errorDict.ContainsKey("code") ? Convert.ToInt32(errorDict["code"]) : 400,
@@ -181,14 +175,6 @@ namespace PlayFab.PfEditor
         }
 
         #region unused, but could be useful
-
-        /// <summary>
-        /// Tool to create a color background texture
-        /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="col"></param>
-        /// <returns>Texture2D</returns>
         public static Texture2D MakeTex(int width, int height, Color col)
         {
             var pix = new Color[width * height];

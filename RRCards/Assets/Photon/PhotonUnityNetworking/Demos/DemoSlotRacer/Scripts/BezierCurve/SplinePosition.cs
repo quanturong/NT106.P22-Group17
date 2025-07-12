@@ -1,14 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SplinePosition.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Networking Demos
-// </copyright>
-// <summary>
-//  Original: http://catlikecoding.com/unity/tutorials/curves-and-splines/
-//  Used in SlotRacer Demo
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 
 namespace Photon.Pun.Demo.SlotRacer.Utils
@@ -43,8 +33,6 @@ namespace Photon.Pun.Demo.SlotRacer.Utils
 				return;
 			}
 			LastDistance = this.currentDistance;
-
-			// move the transform to the new point
 			this.transform.position = this.Spline.GetPositionAtDistance(currentDistance,this.reverse);
 
 			if (this.lookForward) {

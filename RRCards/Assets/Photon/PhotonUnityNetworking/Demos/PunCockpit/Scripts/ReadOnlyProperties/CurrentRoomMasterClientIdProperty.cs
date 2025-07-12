@@ -1,17 +1,8 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CurrentRoomMasterClientIdProperty.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine.UI;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-	/// PhotonNetwork.CurrentRoom.MasterClientId UI property.
-    /// </summary>
 	public class CurrentRoomMasterClientIdProperty : PropertyListenerBase
     {
         public Text Text;

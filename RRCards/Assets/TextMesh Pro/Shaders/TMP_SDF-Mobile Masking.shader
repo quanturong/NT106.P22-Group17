@@ -1,8 +1,4 @@
-﻿// Simplified SDF shader:
-// - No Shading Option (bevel / bump / env map)
-// - No Glow Option
-// - Softness is applied on both side of the outline
-
+﻿
 Shader "TextMeshPro/Mobile/Distance Field - Masking" {
 
 Properties {
@@ -182,13 +178,9 @@ SubShader {
 			float y = -(_UnderlayOffsetY * _ScaleRatioC) * _GradientScale / _TextureHeight;
 			float2 layerOffset = float2(x, y);
 		    #endif
-
-			// Generate UV for the Masking Texture
 			float4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
 			float2 maskUV = (vert.xy - clampedRect.xy) / (clampedRect.zw - clampedRect.xy);
 			const half2 maskSoftness = half2(max(_UIMaskSoftnessX, _MaskSoftnessX), max(_UIMaskSoftnessY, _MaskSoftnessY));
-
-			// Structure for pixel shader
 			pixel_t output = {
 				vPosition,
 				faceColor,
@@ -204,9 +196,6 @@ SubShader {
 
 			return output;
 		}
-
-
-		// PIXEL SHADER
 		fixed4 PixShader(pixel_t input) : SV_Target
 		{
 			half d = tex2D(_MainTex, input.texcoord0.xy).a * input.param.x;
@@ -227,12 +216,8 @@ SubShader {
 			d = tex2D(_MainTex, input.texcoord1.xy).a * input.underlayParam.x;
 			c += float4(_UnderlayColor.rgb * _UnderlayColor.a, _UnderlayColor.a) * (1 - saturate(d - input.underlayParam.y)) * sd * (1 - c.a);
 		    #endif
-
-		    // Alternative implementation to UnityGet2DClipping with support for softness.
-		    //#if UNITY_UI_CLIP_RECT
 			half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(input.mask.xy)) * input.mask.zw);
 			c *= m.x * m.y;
-		    //#endif
 
 		    float a = abs(_MaskInverse - tex2D(_MaskTex, input.texcoord0.zw).a);
 		    float t = a + (1 - _MaskWipeControl) * _MaskEdgeSoftness - _MaskWipeControl;

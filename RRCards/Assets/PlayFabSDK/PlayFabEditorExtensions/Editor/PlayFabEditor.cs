@@ -14,7 +14,6 @@ namespace PlayFab.PfEditor
 #endif
 
         #region EdEx Variables
-        // vars for the plugin-wide event system
         public enum EdExStates { OnLogin, OnLogout, OnMenuItemClicked, OnSubmenuItemClicked, OnHttpReq, OnHttpRes, OnError, OnSuccess, OnWarning }
 
         public delegate void PlayFabEdExStateHandler(EdExStates state, string status, string misc);
@@ -47,7 +46,6 @@ namespace PlayFab.PfEditor
 
         void OnDisable()
         {
-            // clean up objects:
             PlayFabEditorPrefsSO.Instance.PanelIsShown = false;
 
             if (IsEventHandlerRegistered(StateUpdateHandler))
@@ -121,7 +119,6 @@ namespace PlayFab.PfEditor
 
             using (new UnityVertical())
             {
-                //Run all updaters prior to drawing;
                 PlayFabEditorHeader.DrawHeader();
 
                 GUI.enabled = blockingRequests.Count == 0 && !EditorApplication.isCompiling;
@@ -147,8 +144,6 @@ namespace PlayFab.PfEditor
                 {
                     GUILayout.FlexibleSpace();
                 }
-
-                // help tag at the bottom of the help menu.
                 if (PlayFabEditorMenu._menuState == PlayFabEditorMenu.MenuStates.Help)
                 {
                     DisplayHelpMenu();
@@ -170,7 +165,6 @@ namespace PlayFab.PfEditor
             {
                 if (!e.Message.ToLower().Contains("repaint"))
                     throw;
-                // Hide any repaint issues when recompiling
             }
         }
 
@@ -184,8 +178,6 @@ namespace PlayFab.PfEditor
                     EditorGUILayout.LabelField("PlayFab Editor Extensions: " + PlayFabEditorHelper.EDEX_VERSION, PlayFabEditorHelper.uiStyle.GetStyle("versionText"));
                     GUILayout.FlexibleSpace();
                 }
-
-                //TODO Add plugin upgrade option here (if available);
                 if (ShowEdExUpgrade())
                 {
                     using (new UnityHorizontal())
@@ -276,13 +268,6 @@ namespace PlayFab.PfEditor
                 blockingRequests.Remove(state);
             }
         }
-
-        /// <summary>
-        /// Handles state updates within the editor extension.
-        /// </summary>
-        /// <param name="state">the state that triggered this event.</param>
-        /// <param name="status">a generic message about the status.</param>
-        /// <param name="json">a generic container for additional JSON encoded info.</param>
         private void StateUpdateHandler(EdExStates state, string status, string json)
         {
             switch (state)
@@ -324,8 +309,6 @@ namespace PlayFab.PfEditor
                     break;
 
                 case EdExStates.OnError:
-                    // deserialize and add json details
-                    // clear blocking requests
                     ProgressBar.UpdateState(ProgressBar.ProgressBarStates.error);
                     ClearBlockingRequest();
                     Debug.LogError(string.Format("PlayFab EditorExtensions: Caught an error:{0}", status));

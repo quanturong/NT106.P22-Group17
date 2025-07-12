@@ -1,19 +1,10 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ConnectToRegionUIForm.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit Demo
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
 namespace Photon.Pun.Demo.Cockpit.Forms
 {
-    /// <summary>
-    /// Manager for ConnectToRegion UI Form
-    /// </summary>
 	public class ConnectToRegionUIForm : MonoBehaviour
     {
 		public InputField RegionInput;
@@ -28,8 +19,6 @@ namespace Photon.Pun.Demo.Cockpit.Forms
 		{
 			
 		}
-
-		// new UI will fire "EndEdit" event also when loosing focus. So check "enter" key and only then StartChat.
 		public void EndEditOnEnter()
 		{
 			if (Input.GetKey(KeyCode.Return) || Input.GetKey(KeyCode.KeypadEnter))

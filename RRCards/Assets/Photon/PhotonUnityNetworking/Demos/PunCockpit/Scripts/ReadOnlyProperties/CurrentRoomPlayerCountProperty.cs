@@ -1,17 +1,8 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CurrentRoomPlayerCountProperty.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine.UI;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// PhotonNetwork.CurrentRoom.PlayerCount UI property.
-    /// </summary>
     public class CurrentRoomPlayerCountProperty : PropertyListenerBase
     {
         public Text Text;

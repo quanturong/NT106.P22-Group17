@@ -1,12 +1,3 @@
-// ----------------------------------------------------------------------------
-// <copyright file="ServerSettingsInspector.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   This is a custom editor for the ServerSettings scriptable object.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
 
 using System;
 using UnityEditor;
@@ -87,8 +78,6 @@ namespace Photon.Pun
                 SerializedProperty settingsSp = this.serializedObject.FindProperty("AppSettings");
 
                 EditorGUI.indentLevel++;
-
-                //Realtime APP ID
                 this.BuildAppIdField(settingsSp.FindPropertyRelative("AppIdRealtime"), "App Id PUN");
 
                 if (PhotonEditorUtils.HasChat)
@@ -162,16 +151,12 @@ namespace Photon.Pun
             EditorGUILayout.EndVertical();
 
             #endregion Best Region Box
-
-
-            //this.showRpcs = EditorGUILayout.Foldout(this.showRpcs, new GUIContent("RPCs", "RPC shortcut list."));
             EditorGUI.indentLevel--;
             this.showRpcs = this.showRpcs.Foldout(new GUIContent("RPCs", "RPC shortcut list."));
             EditorGUI.indentLevel++;
 
             if (this.showRpcs)
             {
-                // first time check to get the rpc has proper
                 if (string.IsNullOrEmpty(this.rpcCrc))
                 {
                     this.rpcCrc = this.RpcListHashCode().ToString("X");
@@ -236,14 +221,10 @@ namespace Photon.Pun
             {
                 sObj.ApplyModifiedProperties();
                 this.serializedObject.ApplyModifiedProperties();
-
-                // cache the rpc hash
                 this.rpcCrc = this.RpcListHashCode().ToString("X");
             }
 
             #region Simple Settings
-
-            /// Conditional Simple Sync Settings DrawGUI - Uses reflection to avoid having to hard connect the libraries
             var SettingsScriptableObjectBaseType = GetType("Photon.Utilities.SettingsScriptableObjectBase");
             if (SettingsScriptableObjectBaseType != null)
             {
@@ -280,7 +261,6 @@ namespace Photon.Pun
 
         private int RpcListHashCode()
         {
-            // this is a hashcode generated to (more) easily compare this Editor's RPC List with some other
             int hashCode = PhotonNetwork.PhotonServerSettings.RpcList.Count + 1;
             foreach (string s in PhotonNetwork.PhotonServerSettings.RpcList)
             {

@@ -7,37 +7,17 @@ using PlayFab.Internal;
 
 namespace PlayFab
 {
-    /// <summary>
-    /// The Authentication APIs provide a convenient way to convert classic authentication responses into entity authentication
-    /// models. These APIs will provide you with the entity authentication token needed for subsequent Entity API calls. The
-    /// game_server API is designed to create uniquely identifiable game_server entities. The game_server Entity token can be
-    /// used to call Matchmaking Lobby and Pubsub for server scenarios.
-    /// </summary>
     public static class PlayFabAuthenticationAPI
     {
         static PlayFabAuthenticationAPI() {}
-
-
-        /// <summary>
-        /// Verify entity login.
-        /// </summary>
         public static bool IsEntityLoggedIn()
         {
             return PlayFabSettings.staticPlayer.IsEntityLoggedIn();
         }
-
-        /// <summary>
-        /// Clear the Client SessionToken which allows this Client to call API calls requiring login.
-        /// A new/fresh login will be required after calling this.
-        /// </summary>
         public static void ForgetAllCredentials()
         {
             PlayFabSettings.staticPlayer.ForgetAllCredentials();
         }
-
-        /// <summary>
-        /// Create a game_server entity token and return a new or existing game_server entity.
-        /// </summary>
         public static void AuthenticateGameServerWithCustomId(AuthenticateCustomIdRequest request, Action<AuthenticateCustomIdResult> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -47,10 +27,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/GameServerIdentity/AuthenticateGameServerWithCustomId", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Delete a game_server entity.
-        /// </summary>
         public static void Delete(DeleteRequest request, Action<EmptyResponse> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -60,11 +36,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/GameServerIdentity/Delete", request, AuthType.EntityToken, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Method to exchange a legacy AuthenticationTicket or title SecretKey for an Entity Token or to refresh a still valid
-        /// Entity Token.
-        /// </summary>
         public static void GetEntityToken(GetEntityTokenRequest request, Action<GetEntityTokenResponse> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;
@@ -83,10 +54,6 @@ namespace PlayFab
 
             PlayFabHttp.MakeApiCall("/Authentication/GetEntityToken", request, authType, resultCallback, errorCallback, customData, extraHeaders, context, callSettings);
         }
-
-        /// <summary>
-        /// Method for a server to validate a client provided EntityToken. Only callable by the title entity.
-        /// </summary>
         public static void ValidateEntityToken(ValidateEntityTokenRequest request, Action<ValidateEntityTokenResponse> resultCallback, Action<PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
         {
             var context = (request == null ? null : request.AuthenticationContext) ?? PlayFabSettings.staticPlayer;

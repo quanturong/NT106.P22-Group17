@@ -11,27 +11,15 @@ namespace PlayFab
         };
 
         public virtual Dictionary<string, string> RequestGetParams { get { return _requestGetParams; } }
-
-        /// <summary> This is only for customers running a private cluster.  Generally you shouldn't touch this </summary>
         public virtual string ProductionEnvironmentUrl { get { return _ProductionEnvironmentUrl; } set { _ProductionEnvironmentUrl = value; } }
-        /// <summary> You must set this value for PlayFabSdk to work properly (Found in the Game Manager for your title, at the PlayFab Website) </summary>
         public virtual string TitleId { get; set; }
-
-        /// <summary> The name of a customer vertical. This is only for customers running a private cluster.  Generally you shouldn't touch this </summary>
         internal virtual string VerticalName { get; set; }
 #if ENABLE_PLAYFABSERVER_API || ENABLE_PLAYFABADMIN_API || UNITY_EDITOR || ENABLE_PLAYFAB_SECRETKEY
-        /// <summary> You must set this value for PlayFabSdk to work properly (Found in the Game Manager for your title, at the PlayFab Website) </summary>
         public virtual string DeveloperSecretKey { get; set; }
 #endif
-        /// <summary> Set this to true to prevent hardware information from leaving the device </summary>
         public virtual bool DisableDeviceInfo { get; set; }
-        /// <summary> Set this to true to prevent focus change information from leaving the device </summary>
         public virtual bool DisableFocusTimeCollection { get; set; }
-
-        /// <summary> Set to enable Gzip compression on all responses. Defaults to false. </summary>
         public virtual bool CompressResponses { get; set; }
-
-        /// <summary> Enables the custom Gzip DownloadHandler on all responses. Defaults to true. </summary>
         internal virtual bool DecompressWithDownloadHandler { get; set; } = true;
 
 
@@ -40,10 +28,6 @@ namespace PlayFab
             return PlayFabSettings.GetFullUrl(apiCall, getParams, this);
         }
     }
-
-    /// <summary>
-    /// This is only meant for PlayFabSettings to use as a redirect to store values on PlayFabSharedSettings instead of locally
-    /// </summary>
     internal class PlayFabSettingsRedirect : PlayFabApiSettings
     {
         private readonly Func<PlayFabSharedSettings> GetSO;

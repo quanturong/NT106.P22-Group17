@@ -1,13 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="AsteroidsGameManager.cs" company="Exit Games GmbH">
-//   Part of: Asteroid demo
-// </copyright>
-// <summary>
-//  Game Manager for the Asteroid Demo
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System.Collections;
 
 using UnityEngine;
@@ -72,16 +63,12 @@ namespace Photon.Pun.Demo.Asteroids
 
                 if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
                 {
-                    // Make it appear on the left/right side
                     position = new Vector3(Mathf.Sign(direction.x) * Camera.main.orthographicSize * Camera.main.aspect, 0, direction.y * Camera.main.orthographicSize);
                 }
                 else
                 {
-                    // Make it appear on the top/bottom
                     position = new Vector3(direction.x * Camera.main.orthographicSize * Camera.main.aspect, 0, Mathf.Sign(direction.y) * Camera.main.orthographicSize);
                 }
-
-                // Offset slightly so we are not out of screen at creation time (as it would destroy the asteroid right away)
                 position -= position.normalized * 0.1f;
 
 
@@ -148,9 +135,6 @@ namespace Photon.Pun.Demo.Asteroids
             {
                 return;
             }
-
-
-            // if there was no countdown yet, the master client (this one) waits until everyone loaded the level and sets a timer start
             int startTimestamp;
             bool startTimeIsSet = CountdownTimer.TryGetStartTime(out startTimestamp);
 
@@ -165,7 +149,6 @@ namespace Photon.Pun.Demo.Asteroids
                 }
                 else
                 {
-                    // not all players loaded yet. wait:
                     Debug.Log("setting text waiting for players! ",this.InfoText);
                     InfoText.text = "Waiting for other players...";
                 }
@@ -174,15 +157,9 @@ namespace Photon.Pun.Demo.Asteroids
         }
 
         #endregion
-
-        
-        // called by OnCountdownTimerIsExpired() when the timer ended
         private void StartGame()
         {
             Debug.Log("StartGame!");
-
-            // on rejoin, we have to figure out if the spaceship exists or not
-            // if this is a rejoin (the ship is already network instantiated and will be setup via event) we don't need to call PN.Instantiate
 
             
             float angularStart = (360.0f / PhotonNetwork.CurrentRoom.PlayerCount) * PhotonNetwork.LocalPlayer.GetPlayerNumber();

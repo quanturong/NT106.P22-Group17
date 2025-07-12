@@ -1,13 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PlayerNumbering.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities,
-// </copyright>
-// <summary>
-//  Assign numbers to Players in a room. Uses Room custom Properties
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,43 +10,16 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace Photon.Pun.UtilityScripts
 {
-    /// <summary>
-    /// Implements consistent numbering in a room/game with help of room properties. Access them by Player.GetPlayerNumber() extension.
-    /// </summary>
-    /// <remarks>
-    /// indexing ranges from 0 to the maximum number of Players.
-    /// indexing remains for the player while in room.
-	/// If a Player is numbered 2 and player numbered 1 leaves, numbered 1 become vacant and will assigned to the future player joining (the first available vacant number is assigned when joining)
-    /// </remarks>
     public class PlayerNumbering : MonoBehaviourPunCallbacks
     {
-        //TODO: Add a "numbers available" bool, to allow easy access to this?!
 
         #region Public Properties
-
-        /// <summary>
-        /// The instance. EntryPoint to query about Room Indexing.
-        /// </summary>
         public static PlayerNumbering instance;
 
         public static Player[] SortedPlayers;
-
-        /// <summary>
-        /// OnPlayerNumberingChanged delegate. Use
-        /// </summary>
         public delegate void PlayerNumberingChanged();
-        /// <summary>
-        /// Called everytime the room Indexing was updated. Use this for discrete updates. Always better than brute force calls every frame.
-        /// </summary>
         public static event PlayerNumberingChanged OnPlayerNumberingChanged;
-
-
-        /// <summary>Defines the room custom property name to use for room player indexing tracking.</summary>
         public const string RoomPlayerIndexedProp = "pNr";
-
-        /// <summary>
-        /// dont destroy on load flag for this Component's GameObject to survive Level Loading.
-        /// </summary>
         public bool dontDestroyOnLoad = false;
 
 
@@ -115,14 +79,6 @@ namespace Photon.Pun.UtilityScripts
         }
 
         #endregion
-
-
-        // each player can select it's own playernumber in a room, if all "older" players already selected theirs
-
-
-        /// <summary>
-        /// Internal call Refresh the cached data and call the OnPlayerNumberingChanged delegate.
-        /// </summary>
        public void RefreshData()
         {
             if (PhotonNetwork.CurrentRoom == null)
@@ -151,17 +107,9 @@ namespace Photon.Pun.UtilityScripts
 
                 int number = player.GetPlayerNumber();
 
-                // if it's this user, select a number and break
-                // else:
-                    // check if that user has a number
-                    // if not, break!
-                    // else remember used numbers
-
                 if (player.IsLocal)
                 {
 					Debug.Log ("PhotonNetwork.CurrentRoom.PlayerCount = " + PhotonNetwork.CurrentRoom.PlayerCount);
-
-                    // select a number
                     for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++)
                     {
                         if (!usedInts.Contains(i))
@@ -170,7 +118,6 @@ namespace Photon.Pun.UtilityScripts
                             break;
                         }
                     }
-                    // then break
                     break;
                 }
                 else
@@ -186,9 +133,6 @@ namespace Photon.Pun.UtilityScripts
                 }
             }
 
-            //Debug.Log(allPlayers);
-            //Debug.Log(PhotonNetwork.LocalPlayer.ToStringFull() + " has PhotonNetwork.player.GetPlayerNumber(): " + PhotonNetwork.LocalPlayer.GetPlayerNumber());
-
             SortedPlayers = PhotonNetwork.CurrentRoom.Players.Values.OrderBy((p) => p.GetPlayerNumber()).ToArray();
             if (OnPlayerNumberingChanged != null)
             {
@@ -196,16 +140,8 @@ namespace Photon.Pun.UtilityScripts
             }
         }
     }
-
-
-
-    /// <summary>Extension used for PlayerRoomIndexing and Player class.</summary>
     public static class PlayerNumberingExtensions
     {
-        /// <summary>Extension for Player class to wrap up access to the player's custom property.
-		/// Make sure you use the delegate 'OnPlayerNumberingChanged' to knoiw when you can query the PlayerNumber. Numbering can changes over time or not be yet assigned during the initial phase ( when player creates a room for example)
-		/// </summary>
-        /// <returns>persistent index in room. -1 for no indexing</returns>
         public static int GetPlayerNumber(this Player player)
         {
 			if (player == null) {
@@ -227,13 +163,6 @@ namespace Photon.Pun.UtilityScripts
 			}
             return -1;
         }
-
-		/// <summary>
-		/// Sets the player number.
-		/// It's not recommanded to manually interfere with the playerNumbering, but possible.
-		/// </summary>
-		/// <param name="player">Player.</param>
-		/// <param name="playerNumber">Player number.</param>
         public static void SetPlayerNumber(this Player player, int playerNumber)
         {
 			if (player == null) {

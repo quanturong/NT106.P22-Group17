@@ -1,13 +1,3 @@
-// ----------------------------------------------------------------------------
-// <copyright file="SupportLogger.cs" company="Exit Games GmbH">
-//   Loadbalancing Framework for Photon - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   Implements callbacks of the Realtime API to logs selected information
-//   for support cases.
-// </summary>
-// <author>developer@photonengine.com</author>
-// ----------------------------------------------------------------------------
 
 
 
@@ -36,13 +26,6 @@ namespace Photon.Realtime
     using Hashtable = ExitGames.Client.Photon.Hashtable;
     using SupportClass = ExitGames.Client.Photon.SupportClass;
     #endif
-
-    /// <summary>
-    /// Helper class to debug log basic information about Photon client and vital traffic statistics.
-    /// </summary>
-    /// <remarks>
-    /// Set SupportLogger.Client for this to work.
-    /// </remarks>
     #if SUPPORTED_UNITY
     [DisallowMultipleComponent]
     #if PUN_2_OR_NEWER || FUSION_UNITY
@@ -53,25 +36,15 @@ namespace Photon.Realtime
 	public class SupportLogger : IConnectionCallbacks, IInRoomCallbacks, IMatchmakingCallbacks , ILobbyCallbacks
     #endif
     {
-        /// <summary>
-        /// Toggle to enable or disable traffic statistics logging.
-        /// </summary>
         public bool LogTrafficStats = true;
-        //private bool loggedStillOfflineMessage;
 
         private LoadBalancingClient client;
 
         private Stopwatch startStopwatch;
-
-        /// helps skip the initial OnApplicationPause call, which is not really of interest on start
         private bool initialOnApplicationPauseSkipped = false;
 
         private int pingMax;
         private int pingMin;
-
-        /// <summary>
-        /// Photon client to log information and statistics from.
-        /// </summary>
         public LoadBalancingClient Client
         {
             get { return this.client; }
@@ -179,9 +152,6 @@ namespace Photon.Realtime
 
             return string.Format("[{0}.{1}]", span.Seconds, span.Milliseconds);
         }
-
-
-        // called via InvokeRepeatedly
         private void TrackValues()
         {
             if (this.client != null)
@@ -197,11 +167,6 @@ namespace Photon.Realtime
                 }
             }
         }
-
-
-        /// <summary>
-        /// Debug logs vital traffic statistics about the attached Photon Client.
-        /// </summary>
         public void LogStats()
         {
             if (this.client == null || this.client.State == ClientState.PeerCreated)
@@ -214,10 +179,6 @@ namespace Photon.Realtime
                 Debug.Log(string.Format("{0} SupportLogger {1} Ping min/max: {2}/{3}", this.GetFormattedTimestamp() , this.client.LoadBalancingPeer.VitalStatsToString(false) , this.pingMin , this.pingMax));
             }
         }
-
-        /// <summary>
-        /// Debug logs basic information (AppId, AppVersion, PeerID, Server address, Region) about the attached Photon Client.
-        /// </summary>
         private void LogBasics()
         {
             if (this.client != null)

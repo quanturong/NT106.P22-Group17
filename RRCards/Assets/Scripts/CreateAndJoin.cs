@@ -25,8 +25,6 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     private bool isReady = false;
     private Dictionary<string, RoomInfo> cachedRoomList = new Dictionary<string, RoomInfo>();
     private bool isSettingUpRoom = false;
-
-    // Critical game properties that need to be cleaned
     private readonly string[] CRITICAL_PROPERTIES = {
         "IsReady", "AvatarIndex", "PlayerRole", "IsHost",
         "TeamId", "Score", "GameState", "PlayerIndex",
@@ -41,14 +39,11 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
 
         SetButtonsInteractable(false);
         UpdateStatusText("Checking connection...");
-
-        // Clean state immediately when entering lobby
         StartCoroutine(InitializeLobbyState());
     }
 
     void Update()
     {
-        // Debug keys
         if (Input.GetKeyDown(KeyCode.Space))
         {
             DebugCurrentStatus();
@@ -85,14 +80,8 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("=== INITIALIZING LOBBY STATE ===");
-
-        // Step 1: Force clean any remaining properties
         yield return StartCoroutine(CompletePropertyCleanup());
-
-        // Step 2: Wait for properties to clear
         yield return new WaitForSeconds(0.5f);
-
-        // Step 3: Check Photon status
         CheckPhotonStatus();
     }
 
@@ -100,8 +89,6 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("=== COMPLETE PROPERTY CLEANUP ===");
-
-        // If we're in a room, leave it first
         if (PhotonNetwork.InRoom)
         {
             if (showDebugLogs)
@@ -119,8 +106,6 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
         }
 
         yield return new WaitForSeconds(0.2f);
-
-        // Clean all properties
         ForceCleanAllProperties();
 
         yield return new WaitForSeconds(0.3f);
@@ -172,8 +157,6 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("=== PHOTON IS READY FOR ROOM OPERATIONS ===");
-
-        // Clean properties one more time when Photon is ready
         ForceCleanAllProperties();
 
         isReady = true;
@@ -195,8 +178,6 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
 
         if (showDebugLogs)
             Debug.Log("=== FORCE CLEANING ALL PROPERTIES ===");
-
-        // Get all existing properties
         var currentProps = PhotonNetwork.LocalPlayer.CustomProperties;
         var keysToRemove = new List<string>();
 
@@ -204,17 +185,11 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
         {
             keysToRemove.Add(key.ToString());
         }
-
-        // Create hashtable to clear all properties
         ExitGames.Client.Photon.Hashtable clearProps = new ExitGames.Client.Photon.Hashtable();
-
-        // Set all existing properties to null
         foreach (string key in keysToRemove)
         {
             clearProps[key] = null;
         }
-
-        // Ensure critical properties are definitely null
         foreach (string criticalProp in CRITICAL_PROPERTIES)
         {
             clearProps[criticalProp] = null;
@@ -256,8 +231,6 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("=== JOINED LOBBY ===");
-
-        // Clean properties every time we join lobby
         StartCoroutine(OnJoinedLobbyCleanup());
     }
 
@@ -323,30 +296,16 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("=== SAFE ROOM SETUP STARTED ===");
-
-        // Step 1: Wait for room to be fully ready
         yield return new WaitForSeconds(0.5f);
-
-        // Step 2: Force clean properties first
         ForceCleanAllProperties();
-
-        // Step 3: Wait for clean to complete
         yield return new WaitForSeconds(0.5f);
-
-        // Step 4: Set player ready state
         yield return StartCoroutine(SetPlayerReadyStateCoroutine());
-
-        // Step 5: Wait for ready state to be set
         yield return new WaitForSeconds(0.5f);
-
-        // Step 6: Verify setup
         if (showDebugLogs)
         {
             DebugAllPlayersReadyState();
             Debug.Log($"CanLoadGame: {CanLoadGame()}");
         }
-
-        // Step 7: Load game scene
         UpdateStatusText("Joined room! Loading game...");
         PhotonNetwork.LoadLevel("Room");
 
@@ -469,18 +428,13 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     {
         if (showDebugLogs)
             Debug.Log("=== SETTING PLAYER READY STATE COROUTINE ===");
-
-        // Wait for room to be stable
         yield return new WaitForSeconds(0.2f);
 
         ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable();
-
-        // Check if this player is the room creator (Master Client)
         bool isCreator = PhotonNetwork.LocalPlayer.IsMasterClient;
 
         if (isCreator)
         {
-            // Creator starts as NOT ready (needs to click Ready button)
             props["IsReady"] = false;
             props["PlayerRole"] = "Creator";
             props["PlayerIndex"] = 0;
@@ -490,7 +444,6 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
         }
         else
         {
-            // Joiner is ALWAYS ready (no Ready button needed)
             props["IsReady"] = true;
             props["PlayerRole"] = "Joiner";
             props["PlayerIndex"] = 1;
@@ -498,11 +451,7 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
             if (showDebugLogs)
                 Debug.Log("=== SETTING JOINER STATE: IsReady = TRUE ===");
         }
-
-        // Force set properties
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
-
-        // Wait for properties to sync
         yield return new WaitForSeconds(0.3f);
 
         if (showDebugLogs)
@@ -511,8 +460,6 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
             DebugPlayerProperties();
         }
     }
-
-    // Method to manually set creator as ready (call this when Ready button is clicked)
     public void SetCreatorReady()
     {
         if (!PhotonNetwork.LocalPlayer.IsMasterClient) return;
@@ -527,8 +474,6 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
         if (showDebugLogs)
             Debug.Log("=== CREATOR IS NOW READY ===");
     }
-
-    // Method to check if all players are ready
     public bool AreAllPlayersReady()
     {
         if (PhotonNetwork.PlayerList.Length < 2)
@@ -540,7 +485,6 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
 
         foreach (var player in PhotonNetwork.PlayerList)
         {
-            // Check if player has IsReady property
             if (!player.CustomProperties.ContainsKey("IsReady"))
             {
                 if (showDebugLogs)
@@ -564,15 +508,12 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
 
     public bool CanLoadGame()
     {
-        // Check enough players
         if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
         {
             if (showDebugLogs)
                 Debug.LogWarning("CanLoadGame: Not enough players");
             return false;
         }
-
-        // Check all players have required properties
         foreach (var player in PhotonNetwork.PlayerList)
         {
             if (!player.CustomProperties.ContainsKey("IsReady") ||
@@ -603,14 +544,9 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
 
     private IEnumerator ForceFixReadyStateCoroutine()
     {
-        // Step 1: Clean everything
         ForceCleanAllProperties();
         yield return new WaitForSeconds(0.5f);
-
-        // Step 2: Set ready state again
         yield return StartCoroutine(SetPlayerReadyStateCoroutine());
-
-        // Step 3: Debug result
         DebugAllPlayersReadyState();
     }
 

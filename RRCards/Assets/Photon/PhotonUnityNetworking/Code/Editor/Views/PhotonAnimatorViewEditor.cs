@@ -1,12 +1,3 @@
-// ----------------------------------------------------------------------------
-// <copyright file="PhotonAnimatorViewEditor.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   This is a custom editor for the AnimatorView component.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
 
 
 namespace Photon.Pun
@@ -49,9 +40,6 @@ namespace Photon.Pun
             }
 
             this.serializedObject.ApplyModifiedProperties();
-
-            //GUILayout.Label( "m_SynchronizeLayers " + serializedObject.FindProperty( "m_SynchronizeLayers" ).arraySize );
-            //GUILayout.Label( "m_SynchronizeParameters " + serializedObject.FindProperty( "m_SynchronizeParameters" ).arraySize );
         }
 
 
@@ -182,7 +170,6 @@ namespace Photon.Pun
 
         private void DrawParameterInspector()
         {
-            // flag to expose a note in Interface if one or more trigger(s) are synchronized
             bool isUsingTriggers = false;
 
             SerializedProperty foldoutProperty = this.serializedObject.FindProperty("ShowParameterInspector");
@@ -254,8 +241,6 @@ namespace Photon.Pun
                 }
 
                 PhotonAnimatorView.SynchronizeType value = this.m_Target.GetParameterSynchronizeType(parameter.name);
-
-                // check if using trigger and actually synchronizing it
                 if (value != PhotonAnimatorView.SynchronizeType.Disabled && parameter.type == AnimatorControllerParameterType.Trigger)
                 {
                     isUsingTriggers = true;
@@ -281,8 +266,6 @@ namespace Photon.Pun
                     this.m_Target.SetParameterSynchronized(parameter.name, (PhotonAnimatorView.ParameterType)parameter.type, value);
                 }
             }
-
-            // display note when synchronized triggers are detected.
             if (isUsingTriggers)
             {
                 EditorGUILayout.HelpBox("When using triggers, make sure this component is last in the stack. " +

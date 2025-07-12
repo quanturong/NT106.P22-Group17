@@ -1,13 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PlayerNumberingInspector.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities,
-// </copyright>
-// <summary>
-//  Custom inspector for PlayerNumbering
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
@@ -53,11 +44,6 @@ namespace Photon.Pun.UtilityScripts
 				GUILayout.Label("PlayerNumbering only works when localPlayer is inside a room");
 			}
 		}
-
-		/// <summary>
-		/// force repaint fo the inspector, else we would not see the new data in the inspector.
-		/// This is better then doing it in OnInspectorGUI too many times per frame for no need
-		/// </summary>
 		void RefreshData()
 		{
 			Repaint();

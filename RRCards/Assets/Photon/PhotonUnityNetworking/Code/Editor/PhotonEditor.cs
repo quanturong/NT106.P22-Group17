@@ -1,12 +1,3 @@
-// ----------------------------------------------------------------------------
-// <copyright file="PhotonEditor.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   MenuItems and in-Editor scripts for PhotonNetwork.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
 
 
 using System;
@@ -90,15 +81,7 @@ namespace Photon.Pun
         private static Texture2D BackgroundImage;
 
         public static PunWizardText CurrentLang = new PunWizardText();
-
-        /// <summary>
-        /// third parties custom token
-        /// </summary>
         public static string CustomToken = null;
-
-        /// <summary>
-        /// third parties custom context
-        /// </summary>
         public static string CustomContext = null;
 
         protected static string DocumentationLocation = "Assets/Photon/PhotonNetworking-Documentation.pdf";
@@ -168,15 +151,10 @@ namespace Photon.Pun
         [UnityEditor.InitializeOnLoadMethod]
         public static void InitializeOnLoadMethod()
         {
-            //Debug.Log("InitializeOnLoadMethod()");
             EditorApplication.delayCall += OnDelayCall;
         }
-
-
-        // used to register for various events (post-load)
         private static void OnDelayCall()
         {
-            //Debug.Log("OnDelayCall()");
 
             postInspectorUpdate = true;
 
@@ -206,28 +184,18 @@ namespace Photon.Pun
                 PhotonEditor.UpdateRpcList();
             }
         }
-
-
-
-        // called in editor, opens wizard for initial setup, keeps scene PhotonViews up to date and closes connections when compiling (to avoid issues)
         private static void OnProjectChanged()
         {
-            // Prevent issues with Unity Cloud Builds where ServerSettings are not found.
-            // Also, within the context of a Unity Cloud Build, ServerSettings is already present anyway.
             #if UNITY_CLOUD_BUILD
             return;
             #else
 
             if (PhotonNetwork.PhotonServerSettings == null)
             {
-                // the PhotonServerSettings are loaded or created. If both fails, the Editor should probably not run (anymore).
                 return;
             }
 
             PunSceneSettings.SanitizeSceneSettings();
-
-
-            // serverSetting is null when the file gets deleted. otherwise, the wizard should only run once and only if hosting option is not (yet) set
             if (!PhotonNetwork.PhotonServerSettings.DisableAutoOpenWizard)
             {
                 ShowRegistrationWizard();
@@ -249,7 +217,6 @@ namespace Photon.Pun
         {
             if (PhotonNetwork.IsConnected)
             {
-                // log warning, unless there was one recently
                 if (EditorApplication.timeSinceStartup - lastWarning > 3)
                 {
                     Debug.LogWarning(CurrentLang.WarningPhotonDisconnect);
@@ -268,7 +235,6 @@ namespace Photon.Pun
         [DidReloadScripts]
         private static void OnDidReloadScripts()
         {
-            //Debug.Log("OnDidReloadScripts() postInspectorUpdate: "+postInspectorUpdate + " isPlayingOrWillChangePlaymode: "+EditorApplication.isPlayingOrWillChangePlaymode);
             if (postInspectorUpdate && !EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 PhotonEditor.UpdateRpcList(); // could be called when compilation finished (instead of when reload / compile starts)
@@ -277,7 +243,6 @@ namespace Photon.Pun
 
         private static void PlayModeStateChanged(PlayModeStateChange state)
         {
-            //Debug.Log("PlayModeStateChanged");
             if (EditorApplication.isPlaying || !EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 return;
@@ -291,9 +256,6 @@ namespace Photon.Pun
 
 
         #region GUI and Wizard
-
-
-        // setup per window
         public PhotonEditor()
         {
             this.minSize = this.preferredSize;
@@ -301,14 +263,11 @@ namespace Photon.Pun
 
         protected void Awake()
         {
-            // check if some appid is set. if so, we can avoid registration calls.
             if (PhotonNetwork.PhotonServerSettings != null && PhotonNetwork.PhotonServerSettings.AppSettings != null && !string.IsNullOrEmpty(PhotonNetwork.PhotonServerSettings.AppSettings.AppIdRealtime))
             {
                 this.mailOrAppId = PhotonNetwork.PhotonServerSettings.AppSettings.AppIdRealtime;
             }
         }
-
-        /// <summary>Creates an Editor window, showing the cloud-registration wizard for Photon (entry point to setup PUN).</summary>
         protected static void ShowRegistrationWizard()
         {
             PhotonEditor win = GetWindow(WindowType, false, CurrentLang.WindowTitle, true) as PhotonEditor;
@@ -320,8 +279,6 @@ namespace Photon.Pun
             win.photonSetupState = PhotonSetupStates.RegisterForPhotonCloud;
             win.isSetupWizard = true;
         }
-
-        // Window Update() callback. On-demand, when Window is open
         protected void Update()
         {
             if (this.close)
@@ -385,16 +342,9 @@ namespace Photon.Pun
 
                 GUILayout.EndHorizontal();
             }
-
-
-            // setup header
             this.UiTitleBox(CurrentLang.SetupWizardTitle, BackgroundImage);
-
-            // setup info text
             GUI.skin.label.richText = true;
             GUILayout.Label(CurrentLang.SetupWizardInfo);
-
-            // input of appid or mail
             EditorGUILayout.Separator();
             GUILayout.Label(CurrentLang.EmailOrAppIdLabel);
             this.minimumInput = false;
@@ -406,21 +356,15 @@ namespace Photon.Pun
                 this.mailOrAppId = this.mailOrAppId.Trim(); // note: we trim all input
                 if (AccountService.IsValidEmail(this.mailOrAppId))
                 {
-                    // input should be a mail address
                     this.useMail = true;
-
-                    // check if the current input equals earlier input, which is known to be registered already
                     this.minimumInput = !this.mailOrAppId.Equals(this.emailSentToAccount) || !this.emailSentToAccountIsRegistered;
                 }
                 else if (ServerSettings.IsAppId(this.mailOrAppId))
                 {
-                    // this should be an appId
                     this.minimumInput = true;
                     this.useAppId = true;
                 }
             }
-
-            // button to skip setup
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             if (GUILayout.Button(CurrentLang.SkipButton, GUILayout.Width(100)))
@@ -430,8 +374,6 @@ namespace Photon.Pun
                 this.useMail = false;
                 this.useAppId = false;
             }
-
-            // SETUP button
             EditorGUI.BeginDisabledGroup(!this.minimumInput);
             if (GUILayout.Button(CurrentLang.SetupButton, GUILayout.Width(100)))
             {
@@ -452,12 +394,8 @@ namespace Photon.Pun
             EditorGUI.EndDisabledGroup();
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
-
-
-            // existing account needs to fetch AppId online
             if (this.photonSetupState == PhotonSetupStates.EmailAlreadyRegistered)
             {
-                // button to open dashboard and get the AppId
                 GUILayout.Space(15);
                 GUILayout.Label(CurrentLang.AlreadyRegisteredInfo);
 
@@ -495,14 +433,8 @@ namespace Photon.Pun
                 {
                     GUILayout.Label(CurrentLang.AppliedToSettingsInfo);
                 }
-
-
-                // setup-complete info
                 GUILayout.Space(15);
                 GUILayout.Label(CurrentLang.SetupCompleteInfo);
-
-
-                // close window (done)
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button(CurrentLang.CloseWindowButton, GUILayout.Width(205)))
@@ -539,18 +471,11 @@ namespace Photon.Pun
         protected virtual void UiMainWizard()
         {
             GUILayout.Space(15);
-
-            // title
             this.UiTitleBox(CurrentLang.PUNWizardLabel, BackgroundImage);
 
             EditorGUILayout.BeginVertical(new GUIStyle() { padding = new RectOffset(10, 10, 10, 10) });
-
-            // wizard info text
             GUILayout.Label(CurrentLang.WizardMainWindowInfo, new GUIStyle("Label") { wordWrap = true });
             GUILayout.Space(15);
-
-
-            // settings button
             GUILayout.Label(CurrentLang.SettingsButton, EditorStyles.boldLabel);
 
             if (GUILayout.Button(new GUIContent(CurrentLang.LocateSettingsButton, CurrentLang.SettingsHighlightLabel)))
@@ -565,10 +490,6 @@ namespace Photon.Pun
             {
                 this.photonSetupState = PhotonSetupStates.RegisterForPhotonCloud;
             }
-
-
-
-            // documentation
             GUILayout.Space(15);
             GUILayout.Label(CurrentLang.DocumentationLabel, EditorStyles.boldLabel);
 
@@ -581,16 +502,6 @@ namespace Photon.Pun
             {
                 Application.OpenURL(UrlDevNet);
             }
-
-            //GUI.skin.label.wordWrap = true;
-            //GUILayout.Label(CurrentLang.OwnHostCloudCompareLabel);
-            //if (GUILayout.Button(CurrentLang.ComparisonPageButton))
-            //{
-            //    Application.OpenURL(UrlCompare);
-            //}
-
-
-            // community
             GUILayout.Space(15);
             GUILayout.Label(CurrentLang.CommunityLabel, EditorStyles.boldLabel);
 
@@ -629,7 +540,6 @@ namespace Photon.Pun
             }
             else
             {
-                // while RegisterByEmail will check RequestPendingResult below, it would also display an error message. no needed in this case
                 if (this.serviceClient.RequestPendingResult)
                 {
                     Debug.LogWarning("Registration request is pending a response. Please wait.");
@@ -716,17 +626,12 @@ namespace Photon.Pun
             EditorUtility.DisplayDialog(CurrentLang.ErrorTextTitle, error, CurrentLang.OkButton);
             this.photonSetupState = PhotonSetupStates.RegisterForPhotonCloud;
         }
-
-        // Pings PhotonServerSettings and makes it selected (show in Inspector)
         private static void HighlightSettings()
         {
             ServerSettings serverSettings = (ServerSettings)Resources.Load(PhotonNetwork.ServerSettingsFileName, typeof(ServerSettings));
             Selection.objects = new UnityEngine.Object[] { serverSettings };
             EditorGUIUtility.PingObject(serverSettings);
         }
-
-        // Marks settings object as dirty, so it gets saved.
-        // unity 5.3 changes the usecase for SetDirty(). but here we don't modify a scene object! so it's ok to use
         private static void SaveSettings()
         {
             EditorUtility.SetDirty(PhotonNetwork.PhotonServerSettings);
@@ -737,23 +642,17 @@ namespace Photon.Pun
 
         public static void UpdateRpcList()
         {
-            //Debug.Log("UpdateRpcList()");
 
             if (PhotonNetwork.PhotonServerSettings == null)
             {
                 Debug.LogWarning("UpdateRpcList() wasn not able to access the PhotonServerSettings. Not updating the RPCs.");
                 return;
             }
-
-
-            // check all "script assemblies" for methods with PunRPC attribute
             List<string> additionalRpcs = new List<string>();       // not yet listed rpc-method names go here
             List<string> allRpcs = new List<string>();
 
 
             #if UNITY_2019_2_OR_NEWER
-
-            // we can make use of the new TypeCache to find methods with PunRPC attribute
             var extractedMethods = TypeCache.GetMethodsWithAttribute<PunRPC>();
             foreach (var methodInfo in extractedMethods)
             {
@@ -789,7 +688,6 @@ namespace Photon.Pun
 
             if (additionalRpcs.Count <= 0)
             {
-                //Debug.Log("UpdateRPCs did not found new.");
                 return;
             }
 
@@ -821,8 +719,6 @@ namespace Photon.Pun
             Undo.RecordObject(PhotonNetwork.PhotonServerSettings, "RPC-list update of PUN.");
             PhotonNetwork.PhotonServerSettings.RpcList.AddRange(additionalRpcs);
             EditorUtility.SetDirty(PhotonNetwork.PhotonServerSettings);
-
-            //Debug.Log("Updated RPCs. Added: "+additionalRpcs.Count);
         }
 
 

@@ -41,8 +41,6 @@ Properties {
 
 	_WeightNormal		("Weight Normal", float) = 0
 	_WeightBold			("Weight Bold", float) = 0.5
-
-	// Should not be directly exposed to the user
 	_ShaderFlags		("Flags", float) = 0
 	_ScaleRatioA		("Scale RatioA", float) = 1
 	_ScaleRatioB		("Scale RatioB", float) = 1
@@ -61,8 +59,6 @@ Properties {
 	_VertexOffsetY		("Vertex OffsetY", float) = 0
 
 	_CullMode			("Cull Mode", Float) = 0
-	//_MaskCoord		("Mask Coords", vector) = (0,0,0,0)
-	//_MaskSoftness		("Mask Softness", float) = 0
 }
 
 SubShader {
@@ -99,8 +95,6 @@ SubShader {
 	#include "TMPro_Surface.cginc"
 
 	ENDCG
-
-	// Pass to render object as a shadow caster
 	Pass
 	{
 		Name "Caster"

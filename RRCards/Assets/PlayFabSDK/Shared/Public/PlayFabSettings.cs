@@ -55,14 +55,7 @@ namespace PlayFab
 
         private static PlayFabSharedSettings _playFabShared = null;
         private static PlayFabSharedSettings PlayFabSharedPrivate { get { if (_playFabShared == null) _playFabShared = GetSharedSettingsObjectPrivate(); return _playFabShared; } }
-
-        /// <summary>
-        /// Global settings used by all static API classes, and as the default for all instance API classes
-        /// </summary>
         public static readonly PlayFabApiSettings staticSettings = new PlayFabSettingsRedirect(() => { return PlayFabSharedPrivate; });
-        /// <summary>
-        /// Global user for all static API classes
-        /// </summary>
         public static readonly PlayFabAuthenticationContext staticPlayer = new PlayFabAuthenticationContext();
 
         public const string SdkVersion = "2.212.250428";
@@ -101,28 +94,15 @@ namespace PlayFab
                 return deviceId;
             }
         }
-
-        /// <summary>
-        /// These are variables which can differ from one PlayFab API Instance to another
-        /// </summary>
         #region staticSettings Redirects
-        // You must set this value for PlayFabSdk to work properly (Found in the Game Manager for your title, at the PlayFab Website)
         public static string TitleId { get { return staticSettings.TitleId; } set { staticSettings.TitleId = value; } }
-
-        /// <summary> The name of a customer vertical. This is only for customers running a private cluster.  Generally you shouldn't touch this </summary>
         internal static string VerticalName { get { return staticSettings.VerticalName; } set { staticSettings.VerticalName = value; } }
 #if ENABLE_PLAYFABSERVER_API || ENABLE_PLAYFABADMIN_API || UNITY_EDITOR || ENABLE_PLAYFAB_SECRETKEY
         public static string DeveloperSecretKey { get { return staticSettings.DeveloperSecretKey; } set { staticSettings.DeveloperSecretKey = value; } }
 #endif
-        /// <summary> Set this to true to prevent hardware information from leaving the device </summary>
         public static bool DisableDeviceInfo { get { return staticSettings.DisableDeviceInfo; } set { staticSettings.DisableDeviceInfo = value; } }
-        /// <summary> Set this to true to prevent focus change information from leaving the device </summary>
         public static bool DisableFocusTimeCollection { get { return staticSettings.DisableFocusTimeCollection; } set { staticSettings.DisableFocusTimeCollection = value; } }
         #endregion staticSettings Redirects
-
-        /// <summary>
-        /// These are variables which are always singleton global
-        /// </summary>
         #region PlayFabSharedSettings Redirects
         [ObsoleteAttribute("LogLevel has been deprecated, please use UnityEngine.Debug.Log for your logging needs.")]
         public static PlayFabLogLevel LogLevel { get { return PlayFabSharedPrivate.LogLevel; } set { PlayFabSharedPrivate.LogLevel = value; } }

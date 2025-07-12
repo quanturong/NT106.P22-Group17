@@ -32,8 +32,6 @@ namespace PlayFab.Internal
         public PlayFabHttp.RequestTiming Timing;
         public System.Diagnostics.Stopwatch Stopwatch;
 #endif
-
-        // This class stores the state of the request and all associated data
         public string ApiEndpoint = null;
         public string FullUrl = null;
         public byte[] Payload = null;

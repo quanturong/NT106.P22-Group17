@@ -1,12 +1,3 @@
-// ----------------------------------------------------------------------------
-// <copyright file="PunSceneSettings.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//	Optional lowest-viewID setting per-scene. So PhotonViews don't get the same ID.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
 
 
 using System;
@@ -31,7 +22,6 @@ namespace Photon.Pun
     {
 
         #if UNITY_EDITOR
-        // Suppressing compiler warning "this variable is never used". Only used in the CustomEditor, only in Editor
         #pragma warning disable 0414
         [SerializeField]
         bool SceneSettingsListFoldoutOpen = true;
@@ -43,8 +33,6 @@ namespace Photon.Pun
 
       
         private const string SceneSettingsFileName = "PunSceneSettingsFile.asset";
-
-        // we use the path to PunSceneSettings.cs as path to create a scene settings file
         private static string punSceneSettingsCsPath;
 
         public static string PunSceneSettingsCsPath
@@ -55,16 +43,12 @@ namespace Photon.Pun
                 {
                     return punSceneSettingsCsPath;
                 }
-
-                // Unity 4.3.4 does not yet have AssetDatabase.FindAssets(). Would be easier.
                 var result = Directory.GetFiles(Application.dataPath, "PunSceneSettings.cs", SearchOption.AllDirectories);
                 if (result.Length >= 1)
                 {
                     punSceneSettingsCsPath = Path.GetDirectoryName(result[0]);
                     punSceneSettingsCsPath = punSceneSettingsCsPath.Replace('\\', '/');
                     punSceneSettingsCsPath = punSceneSettingsCsPath.Replace(Application.dataPath, "Assets");
-
-                    // AssetDatabase paths have to use '/' and are relative to the project's folder. Always.
                     punSceneSettingsCsPath = punSceneSettingsCsPath + "/" + SceneSettingsFileName;
                 }
 
@@ -154,20 +138,15 @@ namespace Photon.Pun
                             sceneSetting.sceneAsset =
                                 AssetDatabase.LoadAssetAtPath<SceneAsset>(
                                     AssetDatabase.GUIDToAssetPath(guid));
-                            
-                        //    Debug.Log("SceneSettings : ''"+sceneSetting.sceneName+"'' scene is missing: Issue corrected",Instance);
                             break;
                         }
                     }
-                    
-                    //Debug.Log("SceneSettings : ''"+sceneSetting.sceneName+"'' scene is missing",Instance);
                     
                     continue;
                 }
                 
                 if (sceneSetting.sceneAsset != null && sceneSetting.sceneName!= sceneSetting.sceneAsset.name )
                 {
-                 //   Debug.Log("SceneSettings : '"+sceneSetting.sceneName+"' mismatch with sceneAsset: '"+sceneSetting.sceneAsset.name+"' : Issue corrected",Instance);
                     sceneSetting.sceneName = sceneSetting.sceneAsset.name;
                     continue;
                 }

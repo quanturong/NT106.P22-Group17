@@ -1,18 +1,9 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="NickNameField.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit Demo
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// Nickname InputField.
-    /// </summary>
     public class NickNameField : MonoBehaviour
     {
         public InputField PropertyValueInput;
@@ -44,8 +35,6 @@ namespace Photon.Pun.Demo.Cockpit
                 PropertyValueInput.text = _cache;
             }
         }
-
-        // new UI will fire "EndEdit" event also when loosing focus. So check "enter" key and only then submit form.
         public void OnEndEdit(string value)
         {
             if (Input.GetKey(KeyCode.Return) || Input.GetKey(KeyCode.KeypadEnter) || Input.GetKey(KeyCode.Tab))
@@ -62,7 +51,6 @@ namespace Photon.Pun.Demo.Cockpit
         {
             _cache = value;
             PhotonNetwork.NickName = _cache;
-            //Debug.Log("PhotonNetwork.NickName = " + PhotonNetwork.NickName, this);
         }
     }
 }

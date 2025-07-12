@@ -28,13 +28,10 @@ public class ChatPanelSlide : MonoBehaviour
 
     void Update()
     {
-        // Open chat with Shift + Enter
         if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && Input.GetKeyDown(KeyCode.Return))
         {
             TogglePanel();
         }
-
-        // Close chat with Escape
         if (Input.GetKeyDown(KeyCode.Escape) && isOpen)
         {
             ClosePanel();

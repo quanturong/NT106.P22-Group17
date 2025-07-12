@@ -1,9 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright company="Exit Games GmbH"/>
-// <summary>Demo code for Photon Chat in Unity.</summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,16 +8,11 @@ using Photon.Pun;
 
 namespace Photon.Chat.Demo
 {
-    /// <summary>
-    /// This is used in the Editor Splash to properly inform the developer about the chat AppId requirement.
-    /// </summary>
     [ExecuteInEditMode]
     public class ChatAppIdCheckerUI : MonoBehaviour
     {
         public Text Description;
         public bool WizardOpenedOnce;   // avoid opening the wizard again and again
-
-        // TODO: maybe this can run on Start(), not on Update()?!
         public void Update()
         {
             bool showWarning = false;

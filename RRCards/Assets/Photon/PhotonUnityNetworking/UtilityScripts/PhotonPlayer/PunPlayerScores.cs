@@ -1,12 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PunPlayerScores.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities,
-// </copyright>
-// <summary>
-//  Scoring system for PhotonPlayer
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 using System.Collections;
 using System.Collections.Generic;
@@ -19,9 +10,6 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace Photon.Pun.UtilityScripts
 {
-    /// <summary>
-    /// Scoring system for PhotonPlayer
-    /// </summary>
     public class PunPlayerScores : MonoBehaviour
     {
         public const string PlayerScoreProp = "score";

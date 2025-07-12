@@ -21,7 +21,6 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
 
     void Awake()
     {
-        // Singleton pattern
         if (Instance == null)
         {
             Instance = this;
@@ -87,8 +86,7 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
         else
         {
             Debug.Log("Skipping Photon reconnect due to logout.");
-            isLoggingOut = false; // Reset lại trạng thái cho các lần sau
-        }
+            isLoggingOut = false;        }
     }
 
     private void ReconnectPhoton()
@@ -122,16 +120,12 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
     private void OnLoginPlayFabSuccess(LoginResult result)
     {
         Debug.Log("=== PLAYFAB LOGIN SUCCESSFUL ===");
-
-        // Set display name for Photon
         string displayName = result.InfoResultPayload.PlayerProfile?.DisplayName ??
                            result.InfoResultPayload.AccountInfo?.Username ??
                            "Player_" + result.PlayFabId.Substring(0, 6);
 
         PhotonNetwork.NickName = displayName;
         Debug.Log($"Photon Nickname set to: {displayName}");
-
-        // Store player data
         PlayerPrefs.SetString("PlayFabID", result.PlayFabId);
         PlayerPrefs.SetString("DisplayName", displayName);
         PlayerPrefs.Save();
@@ -223,18 +217,12 @@ public class PlayfabAuthManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("=== LOGGING OUT... ===");
         isLoggingOut = true;
-
-        // Forget PlayFab credentials
         PlayFabClientAPI.ForgetAllCredentials();
         PlayerPrefs.DeleteKey("PlayFabID");
         PlayerPrefs.DeleteKey("DisplayName");
-
-        // Nếu Photon đang kết nối, ngắt kết nối và chờ callback OnDisconnected
         if (PhotonNetwork.IsConnected)
         {
             PhotonNetwork.Disconnect();
-
-            // Đợi callback OnDisconnected xử lý tiếp
             StartCoroutine(WaitForPhotonDisconnectThen(() =>
             {
                 isLoggingOut = false;

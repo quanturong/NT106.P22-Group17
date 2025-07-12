@@ -6,8 +6,6 @@ void VertShader(inout appdata_full v, out Input data)
 	UNITY_INITIALIZE_OUTPUT(Input, data);
 
 	float bold = step(v.texcoord.w, 0);
-
-	// Generate normal for backface
 	float3 view = ObjSpaceViewDir(v.vertex);
 	v.normal *= sign(dot(v.normal, view));
 
@@ -39,14 +37,10 @@ void PixShader(Input input, inout SurfaceOutput o)
 #else
 	float scale = input.param.y;
 #endif
-
-	// Signed distance
 	float c = tex2D(_MainTex, input.uv_MainTex).a;
 	float sd = (.5 - c - input.param.x) * scale + .5;
 	float outline = _OutlineWidth*_ScaleRatioA * scale;
 	float softness = _OutlineSoftness*_ScaleRatioA * scale;
-
-	// Color & Alpha
 	float4 faceColor = _FaceColor;
 	float4 outlineColor = _OutlineColor;
 	faceColor *= input.color;
@@ -63,17 +57,11 @@ void PixShader(Input input, inout SurfaceOutput o)
 					tex2D(_MainTex, input.uv_MainTex + delta.xz).a,
 					tex2D(_MainTex, input.uv_MainTex - delta.zy).a,
 					tex2D(_MainTex, input.uv_MainTex + delta.zy).a };
-
-	// Face Normal
 	float3 n = GetSurfaceNormal(smp4x, input.param.x);
-
-	// Bumpmap
 	float3 bump = UnpackNormal(tex2D(_BumpMap, input.uv2_FaceTex.xy)).xyz;
 	bump *= lerp(_BumpFace, _BumpOutline, saturate(sd + outline * 0.5));
 	bump = lerp(float3(0, 0, 1), bump, faceColor.a);
 	n = normalize(n - bump);
-
-	// Cubemap reflection
 	fixed4 reflcol = texCUBE(_Cube, reflect(input.viewDirEnv, mul((float3x3)unity_ObjectToWorld, n)));
 	float3 emission = reflcol.rgb * lerp(_ReflectFaceColor.rgb, _ReflectOutlineColor.rgb, saturate(sd + outline * 0.5)) * faceColor.a;
 #else
@@ -88,8 +76,6 @@ void PixShader(Input input, inout SurfaceOutput o)
 	faceColor = BlendARGB(glowColor, faceColor);
 	faceColor.rgb /= max(faceColor.a, 0.0001);
 #endif
-
-	// Set Standard output structure
 	o.Albedo = faceColor.rgb;
 	o.Normal = -n;
 	o.Emission = emission;

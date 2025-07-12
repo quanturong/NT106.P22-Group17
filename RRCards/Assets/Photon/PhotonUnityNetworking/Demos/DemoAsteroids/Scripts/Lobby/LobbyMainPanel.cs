@@ -72,12 +72,9 @@ namespace Photon.Pun.Demo.Asteroids
 
         public override void OnJoinedLobby()
         {
-            // whenever this joins a new lobby, clear any previous room lists
             cachedRoomList.Clear();
             ClearRoomListView();
         }
-
-        // note: when a client joins / creates a room, OnLeftLobby does not get called, even if the client was in a lobby before
         public override void OnLeftLobby()
         {
             cachedRoomList.Clear();
@@ -105,7 +102,6 @@ namespace Photon.Pun.Demo.Asteroids
 
         public override void OnJoinedRoom()
         {
-            // joining (or entering) a room invalidates any cached lobby room list (even if LeaveLobby was not called due to just joining a room)
             cachedRoomList.Clear();
 
 
@@ -332,7 +328,6 @@ namespace Photon.Pun.Demo.Asteroids
         {
             foreach (RoomInfo info in roomList)
             {
-                // Remove room from cached room list if it got closed, became invisible or was marked as removed
                 if (!info.IsOpen || !info.IsVisible || info.RemovedFromList)
                 {
                     if (cachedRoomList.ContainsKey(info.Name))
@@ -342,13 +337,10 @@ namespace Photon.Pun.Demo.Asteroids
 
                     continue;
                 }
-
-                // Update cached room info
                 if (cachedRoomList.ContainsKey(info.Name))
                 {
                     cachedRoomList[info.Name] = info;
                 }
-                // Add new room info to cache
                 else
                 {
                     cachedRoomList.Add(info.Name, info);

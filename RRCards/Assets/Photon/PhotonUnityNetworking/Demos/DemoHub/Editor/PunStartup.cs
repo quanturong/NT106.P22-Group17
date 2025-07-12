@@ -1,12 +1,3 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PunStartup.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Demos
-// </copyright>
-// <summary>
-//   Used to setup the demo build settings and load the first demo scene (if imported into a new empty project).
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -65,12 +56,6 @@ namespace Photon.Pun.Demo.Hub
             SetPunDemoBuildSettings();
         }
 
-        //[MenuItem("Window/Photon Unity Networking/PUN Demo Loader Reset")]
-        //protected static void ResetDemoLoader()
-        //{
-        //    EditorPrefs.DeleteKey("PunDemosOpenedBefore");
-        //}
-
         public static void LoadPunDemoHub()
         {
             string scenePath = FindAssetPath("DemoHub-Scene t:scene");
@@ -80,10 +65,6 @@ namespace Photon.Pun.Demo.Hub
                     Selection.activeObject = AssetDatabase.LoadMainAssetAtPath (scenePath);
             }
         }
-
-        /// <summary>Finds the asset path base on its name or search query: https://docs.unity3d.com/ScriptReference/AssetDatabase.FindAssets.html </summary>
-        /// <returns>The asset path. String.Empty, if not found.</returns>
-        /// <param name="asset">Asset filter for AssetDatabase.FindAssets.</param>
         public static string FindAssetPath(string asset)
         {
             string[] guids = AssetDatabase.FindAssets(asset, null);
@@ -96,10 +77,6 @@ namespace Photon.Pun.Demo.Hub
                 return AssetDatabase.GUIDToAssetPath(guids[0]);
             }
         }
-
-        /// <summary>
-        /// Finds scenes in "Assets/Photon Unity Networking/Demos/", excludes those in folder "PUNGuide_M2H" and applies remaining scenes to build settings. The one with "Hub" in it first.
-        /// </summary>
         public static void SetPunDemoBuildSettings()
         {
             string _PunPath = string.Empty;
@@ -108,14 +85,10 @@ namespace Photon.Pun.Demo.Hub
 
             _thisPath = Application.dataPath + _thisPath.Substring (6); // remove "Assets/"
 
-            //_PunPath = PhotonEditorUtils.GetParent(_thisPath,"Photon");
-
             if (string.IsNullOrEmpty(_PunPath))
             {
                 _PunPath = Application.dataPath+"/Photon";
             }
-
-            // find path of pun guide
 
             string[] tempPaths = Directory.GetDirectories(_PunPath, "Demos*", SearchOption.AllDirectories);
             if (tempPaths == null)
@@ -124,8 +97,6 @@ namespace Photon.Pun.Demo.Hub
             }
 
             List<EditorBuildSettingsScene> sceneAr = new List<EditorBuildSettingsScene> ();
-
-            // find scenes of guide
             foreach (string guidePath in tempPaths)
             {
                 tempPaths = Directory.GetFiles (guidePath, "*.unity", SearchOption.AllDirectories);
@@ -134,21 +105,15 @@ namespace Photon.Pun.Demo.Hub
                 {
                     return;
                 }
-
-                // add found guide scenes to build settings
                 for (int i = 0; i < tempPaths.Length; i++)
                 {
-                    //Debug.Log(tempPaths[i]);
                     string path = tempPaths [i].Substring (Application.dataPath.Length - "Assets".Length);
                     path = path.Replace ('\\', '/');
-                    //Debug.Log(path);
 
                     if (path.Contains ("PUNGuide_M2H") || path.Contains("DemoLoadBalancing"))
                     {
                         continue;
                     }
-
-                    // edited to avoid old scene to be included.
                     if (path.Contains ("DemoHub-Scene"))
                     {
                         sceneAr.Insert (0, new EditorBuildSettingsScene (path, true));

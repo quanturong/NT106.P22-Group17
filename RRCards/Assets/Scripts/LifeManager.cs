@@ -14,28 +14,20 @@ public class LifeManager : MonoBehaviour
 
     [Header("Debug")]
     public bool enableDebugLogs = true;
-    public bool blockAllUpdates = false; // NEW: Block all UI updates
-
+    public bool blockAllUpdates = false;
     private int playerLives;
     private int enemyLives;
 
     void Start()
     {
-        // CHECK FLAG để tránh reset khi đang restore sau roulette
         bool shouldBypassReset = PlayerPrefs.HasKey("BypassLifeManagerReset");
 
         if (shouldBypassReset)
         {
             if (enableDebugLogs)
                 Debug.Log("LifeManager: BYPASSING ResetHearts() due to restore flag");
-
-            // CHỈ BLOCK khi restore, không block normal gameplay
             blockAllUpdates = true;
-
-            // CHỈ validate, không reset
             ValidateSetup();
-
-            // AUTO UNBLOCK sau 5 giây để tránh bị stuck
             StartCoroutine(AutoUnblockAfterDelay());
         }
         else
@@ -68,11 +60,7 @@ public class LifeManager : MonoBehaviour
 
         if (enableDebugLogs)
             Debug.Log($"LifeManager: SetPlayerLives called with {lives}, clamped to {clampedLives}, blockAllUpdates={blockAllUpdates}");
-
-        // ALWAYS update internal value
         playerLives = clampedLives;
-
-        // BUT only update UI if not blocked
         if (!blockAllUpdates)
         {
             StartCoroutine(ForceUpdatePlayerHearts());
@@ -90,11 +78,7 @@ public class LifeManager : MonoBehaviour
 
         if (enableDebugLogs)
             Debug.Log($"LifeManager: SetEnemyLives called with {lives}, clamped to {clampedLives}, blockAllUpdates={blockAllUpdates}");
-
-        // ALWAYS update internal value
         enemyLives = clampedLives;
-
-        // BUT only update UI if not blocked
         if (!blockAllUpdates)
         {
             StartCoroutine(ForceUpdateEnemyHearts());
@@ -105,21 +89,15 @@ public class LifeManager : MonoBehaviour
                 Debug.Log($"⚠️ LifeManager: BLOCKED UI update for SetEnemyLives({clampedLives}) - will update later");
         }
     }
-
-    // NEW: Method to unblock and force update all
     public void UnblockAndForceUpdateAll()
     {
         if (enableDebugLogs)
             Debug.Log($"🔓 LifeManager: UNBLOCKING and force updating all UI - Player:{playerLives}, Enemy:{enemyLives}");
 
         blockAllUpdates = false;
-
-        // Force update both immediately
         StartCoroutine(ForceUpdatePlayerHearts());
         StartCoroutine(ForceUpdateEnemyHearts());
     }
-
-    // NEW: Temporary block for critical updates
     public void TemporaryBlock(float duration = 1f)
     {
         if (enableDebugLogs)
@@ -137,8 +115,6 @@ public class LifeManager : MonoBehaviour
             Debug.Log($"🔓 LifeManager: AUTO UNBLOCK after {duration} seconds");
 
         blockAllUpdates = false;
-
-        // Force update với current values
         StartCoroutine(ForceUpdatePlayerHearts());
         StartCoroutine(ForceUpdateEnemyHearts());
     }

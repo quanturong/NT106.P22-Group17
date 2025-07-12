@@ -1,14 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="Bezier.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Networking Demos
-// </copyright>
-// <summary>
-//  Original: http://catlikecoding.com/unity/tutorials/curves-and-splines/
-//  Used in SlotRacer Demo
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 
 using System;
@@ -264,8 +254,6 @@ namespace Photon.Pun.Demo.SlotRacer.Utils
 			int subDivisions = 100;
 
 			int totalSamples = points.Length * subDivisions;
-
-			// lets create lengths for each control point.
 			this.lengths = new float[totalSamples];
 			this.lengthsTime = new float[totalSamples];
 
@@ -274,7 +262,6 @@ namespace Photon.Pun.Demo.SlotRacer.Utils
 		
 			Vector3 pos;
 			Vector3 lastPos = this.GetPoint (0f);
-			// go from the first, to the second to last
 			for (var i = 0; i < totalSamples - 1; i++)
 			{
 				CurrentTime = (1f * i) / totalSamples;
@@ -301,32 +288,18 @@ namespace Photon.Pun.Demo.SlotRacer.Utils
 			}
 
 			distance = Mathf.Repeat (distance, this.TotalLength);
-
-			// make sure that we are within the total distance of the points
 			if(distance <= 0) return points[0];
 			if(distance >= this.TotalLength) return points[points.Length - 1];
-
-			// lets find the first point that is below the distance
-			// but, who's next point is above the distance
 			var index = 0;
 			while (index < lengths.Length -1 && lengths[index] < distance)
 				index++;
 
-		//	Debug.Log("Index ="+index);
-
-			// get the percentage of travel from the current length to the next
-			// where the distance is.
-			//var deltaAmount = Mathf.InverseLerp(lengths[index-1], lengths[index], distance);
-
 			float deltaDistanceRatio =  (distance-lengths[index-1])/(lengths [index] - lengths [index - 1]) ;
 
 			float deltaTime = (lengthsTime [index] - lengthsTime [index - 1]) * deltaDistanceRatio;
-			//float splineDistance = (lengths [index - 1] + (lengths [index] - lengths [index - 1]) * amount) / this.TotalLength;
 
 
 			return GetPoint(this.lengthsTime[index]+deltaTime);
-			// we use that, to get the actual point
-		//	return Vector3.Lerp(points[index-1], points[index], amount);
 		}
 	}
 }

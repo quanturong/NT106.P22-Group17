@@ -1,10 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PlayerDetailsController.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
- 
+﻿ 
 using System.Collections;
 using System.Collections.Generic;
 
@@ -17,9 +11,6 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// Controller for the Playerdetails UI view
-    /// </summary>
     public class PlayerDetailsController : MonoBehaviourPunCallbacks
     {
 
@@ -71,7 +62,6 @@ namespace Photon.Pun.Demo.Cockpit
 
         public void SetPlayerTarget(Player player)
         {
-            //Debug.Log("SetPlayerTarget " + player);
             this._player = player;
 
             ContentPanel.SetActive(true);
@@ -83,12 +73,7 @@ namespace Photon.Pun.Demo.Cockpit
             {
                 this.AddProperty(ParseKey(item.Key), item.Value.ToString(), this.BuiltInPropertiesPanel);
             }
-
-			// PlayerNumbering extension
             this.AddProperty("Player Number", "#" + player.GetPlayerNumber().ToString("00"), this.PlayerNumberingExtensionPanel);
-
-
-			// Score extension
 			this.AddProperty(PunPlayerScores.PlayerScoreProp, player.GetScore().ToString(), this.ScoreExtensionPanel);
 
 
@@ -155,9 +140,6 @@ namespace Photon.Pun.Demo.Cockpit
 
         public override void OnPlayerPropertiesUpdate(Player target, ExitGames.Client.Photon.Hashtable changedProps)
         {
-            //Debug.Log("OnPlayerPropertiesUpdate " + target.ActorNumber + " " + target.ToStringFull() + " " + changedProps.ToStringFull());
-
-            //Debug.Log("_player.ID " + _player.ActorNumber);
             if (_player.ActorNumber == target.ActorNumber)
             {
 

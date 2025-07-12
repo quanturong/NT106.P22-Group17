@@ -1,13 +1,4 @@
-﻿// ----------------------------------------------------------------------------
-// <copyright file="PunSceneSettingsInspector.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2019 Exit Games GmbH
-// </copyright>
-// <summary>
-//   Custom inspector for the PunSceneSettings component.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,8 +28,6 @@ namespace Photon.Pun
         public override void OnInspectorGUI()
         {
             this.m_Target = (PunSceneSettings) this.target;
-
-            // error checking
             _duplicateScenesDefinition = m_Target.MinViewIdPerScene.GroupBy(x => x.sceneName)
                 .Where(g => g.Count() > 1)
                 .Select(y => y.Key)
@@ -91,8 +80,6 @@ namespace Photon.Pun
         private void DrawSceneSettingsList()
         {
             GUILayout.Space(5);
-
-            // check for changes ( from undo for example)
             this.serializedObject.Update();
             
             listProperty = this.serializedObject.FindProperty("MinViewIdPerScene");
@@ -136,8 +123,6 @@ namespace Photon.Pun
                         
                         string _sceneName = sceneNameProperty.stringValue;
                         SceneAsset _sceneAsset = m_Target.MinViewIdPerScene[i].sceneAsset;
-
-                        // check if we need to find the scene asset based on the scene name. This is for backward compatibility or when the scene asset was deleted
                         if (_firstTime)
                         {
                             if (_sceneAsset == null && !string.IsNullOrEmpty(_sceneName))
@@ -159,7 +144,6 @@ namespace Photon.Pun
                         }
 
                         bool _missingSceneAsset = _sceneAsset == null && !string.IsNullOrEmpty(_sceneName);
-                        // if we don't have a scene asset for the serialized scene named, we show an error.
                         if (_missingSceneAsset || 
                             (sceneNameProperty!=null && _duplicateScenesDefinition!=null && _duplicateScenesDefinition.Contains(sceneNameProperty.stringValue))
                         )
@@ -186,10 +170,6 @@ namespace Photon.Pun
                                 sceneNameProperty.stringValue = _sceneAsset.name;
                             }
                         }
-                            
-                        
-                       // EditorGUI.PropertyField(propertyPosition,  sceneNameProperty,
-                        //    new GUIContent("Scene Name"));
 
                         GUI.color = Color.white;
 
@@ -204,10 +184,6 @@ namespace Photon.Pun
                             new GUIContent("Minimum View ID"));
                         
                         GUI.color = Color.white;
-                        
-                        //Debug.Log( listProperty.GetArrayElementAtIndex( i ).objectReferenceValue.GetType() );
-                        //Rect statsPosition = new Rect( propertyPosition.xMax + 7, propertyPosition.yMin, statsIcon.width, statsIcon.height );
-                        //ReorderableListResources.DrawTexture( statsPosition, statsIcon );
 
                         
                         Rect removeButtonRect = new Rect(

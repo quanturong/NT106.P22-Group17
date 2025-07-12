@@ -1,13 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PlayerListCell.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Utilities,
-// </copyright>
-// <summary>
-//  Player list cell representing a given PhotonPlayer
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System.Collections;
 
 using UnityEngine;
@@ -18,9 +9,6 @@ using Photon.Pun.UtilityScripts;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// Player list cell representing a given PhotonPlayer
-    /// </summary>
     public class PlayerListCell : MonoBehaviour
     {
 
@@ -50,7 +38,6 @@ namespace Photon.Pun.Demo.Cockpit
 
         public void AddToList(Player info, bool animate = false)
         {
-            //Debug.Log("AddToList " + info.ToStringFull());
 
             _player = info;
 
@@ -95,9 +82,6 @@ namespace Photon.Pun.Demo.Cockpit
             isLocalText.gameObject.SetActive(_player.IsLocal);
 
             isMasterFlag.gameObject.SetActive(_player.IsMasterClient);
-
-
-            // reorder the list to match player number
             if (_index >= 0 && this.transform.GetSiblingIndex() != _index)
             {
                 this.transform.SetSiblingIndex(_index + 1);

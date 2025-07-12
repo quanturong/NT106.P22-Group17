@@ -1,13 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PunCockpitEmbed.cs" company="Exit Games GmbH">
-//   Part of: Photon Unity Networking Demos
-// </copyright>
-// <summary>
-//  Use this in scenes you want to leave Control for connection and pun related commands to Cockpit.
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System.Collections;
 
 using UnityEngine;
@@ -17,10 +8,6 @@ using Photon.Pun.UtilityScripts;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-    /// <summary>
-    /// Use this in scenes you want to leave Control for connection and pun related commands to Cockpit.
-    /// It requires ConnectAndJoinRandom, which it will control for connecting should the Cockpit scene not be present or succesfully loaded.
-    /// </summary>
     public class PunCockpitEmbed : MonoBehaviourPunCallbacks
     {
 
@@ -39,16 +26,12 @@ namespace Photon.Pun.Demo.Cockpit
                 LoadingIndicator.SetActive(false);
             }
         }
-
-        // Use this for initialization
         IEnumerator Start()
         {
 
 
             PunCockpit.Embedded = EmbeddCockpit;
             PunCockpit.EmbeddedGameTitle = CockpitGameTitle;
-
-            //Debug.Log (SceneManager.GetSceneByName (PunCockpit_scene).IsValid());
 
             SceneManager.LoadScene(PunCockpit_scene, LoadSceneMode.Additive);
 
@@ -76,7 +59,6 @@ namespace Photon.Pun.Demo.Cockpit
 
         public override void OnJoinedRoom()
         {
-            //Debug.Log("OnJoinedRoom", this);
 
             if (LoadingIndicator != null)
             {
@@ -85,7 +67,6 @@ namespace Photon.Pun.Demo.Cockpit
 
             if (PunCockpit.Instance != null)
             {
-                //Debug.Log("switch to minimal panel", this);
                 PunCockpit.Instance.SwitchtoMinimalPanel();
 
             }

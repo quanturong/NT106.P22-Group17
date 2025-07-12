@@ -81,7 +81,6 @@ namespace PlayFab.PfEditor
         void Update()
         {
             _timeCounter += _tick;
-            //Debug.LogFormat("ID:{0}  TimeCounter:{1}", this.Id, _timeCounter);
 
             try
             {
@@ -126,7 +125,6 @@ namespace PlayFab.PfEditor
                 {
                     if (_timeCounter >= runAfterSeconds.Key)
                     {
-                        //Debug.LogFormat("RunAfterSeconds: {0} >= {1}", runAfterSeconds.Key, _timeCounter);
                         shouldRunAfterTimes.RemoveAt(index);
                         if (!runAfterSeconds.Value.MoveNext())
                         {

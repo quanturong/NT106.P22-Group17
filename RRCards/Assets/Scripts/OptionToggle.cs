@@ -26,11 +26,8 @@ public class UIManager : MonoBehaviourPunCallbacks
         var roomManager = Object.FindFirstObjectByType<RoomManager>();
 
         bool shouldCountAsLoss = false;
-
-        // Nếu đang trong trận và có room manager → tính là thua
         if (PhotonNetwork.InRoom && roomManager != null)
         {
-            // Lấy trạng thái từ GameManager nếu cần
             var liarBarGameManager = FindObjectOfType<LiarBarGameManager>();
             if (liarBarGameManager != null && liarBarGameManager.currentState != LiarBarGameManager.GameState.GameOver)
             {
@@ -47,8 +44,7 @@ public class UIManager : MonoBehaviourPunCallbacks
         }
         else
         {
-            ShowStart(); // fallback nếu không trong trận
-        }
+            ShowStart();        }
     }
     private IEnumerator DisconnectAndGoToLobby()
     {

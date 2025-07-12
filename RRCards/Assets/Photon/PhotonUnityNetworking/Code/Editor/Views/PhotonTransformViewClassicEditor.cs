@@ -1,13 +1,4 @@
-﻿// ----------------------------------------------------------------------------
-// <copyright file="PhotonTransformViewClassicEditor.cs" company="Exit Games GmbH">
-//   PhotonNetwork Framework for Unity - Copyright (C) 2018 Exit Games GmbH
-// </copyright>
-// <summary>
-//   This is a custom editor for the TransformView component.
-// </summary>
-// <author>developer@exitgames.com</author>
-// ----------------------------------------------------------------------------
-
+﻿
 
 namespace Photon.Pun
 {
@@ -18,7 +9,6 @@ namespace Photon.Pun
     [CustomEditor(typeof(PhotonTransformViewClassic))]
     public class PhotonTransformViewClassicEditor : MonoBehaviourPunEditor
     {
-        //private PhotonTransformViewClassic m_Target;
 
         private SerializedProperty m_SynchronizePositionProperty;
         private SerializedProperty m_SynchronizeRotationProperty;
@@ -63,8 +53,6 @@ namespace Photon.Pun
             serializedObject.Update();
 
             base.OnInspectorGUI();
-
-            //this.m_Target = (PhotonTransformViewClassic) target;
 
             DrawIsPlayingWarning();
             GUI.enabled = !Application.isPlaying;
@@ -158,8 +146,6 @@ namespace Photon.Pun
             {
                 containerHeight += GetExtrapolateHelpBoxHeight();
             }
-
-            // removed Gizmo Options. -3 lines, -1 splitter
             containerHeight -= EDITOR_LINE_HEIGHT * 3;
 
             Rect rect = PhotonGUI.ContainerBody(containerHeight);

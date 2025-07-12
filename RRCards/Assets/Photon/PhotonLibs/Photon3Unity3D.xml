@@ -1315,11 +1315,9 @@
              Get this value directly in OnEvent() or OnOperationResponse(). Example:
              void OnEvent(...) {
                int eventSizeInBytes = this.peer.ByteCountCurrentDispatch;
-               //...
             
              void OnOperationResponse(...) {
                int resultSizeInBytes = this.peer.ByteCountCurrentDispatch;
-               //...
              </remarks>
         </member>
         <member name="P:ExitGames.Client.Photon.PhotonPeer.CommandInfoCurrentDispatch">

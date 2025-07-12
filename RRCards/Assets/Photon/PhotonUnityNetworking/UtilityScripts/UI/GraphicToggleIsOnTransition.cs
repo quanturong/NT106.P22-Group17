@@ -1,21 +1,10 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ImageToggleIsOnTransition.cs" company="Exit Games GmbH">
-// </copyright>
-// <summary>
-//  Use this on Toggle graphics to have some color transition as well without corrupting toggle's behaviour.
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Photon.Pun.UtilityScripts
 {
-    /// <summary>
-    /// Use this on toggles texts to have some color transition on the text depending on the isOn State.
-    /// </summary>
     [RequireComponent(typeof(Graphic))]
     public class GraphicToggleIsOnTransition : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {

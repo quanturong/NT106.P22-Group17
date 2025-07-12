@@ -1,9 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright company="Exit Games GmbH"/>
-// <summary>Demo code for Photon Chat in Unity.</summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System;
 using System.Collections.Generic;
 
@@ -20,23 +15,6 @@ using Photon.Pun;
 
 namespace Photon.Chat.Demo
 {
-    /// <summary>
-    /// This simple Chat UI demonstrate basics usages of the Chat Api
-    /// </summary>
-    /// <remarks>
-    /// The ChatClient basically lets you create any number of channels.
-    ///
-    /// some friends are already set in the Chat demo "DemoChat-Scene", 'Joe', 'Jane' and 'Bob', simply log with them so that you can see the status changes in the Interface
-    ///
-    /// Workflow:
-    /// Create ChatClient, Connect to a server with your AppID, Authenticate the user (apply a unique name,)
-    /// and subscribe to some channels.
-    /// Subscribe a channel before you publish to that channel!
-    ///
-    ///
-    /// Note:
-    /// Don't forget to call ChatClient.Service() on Update to keep the Chatclient operational.
-    /// </remarks>
     public class ChatGui : MonoBehaviour, IChatClientListener
     {
 
@@ -83,8 +61,6 @@ namespace Photon.Chat.Demo
         public GameObject Title;
         public Text StateText; // set in inspector
         public Text UserIdText; // set in inspector
-
-        // private static string WelcomeText = "Welcome to chat. Type \\help to list commands.";
         private static string HelpText = "\n    -- HELP --\n" +
             "To subscribe to channel(s) (channelnames are case sensitive) :  \n" +
                 "\t<color=#E07B00>\\subscribe</color> <color=green><list of channelnames></color>\n" +
@@ -166,8 +142,6 @@ namespace Photon.Chat.Demo
 
             this.ConnectingLabel.SetActive(true);
         }
-
-        /// <summary>To avoid that the Editor becomes unresponsive, disconnect all Photon connections in OnDestroy.</summary>
         public void OnDestroy()
         {
             if (this.chatClient != null)
@@ -175,8 +149,6 @@ namespace Photon.Chat.Demo
                 this.chatClient.Disconnect();
             }
         }
-
-        /// <summary>To avoid that the Editor becomes unresponsive, disconnect all Photon connections in OnApplicationQuit.</summary>
         public void OnApplicationQuit()
         {
             if (this.chatClient != null)
@@ -191,8 +163,6 @@ namespace Photon.Chat.Demo
             {
                 this.chatClient.Service(); // make sure to call this regularly! it limits effort internally, so calling often is ok!
             }
-
-            // check if we are missing context, which means we got kicked out to get back to the Photon Demo hub.
             if ( this.StateText == null)
             {
                 Destroy(this.gameObject);
@@ -246,13 +216,10 @@ namespace Photon.Chat.Demo
             string privateChatTarget = string.Empty;
             if (doingPrivateChat)
             {
-                // the channel name for a private conversation is (on the client!!) always composed of both user's IDs: "this:remote"
-                // so the remote ID is simple to figure out
 
                 string[] splitNames = this.selectedChannelName.Split(new char[] { ':' });
                 privateChatTarget = splitNames[1];
             }
-            //UnityEngine.Debug.Log("selectedChannelName: " + selectedChannelName + " doingPrivateChat: " + doingPrivateChat + " privateChatTarget: " + privateChatTarget);
 
 
             if (inputLine[0].Equals('\\'))
@@ -318,8 +285,6 @@ namespace Photon.Chat.Demo
                 else if ((tokens[0].Equals("\\join") || tokens[0].Equals("\\j")) && !string.IsNullOrEmpty(tokens[1]))
                 {
                     string[] subtokens = tokens[1].Split(new char[] { ' ', ',' }, 2);
-
-                    // If we are already subscribed to the channel we directly switch to it, otherwise we subscribe to it first and then switch to it implicitly
                     if (this.channelToggles.ContainsKey(subtokens[0]))
                     {
                         this.ShowChannel(subtokens[0]);
@@ -394,8 +359,6 @@ namespace Photon.Chat.Demo
             if (this.FriendsList!=null  && this.FriendsList.Length>0)
             {
                 this.chatClient.AddFriends(this.FriendsList); // Add some users to the server-list to get their status updates
-
-                // add to the UI as well
                 foreach(string _friend in this.FriendsList)
                 {
                     if (this.FriendListUiItemtoInstantiate != null && _friend!= this.UserName)
@@ -424,15 +387,12 @@ namespace Photon.Chat.Demo
 
         public void OnChatStateChange(ChatState state)
         {
-            // use OnConnected() and OnDisconnected()
-            // this method might become more useful in the future, when more complex states are being used.
 
             this.StateText.text = state.ToString();
         }
 
         public void OnSubscribed(string[] channels, bool[] results)
         {
-            // in this demo, we simply send a message into each channel. This is NOT a must have!
             foreach (string channel in channels)
             {
                 this.chatClient.PublishMessage(channel, "says 'hi'."); // you don't HAVE to send a msg on join but you could.
@@ -447,7 +407,6 @@ namespace Photon.Chat.Demo
             Debug.Log("OnSubscribed: " + string.Join(", ", channels));
 
             /*
-            // select first subscribed channel in alphabetical order
             if (this.chatClient.PublicChannels.Count > 0)
             {
                 var l = new List<string>(this.chatClient.PublicChannels.Keys);
@@ -465,12 +424,8 @@ namespace Photon.Chat.Demo
                 }
             }
             */
-
-            // Switch to the first newly created channel
             this.ShowChannel(channels[0]);
         }
-
-        /// <inheritdoc />
         public void OnSubscribed(string channel, string[] users, Dictionary<object, object> properties)
         {
             Debug.LogFormat("OnSubscribed: {0}, users.Count: {1} Channel-props: {2}.", channel, users.Length, properties.ToStringFull());
@@ -518,8 +473,6 @@ namespace Photon.Chat.Demo
                     this.channelToggles.Remove(channelName);
 
                     Debug.Log("Unsubscribed from channel '" + channelName + "'.");
-
-                    // Showing another channel if the active channel is the one we unsubscribed from before
                     if (channelName == this.selectedChannelName && this.channelToggles.Count > 0)
                     {
                         IEnumerator<KeyValuePair<string, Toggle>> firstEntry = this.channelToggles.GetEnumerator();
@@ -541,15 +494,12 @@ namespace Photon.Chat.Demo
         {
             if (channelName.Equals(this.selectedChannelName))
             {
-                // update text
                 this.ShowChannel(this.selectedChannelName);
             }
         }
 
         public void OnPrivateMessage(string sender, object message, string channelName)
         {
-            // as the ChatClient is buffering the messages for you, this GUI doesn't need to do anything here
-            // you also get messages that you sent yourself. in that case, the channelName is determinded by the target of your msg
             this.InstantiateChannelButton(channelName);
 
             byte[] msgBytes = message as byte[];
@@ -562,15 +512,6 @@ namespace Photon.Chat.Demo
                 this.ShowChannel(channelName);
             }
         }
-
-        /// <summary>
-        /// New status of another user (you get updates for users set in your friends list).
-        /// </summary>
-        /// <param name="user">Name of the user.</param>
-        /// <param name="status">New status of that user.</param>
-        /// <param name="gotMessage">True if the status contains a message you should cache locally. False: This status update does not include a
-        /// message (keep any you have).</param>
-        /// <param name="message">Message that user set.</param>
         public void OnStatusUpdate(string user, int status, bool gotMessage, object message)
         {
 
@@ -592,8 +533,6 @@ namespace Photon.Chat.Demo
         {
             Debug.LogFormat("OnUserUnsubscribed: channel=\"{0}\" userId=\"{1}\"", channel, user);
         }
-
-        /// <inheritdoc />
         public void OnChannelPropertiesChanged(string channel, string userId, Dictionary<object, object> properties)
         {
             Debug.LogFormat("OnChannelPropertiesChanged: {0} by {1}. Props: {2}.", channel, userId, Extensions.ToStringFull(properties));
@@ -603,8 +542,6 @@ namespace Photon.Chat.Demo
         {
             Debug.LogFormat("OnUserPropertiesChanged: (channel:{0} user:{1}) by {2}. Props: {3}.", channel, targetUserId, senderUserId, Extensions.ToStringFull(properties));
         }
-
-        /// <inheritdoc />
         public void OnErrorInfo(string channel, string error, object data)
         {
             Debug.LogFormat("OnErrorInfo for channel {0}. Error: {1} Data: {2}", channel, error, data);

@@ -1,10 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="FriendListView.cs" company="Exit Games GmbH">
-//   Part of: Pun Cockpit
-// </copyright>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿
 using System;
 using System.Collections;
 using System.Linq;
@@ -18,16 +12,8 @@ using Photon.Realtime;
 
 namespace Photon.Pun.Demo.Cockpit
 {
-
-    /// <summary>
-    /// Friend list UI view.
-    /// </summary>
     public class FriendListView : MonoBehaviourPunCallbacks
     {
-        /// <summary>
-        /// Friend detail class
-        /// This info comes from your social network and is meant to be matched against the friendInfo from Photon
-        /// </summary>
         [Serializable]
         public class FriendDetail
         {
@@ -132,7 +118,6 @@ namespace Photon.Pun.Demo.Cockpit
 
         public void JoinFriendRoom(string RoomName)
         {
-            //Debug.Log("FriendListView:JoinFriendRoom " + RoomName);
             OnJoinRoom.Invoke(RoomName);
         }
 

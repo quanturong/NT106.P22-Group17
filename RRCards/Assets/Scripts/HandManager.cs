@@ -13,8 +13,7 @@ public class HandManager : MonoBehaviour
     public GameObject prefabJoker;
 
     [Header("Panel chứa bài của người chơi")]
-    public Transform handPanel; // panel của người chơi này
-
+    public Transform handPanel;
     [Header("Lá bài úp giữa bàn")]
     public GameObject middleCardBack;
 
@@ -37,11 +36,7 @@ public class HandManager : MonoBehaviour
             { "A", prefabA },
             { "Joker", prefabJoker }
         };
-
-        // Kiểm tra prefabs
         ValidatePrefabs();
-
-        // Tạo deck và deal cards
         CreateFreshDeck();
         DealInitialCards();
     }
@@ -58,10 +53,8 @@ public class HandManager : MonoBehaviour
 
     void CreateFreshDeck()
     {
-        // Tạo deck hoàn toàn mới mỗi lần
         List<string> freshDeck = new List<string>();
-        freshDeck.AddRange(Repeat("K", 8));    // Tăng số lượng để đảm bảo đủ bài
-        freshDeck.AddRange(Repeat("Q", 8));
+        freshDeck.AddRange(Repeat("K", 8));        freshDeck.AddRange(Repeat("Q", 8));
         freshDeck.AddRange(Repeat("J", 8));
         freshDeck.AddRange(Repeat("A", 8));
         freshDeck.AddRange(Repeat("Joker", 6));
@@ -71,8 +64,6 @@ public class HandManager : MonoBehaviour
 
         Debug.Log($"[HANDMANAGER] Created fresh deck with {sharedDeck.Count} cards");
     }
-
-    // Method public để reset deck từ bên ngoài
     public static void ResetSharedDeck()
     {
         List<string> newDeck = new List<string>();
@@ -112,8 +103,6 @@ public class HandManager : MonoBehaviour
         }
 
         Debug.Log($"[HANDMANAGER] handPanel name: {handPanel.name}, position: {handPanel.position}");
-
-        // Kiểm tra xem deck có đủ bài không
         if (sharedDeck == null || sharedDeck.Count < numberOfCards)
         {
             Debug.LogWarning($"[HANDMANAGER] Deck has only {(sharedDeck?.Count ?? 0)} cards, reinitializing...");
@@ -123,10 +112,7 @@ public class HandManager : MonoBehaviour
         Debug.Log($"[HANDMANAGER] Starting to deal {numberOfCards} cards. Deck has {sharedDeck.Count} cards.");
 
         float delay = 0f;
-        float smallSpacing = 80f;  // TĂNG spacing để dễ thấy
-
-        // Đơn giản hóa positioning
-        float startX = -(numberOfCards - 1) * smallSpacing / 2f;
+        float smallSpacing = 80f;        float startX = -(numberOfCards - 1) * smallSpacing / 2f;
 
         int cardsDealt = 0;
         for (int i = 0; i < numberOfCards; i++)
@@ -159,8 +145,6 @@ public class HandManager : MonoBehaviour
                 Debug.LogError($"[HANDMANAGER] Failed to instantiate card: {cardName}");
                 continue;
             }
-
-            // Debug positioning
             Debug.Log($"[HANDMANAGER] Created card {cardName} at index {i}");
 
             RectTransform rt = cardObj.GetComponent<RectTransform>();
@@ -170,32 +154,21 @@ public class HandManager : MonoBehaviour
                 Destroy(cardObj);
                 continue;
             }
-
-            // Setup transform
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.localRotation = Quaternion.identity;
-            rt.localScale = Vector3.one; // HIỂN THỊ NGAY
-
-            // Tính vị trí đích
-            float targetX = startX + i * smallSpacing;
-            rt.anchoredPosition = new Vector2(targetX, 0f); // ĐẶT VỊ TRÍ NGAY
-
+            rt.localScale = Vector3.one;            float targetX = startX + i * smallSpacing;
+            rt.anchoredPosition = new Vector2(targetX, 0f);
             Debug.Log($"[HANDMANAGER] Card {cardName} positioned at {rt.anchoredPosition}");
 
             cardObj.transform.SetAsLastSibling();
             cardObj.SetActive(true);
-
-            // OPTIONAL: Thêm animation nhẹ nếu muốn
             if (delay > 0)
             {
                 rt.localScale = Vector3.zero;
                 rt.DOScale(Vector3.one, 0.3f)
-                  .SetDelay(delay * 0.1f) // Giảm delay
-                  .SetEase(Ease.OutBack);
+                  .SetDelay(delay * 0.1f)                  .SetEase(Ease.OutBack);
             }
-
-            // Ensure CardData component
             CardData cardData = cardObj.GetComponent<CardData>();
             if (cardData == null)
             {
@@ -213,8 +186,6 @@ public class HandManager : MonoBehaviour
         }
 
         Debug.Log($"[HANDMANAGER] Finished dealing {cardsDealt} cards. Current hand size: {currentHand.Count}. Deck remaining: {sharedDeck.Count}");
-
-        // DEBUG: List all children of handPanel
         Debug.Log($"[HANDMANAGER] handPanel children count: {handPanel.childCount}");
         for (int i = 0; i < handPanel.childCount; i++)
         {
@@ -230,8 +201,6 @@ public class HandManager : MonoBehaviour
         if (currentHand.Contains(card))
             currentHand.Remove(card);
     }
-
-    // Methods để support Liar's Bar
     public List<CardData> GetCardsByType(string cardType)
     {
         List<CardData> result = new List<CardData>();
@@ -257,15 +226,11 @@ public class HandManager : MonoBehaviour
     public void SetHand(List<CardData> newHand)
     {
         Debug.Log($"[HANDMANAGER] SetHand called with {newHand.Count} cards");
-
-        // DEBUG: Print all available prefab keys
         Debug.Log("[HANDMANAGER] Available prefab keys:");
         foreach (var kvp in cardPrefabMap)
         {
             Debug.Log($"[HANDMANAGER] - Key: '{kvp.Key}', Prefab: {(kvp.Value != null ? kvp.Value.name : "NULL")}");
         }
-
-        // Xóa tất cả card hiện tại NGAY LẬP TỨC
         List<GameObject> toDestroy = new List<GameObject>();
         for (int i = 0; i < handPanel.childCount; i++)
         {
@@ -282,18 +247,13 @@ public class HandManager : MonoBehaviour
         }
 
         currentHand.Clear();
-
-        // Tạo lại hand từ data mới
-        float smallSpacing = 80f; // Tăng spacing để dễ thấy
-        float startX = -(newHand.Count - 1) * smallSpacing / 2f;
+        float smallSpacing = 80f;        float startX = -(newHand.Count - 1) * smallSpacing / 2f;
 
         for (int i = 0; i < newHand.Count; i++)
         {
             var cardData = newHand[i];
 
             Debug.Log($"[HANDMANAGER] Processing card {i}: '{cardData.cardName}'");
-
-            // NORMALIZE CARD NAME để đảm bảo mapping đúng
             string normalizedCardName = NormalizeCardName(cardData.cardName);
             Debug.Log($"[HANDMANAGER] Normalized '{cardData.cardName}' to '{normalizedCardName}'");
 
@@ -323,42 +283,31 @@ public class HandManager : MonoBehaviour
                 Destroy(cardObj);
                 continue;
             }
-
-            // Setup transform
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.localRotation = Quaternion.identity;
             rt.localScale = Vector3.one;
-
-            // Position
             float targetX = startX + i * smallSpacing;
             rt.anchoredPosition = new Vector2(targetX, 0f);
 
             cardObj.SetActive(true);
-
-            // Ensure CardData component exists and is properly set
             CardData data = cardObj.GetComponent<CardData>();
             if (data == null)
             {
                 data = cardObj.AddComponent<CardData>();
             }
-            data.cardName = normalizedCardName; // SỬ DỤNG NORMALIZED NAME
-
+            data.cardName = normalizedCardName;
             currentHand.Add(data);
             Debug.Log($"[HANDMANAGER] SetHand - Successfully created card {i}: {data.cardName} at position {rt.anchoredPosition}");
         }
 
         Debug.Log($"[HANDMANAGER] SetHand completed with {currentHand.Count} cards");
     }
-
-    // THÊM METHOD ĐỂ NORMALIZE CARD NAMES
     string NormalizeCardName(string cardName)
     {
         if (string.IsNullOrEmpty(cardName)) return "";
 
         string normalized = cardName.Trim().ToUpper();
-
-        // Map các tên có thể có về dạng chuẩn
         switch (normalized)
         {
             case "KING":
@@ -378,16 +327,12 @@ public class HandManager : MonoBehaviour
                 return "A";
 
             case "JOKER":
-                return "Joker"; // Chú ý: Joker có chữ J viết hoa, còn lại thường
-
+                return "Joker";
             default:
-                // Nếu không match, thử trả về original
                 Debug.LogWarning($"[HANDMANAGER] Unknown card name: '{cardName}', using as-is");
                 return cardName;
         }
     }
-
-    // Method để tạo hand từ scratch (cho round mới)
     public void CreateNewHand()
     {
         Debug.Log("[HANDMANAGER] CreateNewHand() called - Creating new hand from scratch");
@@ -397,11 +342,7 @@ public class HandManager : MonoBehaviour
             Debug.LogError("[HANDMANAGER] handPanel is NULL! Cannot create new hand.");
             return;
         }
-
-        // Tạo deck hoàn toàn mới
         CreateFreshDeck();
-
-        // Xóa hand hiện tại NGAY LẬP TỨC (không dùng Destroy)
         Debug.Log($"[HANDMANAGER] Clearing current hand. Current count: {currentHand.Count}");
         List<GameObject> toDestroy = new List<GameObject>();
 
@@ -413,8 +354,6 @@ public class HandManager : MonoBehaviour
                 toDestroy.Add(child.gameObject);
             }
         }
-
-        // Destroy immediately
         foreach (var obj in toDestroy)
         {
             DestroyImmediate(obj);
@@ -423,8 +362,6 @@ public class HandManager : MonoBehaviour
         currentHand.Clear();
 
         Debug.Log("[HANDMANAGER] Cleared all children. Starting immediate card deal...");
-
-        // Tạo bài NGAY LẬP TỨC thay vì dùng Coroutine
         DealInitialCards();
 
         Debug.Log($"[HANDMANAGER] CreateNewHand completed. Final hand count: {currentHand.Count}");
